@@ -1,0 +1,29 @@
+{
+  "name": "BourseFi",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "prisma:generate": "prisma generate",
+    "prisma:push": "prisma db push",
+    "prisma:seed": "node prisma/seed.mjs",
+    "logo:transparent": "node scripts/make-logo-transparent.mjs",
+    "postinstall": "nuxt prepare && prisma generate"
+  },
+  "dependencies": {
+    "@nuxtjs/tailwindcss": "^6.13.2",
+    "@prisma/client": "^6.16.2",
+    "bcryptjs": "^3.0.3",
+    "nuxt": "^4.4.2",
+    "prisma": "^6.16.2",
+    "vue": "^3.5.32",
+    "vue-router": "^5.0.4",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "sharp": "^0.34.5"
+  }
+}

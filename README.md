@@ -1,37 +1,61 @@
+# BourseFi - Maquette Nuxt fullstack (Senegal)
 
-# BourseFi Senegal - Nuxt 3
-
-Projet frontend migre vers **Nuxt 3** avec une architecture propre, reusable et maintenable.
-Le rendu reprend fidèlement l'experience de la version precedente, renommee en **BourseFi Senegal**.
+Projet Nuxt 4 + Tailwind reproduisant la maquette BourseFi en francais, avec adaptation au contexte senegalais (Dakar, FCFA, Wave, Orange Money, etablissements locaux).
 
 ## Stack
 
-- `Nuxt 3` (Vue 3 + SSR-ready)
-- `Tailwind CSS` via `@nuxtjs/tailwindcss`
-- Structure modulaire par domaine (`components`, `composables`, `data`, `types`)
+- Nuxt 4 (Vue 3 + Nitro API)
+- Tailwind CSS
+- API fullstack via `server/api/*`
+- Persistance via Prisma + SQLite locale
+- Journal d'audit des actions sensibles
 
-## Structure
+## Pages principales
 
-- `pages/index.vue`: composition de la landing page
-- `components/layout`: header global
-- `components/sections`: sections de la homepage (hero, piliers, catalog, CTA)
-- `components/application`: modal candidature multi-etapes
-- `composables/useApplicationForm.ts`: etat et actions du formulaire
-- `data/schools.ts`: donnees des ecoles partenaires
-- `types/application.ts`: typage du domaine candidature
-- `plugins/reveal.client.ts`: animation au scroll reutilisable (`v-reveal`)
-- `server/api/applications.post.ts`: endpoint Nuxt pour soumettre la candidature
-- `assets/css/main.css`: styles globaux et classes utilitaires
-- `public/images/boursefi-logo.png`: logo de marque
+- `/` - Landing premium
+- `/marketplace` - Recherche de programmes
+- `/programmes` et `/programmes/[slug]` - Catalogue + detail formation
+- `/etablissements/[slug]` - Fiche etablissement
+- `/orientation` - Hub orientation
+- `/comparaison` - Matrice de comparaison
+- `/candidature` - Formulaire de candidature
+- `/paiement` - Paiement securise (Wave/Orange/PayTech)
+- `/etudiant/dashboard` - Espace etudiant
+- `/admin/dashboard` - Espace administration
+- `/admin/audit` - Audit des actions admin
+- `/partenaire/dashboard` - Espace partenaire institutionnel
+- `/partenaire/audit` - Audit partenaire
+- `/documents/pre-admission` - Lettre de pre-admission
 
-## Demarrage
+## API backend (fonctionnelles)
+
+- `GET /api/programmes`
+- `GET /api/etablissements`
+- `GET /api/dashboard/stats`
+- `GET /api/candidatures`
+- `POST /api/candidatures`
+- `GET /api/paiements`
+- `POST /api/paiements`
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `POST /api/auth/logout`
+- `GET /api/auth/me`
+- `GET /api/audit-logs`
+
+## Installation
 
 ```bash
 npm install
-npm run dev
+npm run prisma:generate
+npm run prisma:push
+npm run prisma:seed
 ```
 
-Application disponible sur `http://localhost:3000`.
+## Lancer en local
+
+```bash
+npm run dev
+```
 
 ## Build production
 
@@ -40,11 +64,8 @@ npm run build
 npm run preview
 ```
 
-## Bonnes pratiques appliquees
+## Comptes demo seedes
 
-- Separation claire UI / donnees / logique metier.
-- Typage TypeScript du formulaire et du catalogue.
-- Theme Tailwind centralise dans `tailwind.config.ts`.
-- Validation par etapes et soumission vers API interne Nuxt.
-- Nommage coherent et structure prete a evoluer (API, auth, i18n, etc.).
-  # BourseFi
+- Admin: `admin@boursefi.sn` / `Admin1234!`
+- Partenaire: `partenaire@boursefi.sn` / `Partner1234!`
+- Etudiant: `etudiant@boursefi.sn` / `Student1234!`

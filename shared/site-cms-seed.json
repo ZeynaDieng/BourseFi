@@ -1,0 +1,258 @@
+{
+  "siteContent": {
+    "visual_assets": {
+      "heroHome": "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1920&q=80",
+      "heroOrientation": "https://images.unsplash.com/photo-1571260899304-425eee4c7efc?auto=format&fit=crop&w=1400&q=80",
+      "heroMetiersHub": "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=1400&q=80",
+      "whyChooseBanner": "https://images.unsplash.com/photo-1529390079861-591de354faf5?auto=format&fit=crop&w=1600&q=80",
+      "stepExplore": "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=900&q=80",
+      "stepApply": "https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=900&q=80",
+      "stepDoc": "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=900&q=80",
+      "orientationDocs": "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=900&q=80",
+      "comparisonSection": "https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=1200&q=80"
+    },
+    "home_hero": {
+      "title": "",
+      "bannerImageUrl": "",
+      "headlinePrimary": "Votre avenir,",
+      "headlineAccent": "notre priorité.",
+      "subtitle": "",
+      "searchPlaceholder": "Rechercher une école, un domaine...",
+      "sectorOptions": [
+        "Tous les secteurs",
+        "Business & Finance",
+        "Technologie & IA",
+        "Sante & Sciences"
+      ],
+      "ctaLabel": "Demander une bourse",
+      "ctaHref": "/programmes"
+    },
+    "home_stats": {
+      "items": [
+        { "value": "25k+", "label": "Etudiants accompagnes" },
+        { "value": "180+", "label": "Ecoles & agences partenaires" },
+        { "value": "94%", "label": "Taux d'insertion" },
+        { "value": "40M+", "label": "Bourses distribuees" }
+      ]
+    },
+    "home_process": {
+      "sectionTitle": "Decouvrir les ecoles",
+      "sectionSubtitle": "De la selection d une formation au document telecharge emis par le bailleur.",
+      "cards": [
+        {
+          "step": "01",
+          "icon": "search_insights",
+          "variant": "light",
+          "title": "Choisir formation & ecole",
+          "body": "Fiches detaillees : debouches, brochures, partenaire financier et frais de dossier.",
+          "imageKey": "stepExplore"
+        },
+        {
+          "step": "02",
+          "icon": "verified_user",
+          "variant": "primary",
+          "title": "Pop-up candidature",
+          "body": "Vos infos personnelles sont saisies tres vite, puis paiement securise Wave / Orange Money (simulation).",
+          "imageKey": "stepApply"
+        },
+        {
+          "step": "03",
+          "icon": "rocket_launch",
+          "variant": "light",
+          "title": "Document bailleur",
+          "body": "Le partenaire valide et emet l attestation a presenter a l ecole. Vous la telechargez depuis votre espace.",
+          "imageKey": "stepDoc"
+        }
+      ]
+    },
+    "home_partner_section": {
+      "title": "Ecoles partenaires",
+      "subtitle": "Formations couvertes avec un bailleur mairie ou agence rattache.",
+      "ctaLabel": "Toutes les ecoles",
+      "ctaHref": "/ecoles"
+    },
+    "why_choose": {
+      "kicker": "Avantages",
+      "title": "Pourquoi choisir la plateforme",
+      "subtitle": "Un parcours pensé pour les familles et les étudiants au Sénégal : moins de friction, plus de clarté.",
+      "bannerImageKey": "whyChooseBanner",
+      "reasons": [
+        {
+          "icon": "schedule",
+          "title": "Gain de temps",
+          "description": "Une seule interface pour explorer les formations, comprendre les conditions et lancer votre dossier sans multiplier les déplacements."
+        },
+        {
+          "icon": "hub",
+          "title": "Centralisation des bourses",
+          "description": "Les opportunités financées par mairies, agences et bailleurs sont regroupées avec des fiches claires et à jour."
+        },
+        {
+          "icon": "visibility",
+          "title": "Suivi transparent",
+          "description": "Chaque étape de candidature est visible : statut, documents demandés et validation par le partenaire financier."
+        },
+        {
+          "icon": "smartphone",
+          "title": "Mobile partout au Sénégal",
+          "description": "Interface responsive et pensée pour les connexions mobiles : postulez et suivez votre dossier depuis votre smartphone."
+        }
+      ]
+    },
+    "financement": {
+      "kicker": "Financement",
+      "title": "Comment fonctionne le financement",
+      "subtitle": "Un modèle clair qui relie territoires, partenaires et bailleurs, jusqu'à l'attestation officielle.",
+      "steps": [
+        {
+          "actor": "Mairies",
+          "icon": "location_city",
+          "title": "Rôle des mairies",
+          "body": "Elles orientent les jeunes du territoire, vérifient l'éligibilité locale et peuvent recommander des dossiers aux partenaires financiers du dispositif."
+        },
+        {
+          "actor": "Agences",
+          "icon": "handshake",
+          "title": "Agences partenaires",
+          "body": "Les agences accompagnent les familles : information sur les formations, pré-contrôle des pièces et mise en relation avec les bailleurs."
+        },
+        {
+          "actor": "Bailleurs",
+          "icon": "account_balance",
+          "title": "Bailleurs & validation",
+          "body": "Les bailleurs valident le financement selon des critères publiés (niveau, filière, budget). Chaque décision est historisée pour plus de transparence."
+        },
+        {
+          "actor": "Processus",
+          "icon": "fact_check",
+          "title": "Validation & suivi",
+          "body": "Le traitement suit des étapes standardisées : dépôt, analyse, éventuel complément de dossier, puis décision. Vous suivez tout depuis votre tableau de bord."
+        }
+      ],
+      "closureTitle": "Attestation finale du bailleur",
+      "closureBody": "Une fois votre dossier validé par le partenaire financier (mairie, agence ou bailleur institutionnel), l'attestation est émise sur la plateforme. Vous la téléchargez depuis votre espace pour la présenter à l'établissement — preuve claire et traçable de votre financement."
+    },
+    "espace_etudiant": {
+      "kicker": "Espace étudiant",
+      "title": "Votre dossier, clair et à jour",
+      "subtitle": "Tableau de bord, alertes et documents : tout ce qu'il faut pour avancer sereinement, sur ordinateur ou téléphone.",
+      "ctaLabel": "Créer un compte gratuitement",
+      "ctaHref": "/auth/register",
+      "features": [
+        {
+          "icon": "dashboard",
+          "title": "Tableau de bord unifié",
+          "text": "Vue d'ensemble des candidatures, des échéances et des prochaines actions."
+        },
+        {
+          "icon": "timeline",
+          "title": "Suivi des candidatures",
+          "text": "Historique des statuts : dépôt, analyse, compléments et décision du partenaire."
+        },
+        {
+          "icon": "folder_open",
+          "title": "Documents centralisés",
+          "text": "Téléversement sécurisé et téléchargement des attestations et reçus quand ils sont prêts."
+        },
+        {
+          "icon": "notifications_active",
+          "title": "Notifications utiles",
+          "text": "Alertes lorsqu'une pièce est demandée ou lorsque votre dossier change de statut."
+        }
+      ]
+    },
+    "partners_strip": {
+      "kicker": "Réseau national",
+      "title": "Partenaires institutionnels",
+      "subtitle": "Le dispositif s'appuie sur un écosystème d'écoles, de collectivités, d'agences et de financeurs — même exigence qualité pour tous les territoires.",
+      "items": [
+        { "label": "Écoles · Dakar" },
+        { "label": "Écoles · Thiès" },
+        { "label": "Mairies" },
+        { "label": "Agences" },
+        { "label": "Bailleurs" },
+        { "label": "Fintech & banques" }
+      ]
+    },
+    "landing_metiers": {
+      "kicker": "Orientation",
+      "title": "Métiers & débouchés",
+      "subtitle": "Des parcours alignés sur la demande des entreprises et institutions au Sénégal et en Afrique de l'Ouest.",
+      "footnote": "Les fourchettes sont indicatives (FCFA / an, Dakar et grandes villes) et évoluent selon l'expérience."
+    },
+    "faq_section": {
+      "kicker": "FAQ",
+      "title": "Questions fréquentes"
+    },
+    "testimonials_section": {
+      "kicker": "Retours d'expérience",
+      "title": "Ils utilisent BourseFi au quotidien"
+    },
+    "orientation_page": {
+      "heroTitle": "Trouver votre voie professionnelle avec BourseFi",
+      "heroSubtitle": "Parcourez les métiers d’avenir reliés au catalogue de formations financées, puis affinez avec la comparaison ou la procédure de bourse sur chaque programme.",
+      "heroImageKey": "heroOrientation",
+      "guidesTitle": "Guides métiers",
+      "guidesSubtitle": "Contenus alignés sur le même référentiel que vos filtres « parcours » dans le catalogue.",
+      "comparisonTitle": "Comparaison côte à côte",
+      "comparisonSubtitle": "Sélectionnez jusqu’à quatre programmes réels du catalogue et comparez frais, durée, bailleur et débouchés.",
+      "comparisonImageKey": "comparisonSection",
+      "comparisonCtaLabel": "Ouvrir l’outil de comparaison",
+      "comparisonCtaHref": "/comparaison",
+      "domainsHeading": "Domaines d’orientation"
+    },
+    "metiers_hub_page": {
+      "kicker": "Orientation",
+      "title": "Guide des métiers",
+      "subtitle": "Chaque fiche relie un parcours professionnel aux formations financées sur la plateforme. Les contenus s’appuient sur le même référentiel que le catalogue des programmes.",
+      "footnote": "Les fourchettes salariales sont indicatives et évoluent selon l’expérience et le secteur.",
+      "heroImageKey": "heroMetiersHub"
+    }
+  },
+  "faq": [
+    {
+      "question": "Qui peut postuler ?",
+      "answer": "Les profils éligibles dépendent de chaque bourse et du bailleur : niveau d'études, résidence, filière. Chaque fiche formation indique les critères avant le dépôt du dossier."
+    },
+    {
+      "question": "Comment fonctionne une bourse sur BourseFi ?",
+      "answer": "Vous choisissez une formation couverte par un financement, déposez votre candidature en ligne et payez éventuellement les frais de dossier. Le partenaire financier étudie le dossier et émet une décision accessible sur votre espace."
+    },
+    {
+      "question": "Quels documents fournir ?",
+      "answer": "La liste dépend du programme : souvent pièce d'identité, derniers diplômes ou relevés, justificatif de domicile et lettre de motivation. Le formulaire vous indique exactement ce qui manque."
+    },
+    {
+      "question": "Peut-on postuler à plusieurs écoles ?",
+      "answer": "Oui, vous pouvez envoyer plusieurs candidatures si les conditions de chaque programme le permettent. Chaque dossier est suivi séparément dans votre tableau de bord."
+    },
+    {
+      "question": "Comment récupérer l'attestation ?",
+      "answer": "Une fois la décision favorable, l'attestation du bailleur est disponible au téléchargement depuis votre espace étudiant, avec un historique des validations."
+    },
+    {
+      "question": "Les frais sont-ils remboursables ?",
+      "answer": "Les éventuels frais de dossier et les règles de remboursement sont précisés sur la fiche de chaque programme et par le partenaire financier avant paiement."
+    }
+  ],
+  "testimonials": [
+    {
+      "initials": "AD",
+      "name": "Aminata D.",
+      "role": "Étudiante en data, Pikine",
+      "quote": "On voyait enfin où en était le dossier. Plus besoin de rappeler l'agence tous les jours : tout est sur le téléphone."
+    },
+    {
+      "initials": "MK",
+      "name": "Moussa K.",
+      "role": "Parent, Saint-Louis",
+      "quote": "Les étapes étaient claires pour les documents et les frais. L'attestation téléchargeable nous a rassurés avant la rentrée."
+    },
+    {
+      "initials": "IPE",
+      "name": "Institut partenaire · Dakar",
+      "role": "Service admissions",
+      "quote": "Les dossiers arrivent complets et tracés. On gagne du temps côté validation avec les bailleurs du programme."
+    }
+  ]
+}

@@ -1,0 +1,156 @@
+[
+  {
+    "slug": "dev-web",
+    "sortOrder": 0,
+    "published": true,
+    "label": "Développement Web",
+    "shortDescription": "Concevoir des applications et sites performants, du front au back, avec des stacks recherchées par les entreprises et startups.",
+    "salary": "350 000 – 1 500 000 FCFA",
+    "employability": "Très élevée",
+    "salaryNote": "Fourchettes indicatives (Dakar et grandes villes) ; varie selon entreprise et expérience.",
+    "missions": [
+      "Concevoir et maintenir des interfaces et API au service des utilisateurs.",
+      "Collaborer avec produit et design sur des cycles de livraison courts.",
+      "Assurer qualité, sécurité de base et performance des services web."
+    ],
+    "skills": ["JavaScript / TypeScript", "Frameworks web", "API REST", "Git", "Tests"],
+    "career": [
+      { "level": "Junior", "text": "Développement de features guidé, montée en stack technique." },
+      { "level": "Confirmé", "text": "Autonomie sur modules, mentors des plus juniors." },
+      { "level": "Lead", "text": "Architecture, choix techniques et coordination équipe." }
+    ],
+    "coverImageUrl": "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=900&q=80"
+  },
+  {
+    "slug": "cybersecurite",
+    "sortOrder": 1,
+    "published": true,
+    "label": "Cybersécurité",
+    "shortDescription": "Protéger les systèmes et données : audit, détection d'incidents et conformité dans un contexte de digitalisation accrue.",
+    "salary": "550 000 – 2 200 000 FCFA",
+    "employability": "Très élevée",
+    "salaryNote": "Demande forte dans banques, opérateurs et grandes structures.",
+    "missions": [
+      "Analyser la surface d'attaque et les politiques de sécurité.",
+      "Surveiller les incidents et répondre aux alertes (SOC).",
+      "Contribuer à la conformité et à la sensibilisation des utilisateurs."
+    ],
+    "skills": ["Réseau", "SSI", "Gestion des vulnérabilités", "Normes et réglementation", "Forensic (bases)"],
+    "career": [
+      { "level": "Junior", "text": "Tâches de supervision et documentation sécurité." },
+      { "level": "Confirmé", "text": "Audits, durcissement et projets transverses." },
+      { "level": "Senior", "text": "Stratégie sécurité, architecture et pilotage des risques." }
+    ],
+    "coverImageUrl": "https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=900&q=80"
+  },
+  {
+    "slug": "data-science",
+    "sortOrder": 2,
+    "published": true,
+    "label": "Data Science",
+    "shortDescription": "Transformer les données en décisions : modélisation, visualisation et indicateurs pour la finance, la santé et le retail.",
+    "salary": "500 000 – 2 000 000 FCFA",
+    "employability": "Élevée",
+    "salaryNote": "Intersection forte avec la finance et la conformité (scoring, fraude).",
+    "missions": [
+      "Préparer et explorer les jeux de données.",
+      "Construire des modèles prédictifs et des tableaux de bord.",
+      "Traduire les résultats pour les métiers et la direction."
+    ],
+    "skills": ["Python", "SQL", "Statistiques", "Machine learning", "Visualisation"],
+    "career": [
+      { "level": "Junior", "text": "Requêtes, reporting, soutien aux analyses." },
+      { "level": "Confirmé", "text": "Modèles, expérimentation et mise en production encadrée." },
+      { "level": "Senior", "text": "Feuille de route data, gouvernance et projets structurants." }
+    ],
+    "coverImageUrl": "https://images.unsplash.com/photo-1551288049-bebda4e38c71?auto=format&fit=crop&w=900&q=80"
+  },
+  {
+    "slug": "ia",
+    "sortOrder": 3,
+    "published": true,
+    "label": "Intelligence artificielle",
+    "shortDescription": "Automatisation, NLP et vision : compétences rares pour la recherche, les banques et les projets scale-up.",
+    "salary": "600 000 – 2 500 000 FCFA",
+    "employability": "Élevée",
+    "salaryNote": "Profils recherchés ; préparer un socle solide en math et programmation.",
+    "missions": [
+      "Concevoir et entraîner des modèles adaptés au contexte métier.",
+      "Intégrer l'IA dans des produits et processus existants.",
+      "Évaluer risques, biais et performances des systèmes."
+    ],
+    "skills": ["ML / deep learning", "NLP ou vision", "MLOps (bases)", "Mathématiques", "Python"],
+    "career": [
+      { "level": "Junior", "text": "Expérimentation, jeux de données et prototypage." },
+      { "level": "Confirmé", "text": "Projets IA de bout en bout avec les équipes métier." },
+      { "level": "Senior", "text": "Innovation, stratégie IA et partenariats techniques." }
+    ],
+    "coverImageUrl": "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&w=900&q=80"
+  },
+  {
+    "slug": "marketing-digital",
+    "sortOrder": 4,
+    "published": true,
+    "label": "Marketing digital",
+    "shortDescription": "Acquisition, contenus et performance : piloter la présence en ligne des marques locales et internationales.",
+    "salary": "300 000 – 1 200 000 FCFA",
+    "employability": "Élevée",
+    "salaryNote": "Très lié au secteur (agence, retail, fintech, médias).",
+    "missions": [
+      "Définir et piloter campagnes et contenus multicanal.",
+      "Mesurer la performance (analytics, CRM).",
+      "Collaborer avec commercial et produit sur la croissance."
+    ],
+    "skills": ["Stratégie digitale", "Réseaux sociaux", "SEO / SEA", "Analytics", "Rédaction"],
+    "career": [
+      { "level": "Junior", "text": "Exécution de campagnes et reporting." },
+      { "level": "Confirmé", "text": "Stratégie de funnel et budgets médias." },
+      { "level": "Senior", "text": "Positionnement marque et leadership marketing." }
+    ],
+    "coverImageUrl": "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=900&q=80"
+  },
+  {
+    "slug": "finance",
+    "sortOrder": 5,
+    "published": true,
+    "label": "Finance & banque",
+    "shortDescription": "Crédit, risques, conformité et fintech : métiers stables avec forte demande dans la zone UEMOA.",
+    "salary": "400 000 – 2 000 000 FCFA",
+    "employability": "Élevée",
+    "salaryNote": "Inclut des trajectoires type analyste risque / quant en environnement bancaire ou fintech.",
+    "missions": [
+      "Analyser risque, crédit et performance financière.",
+      "Contribuer à la conformité et au pilotage réglementaire (BCEAO, audits).",
+      "Soutenir produits digitaux (mobile money, inclusion financière)."
+    ],
+    "skills": ["Excel / outils quant", "Comptabilité & finance", "Réglementation", "SQL (souvent)", "Communication"],
+    "career": [
+      { "level": "Junior", "text": "Suivi portefeuille, reporting et analyses de base." },
+      { "level": "Confirmé", "text": "Modélisation risque, projets transverses ; rôle proche de l'analyse quant / risque." },
+      { "level": "Senior", "text": "Gouvernance risque, comités et pilotage stratégique." }
+    ],
+    "coverImageUrl": "https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=900&q=80"
+  },
+  {
+    "slug": "sante",
+    "sortOrder": 6,
+    "published": true,
+    "label": "Santé & sciences",
+    "shortDescription": "Santé publique, laboratoire, imagerie et gestion hospitalière : secteur en structuration et recrutement continu.",
+    "salary": "350 000 – 1 800 000 FCFA",
+    "employability": "Modérée à élevée",
+    "salaryNote": "Très dépendant du sous-secteur (public, privé, recherche).",
+    "missions": [
+      "Contribuer aux programmes de santé publique ou à la recherche appliquée.",
+      "Coordonner données, qualité et suivi de projets sanitaires.",
+      "S'adapter aux bailleurs et au secteur institutionnel."
+    ],
+    "skills": ["Méthodologie", "Biostatistiques (selon filière)", "Régulation santé", "Gestion de projet", "Langage professionnel"],
+    "career": [
+      { "level": "Junior", "text": "Terrain, laboratoire ou appui administratif technique." },
+      { "level": "Confirmé", "text": "Projets programmatiques et partenariats (ONG, État)." },
+      { "level": "Senior", "text": "Pilotage de dispositifs et influence sur les politiques locales." }
+    ],
+    "coverImageUrl": "https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?auto=format&fit=crop&w=900&q=80"
+  }
+]

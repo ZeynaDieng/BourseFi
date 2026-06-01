@@ -1,0 +1,216 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  ADMIN
+  PARTNER
+}
+
+enum CandidatureStatus {
+  SOUMIS
+  EN_ATTENTE_PAIEMENT
+  EN_REVUE_PARTENAIRE
+  COMPLEMENT_DEMANDE
+  ACCEPTE
+  REFUSE
+  DOCUMENT_EMIS
+}
+
+model Partner {
+  id                  String        @id @default(cuid())
+  name                String
+  slug                String        @unique
+  logoUrl             String?
+  contactEmail        String?
+  /// Part du montant total (0-100) attribuee au partenaire bailleur
+  partnerSharePercent Int           @default(75)
+  createdAt           DateTime      @default(now())
+  users               User[]
+  programmes          Programme[]
+  candidatures        Candidature[]
+}
+
+model Etablissement {
+  id              String      @id @default(cuid())
+  slug            String      @unique
+  nom             String
+  ville           String
+  accreditation   String?
+  site            String?
+  resume          String?
+  /// Photo d’en-tête (carte + hero fiche école)
+  coverImageUrl   String?
+  /// Logo affiché en pastille sur la photo
+  logoUrl         String?
+  /// Libellé métier du référentiel (ex. École d’ingénieur)
+  typeLabel       String?
+  programmes      Programme[]
+}
+
+model Programme {
+  id              String        @id @default(cuid())
+  slug            String        @unique
+  etablissementId String
+  etablissement   Etablissement @relation(fields: [etablissementId], references: [id], onDelete: Cascade)
+  partnerId       String
+  partner         Partner       @relation(fields: [partnerId], references: [id], onDelete: Restrict)
+  titre           String
+  ville           String
+  duree           String
+  fraisDossier    Int           @default(0)
+  fraisScolarite  Int
+  devise          String        @default("FCFA")
+  niveau          String
+  placement       String?
+  description     String
+  eligibilite     String?
+  brochureUrl     String?
+  perspectives    String?
+  candidatures    Candidature[]
+}
+
+model User {
+  id           String        @id @default(cuid())
+  name         String
+  email        String        @unique
+  passwordHash String
+  role         Role          @default(STUDENT)
+  partnerId    String?
+  partner      Partner?      @relation(fields: [partnerId], references: [id], onDelete: SetNull)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  sessions     Session[]
+  candidatures Candidature[]
+  paiements    Paiement[]
+  auditLogs    AuditLog[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+}
+
+model Candidature {
+  id               String            @id @default(cuid())
+  userId           String
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  programmeId      String
+  programme        Programme         @relation(fields: [programmeId], references: [id], onDelete: Restrict)
+  partnerId        String
+  partner          Partner           @relation(fields: [partnerId], references: [id], onDelete: Restrict)
+  firstName        String            @default("")
+  lastName         String            @default("")
+  fullName         String
+  email            String
+  phone            String            @default("")
+  address          String            @default("")
+  institution      String            @default("")
+  field            String            @default("")
+  level            String            @default("Non precise")
+  lastEducationLevel String          @default("")
+  lastDiploma      String            @default("")
+  graduationDate   String            @default("")
+  gpa              String            @default("")
+  targetProgram    String
+  status           CandidatureStatus @default(SOUMIS)
+  documentUrl      String?
+  documentIssuedAt DateTime?
+  identityCardRectoUrl String?
+  identityCardVersoUrl String?
+  createdAt        DateTime          @default(now())
+  paiement         Paiement?
+
+  @@index([partnerId])
+  @@index([programmeId])
+  @@index([status])
+}
+
+model Paiement {
+  id             String       @id @default(cuid())
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  candidatureId  String?      @unique
+  candidature    Candidature? @relation(fields: [candidatureId], references: [id], onDelete: SetNull)
+  fullName       String
+  email          String
+  phone          String
+  method         String
+  amount         Int
+  amountPartner  Int          @default(0)
+  amountPlatform Int          @default(0)
+  currency       String
+  status         String       @default("Valide")
+  createdAt      DateTime     @default(now())
+
+  @@index([userId])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  actor      User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  actorRole  String
+  action     String
+  entityType String
+  entityId   String?
+  metadata   String?
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([action])
+}
+
+/// Blocs JSON éditables (hero, sections landing, visuels globaux, etc.)
+model SiteContent {
+  key       String   @id
+  payload   Json
+  updatedAt DateTime @updatedAt
+}
+
+model FaqItem {
+  id        String   @id @default(cuid())
+  sortOrder Int      @default(0)
+  published Boolean  @default(true)
+  question  String
+  answer    String
+}
+
+model TestimonialItem {
+  id        String   @id @default(cuid())
+  sortOrder Int      @default(0)
+  published Boolean  @default(true)
+  initials  String?
+  name      String
+  role      String
+  quote     String
+  avatarUrl String?
+}
+
+/// Fiches « guide métier » (remplace le contenu statique côté affichage)
+model MetierPage {
+  id               String   @id @default(cuid())
+  slug             String   @unique
+  sortOrder        Int      @default(0)
+  published        Boolean  @default(true)
+  label            String
+  shortDescription String
+  salary           String
+  employability    String
+  salaryNote       String
+  missions         Json
+  skills           Json
+  career           Json
+  coverImageUrl    String?
+  updatedAt        DateTime @updatedAt
+}
