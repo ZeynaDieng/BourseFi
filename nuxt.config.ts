@@ -2,7 +2,11 @@
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
-  modules: ['@nuxtjs/tailwindcss'],
+  modules: ['@nuxtjs/tailwindcss', '@nuxtjs/sitemap'],
+  site: {
+    url: 'https://boursefi.sn',
+    name: 'BourseFi Senegal'
+  },
   css: ['~/assets/css/main.css'],
   app: {
     head: {
