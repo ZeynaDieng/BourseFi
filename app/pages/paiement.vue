@@ -101,8 +101,7 @@ async function submitPayment() {
         <div>
           <h1 class="font-headline text-4xl font-extrabold text-primary">Frais de dossier bourse</h1>
           <p class="text-slate-600">
-            Reglement securise avant envoi de votre dossier au bailleur partenaire. Simulation — integrer Wave / Orange Money en production.
-          </p>
+            Reglement securise avant envoi de votre dossier au bailleur partenaire.
           <p v-if="!authState?.user" class="mt-2 text-sm text-slate-600">
             Connexion requise.
             <NuxtLink to="/auth/login" class="font-semibold text-primary">Se connecter</NuxtLink>

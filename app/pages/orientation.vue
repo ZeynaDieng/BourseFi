@@ -27,7 +27,7 @@ const guidesTitle = computed(() => ori.value.guidesTitle || 'Guides métiers')
 const guidesSubtitle = computed(
   () =>
     ori.value.guidesSubtitle ||
-    'Contenus alignés sur le même référentiel que vos filtres « parcours » dans le catalogue.'
+    'Contenus alignés sur le même référentiel que vos filtres parcours  dans le catalogue.'
 )
 
 const comparisonTitle = computed(() => ori.value.comparisonTitle || 'Comparaison côte à côte')
@@ -107,7 +107,7 @@ useHead({
             <div class="rounded-xl bg-primary/5 p-3 text-primary">
               <span class="material-symbols-outlined">explore</span>
             </div>
-            <h2 class="font-headline text-4xl font-bold text-primary">« Quel métier viser ? »</h2>
+            <h2 class="font-headline text-4xl font-bold text-primary">Quel métier viser ? </h2>
           </div>
           <p class="mb-8 max-w-lg leading-relaxed text-slate-600">
             Chaque fiche métier est reliée aux formations présentes sur BourseFi (même filtre que le catalogue). Vous

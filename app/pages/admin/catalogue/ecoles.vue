@@ -95,7 +95,7 @@ async function submitDrawer() {
 async function remove(row: EcoleRow) {
   if (
     !confirm(
-      `Supprimer « ${row.nom} » et ses programmes ? Impossible s’il existe des candidatures liées.`
+      `Supprimer ${row.nom}  et ses programmes ? Impossible s’il existe des candidatures liées.`
     )
   ) {
     return

@@ -169,7 +169,7 @@ async function submitDrawer() {
 }
 
 async function remove(row: MetierRow) {
-  if (!confirm(`Supprimer la fiche « ${row.label} » ?`)) return
+  if (!confirm(`Supprimer la fiche ${row.label}  ?`)) return
   try {
     await $fetch(`/api/admin/metier-pages/${row.id}`, { method: 'DELETE' })
     await load()
@@ -189,7 +189,7 @@ const drawerTitle = computed(() => (editingId.value ? 'Modifier la fiche métier
         <div>
           <h2 class="admin-page-title">Fiches métiers</h2>
           <p class="admin-page-desc !mb-0">
-            Contenus « guide métier » du site. Pour le filtre formations, gardez les slugs alignés avec le fichier technique
+            Contenus guide métier  du site. Pour le filtre formations, gardez les slugs alignés avec le fichier technique
             <span class="font-mono text-xs">metier-tracks.ts</span>.
           </p>
         </div>

@@ -90,7 +90,7 @@ function normalizeForCatalogSearch(s: string): string {
     .trim();
 }
 
-/** Fragments après espaces ou « & » — on ne peut pas exiger le caractère & dans les fiches programmes. */
+/** Fragments après espaces ou &  — on ne peut pas exiger le caractère & dans les fiches programmes. */
 function catalogSearchFragments(rawQ: string): string[] {
   const n = normalizeForCatalogSearch(rawQ);
   if (!n.length) return [];
@@ -241,7 +241,7 @@ onBeforeUnmount(() => {
       >
         <p class="text-sm text-slate-700">
           <span class="font-headline font-semibold text-primary"
-            >Parcours « {{ metierLabel }} »</span
+            >Parcours {{ metierLabel }} </span
           >
           — formations du catalogue alignées sur ce métier (titres, contenus et
           débouchés).
@@ -324,8 +324,8 @@ onBeforeUnmount(() => {
             Aucune formation ne correspond à
             <span class="inline-block font-semibold text-primary">{{
               catalogSearch.trim()
-                ? "« " + catalogSearch.trim() + " »"
-                : "« cette recherche »"
+                ? "" + catalogSearch.trim() + " "
+                : "cette recherche "
             }}</span
             >. Essayez une autre formulation (ville, niveau, mot-clé…) ou élargissez les
             termes.

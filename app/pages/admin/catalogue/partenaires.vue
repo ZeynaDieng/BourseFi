@@ -78,7 +78,7 @@ async function submitDrawer() {
 }
 
 async function remove(row: PartnerRow) {
-  if (!confirm(`Supprimer « ${row.name} » ? Impossible s’il reste des programmes ou comptes liés.`)) return
+  if (!confirm(`Supprimer ${row.name}  ? Impossible s’il reste des programmes ou comptes liés.`)) return
   try {
     await $fetch(`/api/admin/partners/${row.id}`, { method: 'DELETE' })
     await load()

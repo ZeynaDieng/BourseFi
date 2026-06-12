@@ -41,8 +41,7 @@ const partners = computed(() => {
   const raw = (site.value?.content?.partners_strip as { items?: PItem[] } | undefined)?.items
   if (raw?.length) return raw
   return [
-    { label: 'Écoles · Dakar' },
-    { label: 'Écoles · Thiès' },
+    { label: 'Écoles ' },
     { label: 'Mairies' },
     { label: 'Agences' },
     { label: 'Bailleurs' },

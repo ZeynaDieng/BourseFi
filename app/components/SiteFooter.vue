@@ -22,7 +22,7 @@
         </NuxtLink>
         <NuxtLink class="block text-slate-300 underline-offset-4 transition hover:text-white hover:underline" to="/ecoles">Écoles partenaires</NuxtLink>
         <NuxtLink class="block text-slate-300 underline-offset-4 transition hover:text-white hover:underline" to="/programmes">Catalogue des formations</NuxtLink>
-        <NuxtLink class="block text-slate-300 underline-offset-4 transition hover:text-white hover:underline" to="/orientation">Orientation</NuxtLink>
+        <!-- <NuxtLink class="block text-slate-300 underline-offset-4 transition hover:text-white hover:underline" to="/orientation">Orientation</NuxtLink> -->
         <NuxtLink class="block normal-case tracking-normal text-slate-300 underline-offset-4 transition hover:text-white hover:underline" to="/candidature">Comment postuler</NuxtLink>
       </div>
       <div class="space-y-4">
@@ -33,7 +33,7 @@
       <div class="space-y-4">
         <h4 class="font-bold text-yellow-500">Assistance</h4>
         <a class="block text-slate-300 underline-offset-4 transition hover:text-white hover:underline" href="#">Contact support</a>
-        <a class="block text-slate-300 underline-offset-4 transition hover:text-white hover:underline" href="#">Partenaires institutionnels</a>
+       <!-- <a class="block text-slate-300 underline-offset-4 transition hover:text-white hover:underline" href="#">Partenaires institutionnels</a> -->
       </div>
     </div>
     <div class="mx-auto mt-12 max-w-7xl border-t border-white/10 pt-8 text-center text-slate-400">

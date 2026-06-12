@@ -14,7 +14,7 @@ const { data: me } = await useFetch('/api/auth/me')
         catalogue des formations
       </NuxtLink>
       ; choisissez un programme ; cliquez sur
-      <strong>Demander une bourse</strong> pour lire la procédure puis remplir le formulaire (connexion requise).
+      <strong>Demander une bourse</strong> pour lire la procédure puis remplir le formulaire .
       Les frais de dossier et le bailleur sont indiqués avant validation.
     </p>
     <ol class="mt-8 list-decimal space-y-3 pl-5 text-sm text-slate-700">

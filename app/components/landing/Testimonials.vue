@@ -34,7 +34,7 @@
               <p class="text-xs text-on-surface-variant">{{ t.role }}</p>
             </div>
           </div>
-          <p class="flex-1 text-sm leading-relaxed text-on-surface-variant">« {{ t.quote }} »</p>
+          <p class="flex-1 text-sm leading-relaxed text-on-surface-variant">{{ t.quote }} </p>
         </blockquote>
       </div>
     </div>

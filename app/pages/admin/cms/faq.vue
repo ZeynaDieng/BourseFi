@@ -105,7 +105,7 @@ const drawerTitle = computed(() => (editingId.value ? 'Modifier une question' : 
         <div>
           <h2 class="admin-page-title">FAQ</h2>
           <p class="admin-page-desc !mb-0">
-            Questions-réponses du site. L’ordre d’affichage suit le champ numérique « Ordre ».
+            Questions-réponses du site. L’ordre d’affichage suit le champ numérique Ordre .
           </p>
         </div>
         <button type="button" class="admin-btn-primary" @click="openCreate">+ Ajouter</button>

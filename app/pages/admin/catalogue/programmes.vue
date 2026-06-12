@@ -136,7 +136,7 @@ async function submitDrawer() {
 }
 
 async function remove(row: ProgrammeRow) {
-  if (!confirm(`Supprimer le programme « ${row.titre} » ?`)) return
+  if (!confirm(`Supprimer le programme ${row.titre}  ?`)) return
   try {
     await $fetch(`/api/admin/programmes/${row.id}`, { method: 'DELETE' })
     await loadAll()

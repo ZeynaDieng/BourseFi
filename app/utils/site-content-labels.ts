@@ -33,7 +33,7 @@ export const VISUAL_ASSET_HELP: Partial<Record<(typeof VISUAL_ASSET_KEYS)[number
   heroHome: 'Photo grande largeur sous le menu (accueil)',
   heroOrientation: 'En-tête page Orientation',
   heroMetiersHub: 'En-tête liste des métiers',
-  whyChooseBanner: 'Bandeau « Pourquoi nous choisir »',
+  whyChooseBanner: 'Bandeau Pourquoi nous choisir ',
   stepExplore: 'Carte étape 1 du parcours',
   stepApply: 'Carte étape 2 du parcours',
   stepDoc: 'Carte étape 3 du parcours',

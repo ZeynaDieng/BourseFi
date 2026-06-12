@@ -52,7 +52,7 @@
           "icon": "verified_user",
           "variant": "primary",
           "title": "Pop-up candidature",
-          "body": "Vos infos personnelles sont saisies tres vite, puis paiement securise Wave / Orange Money (simulation).",
+          "body": "Vos infos personnelles sont saisies tres vite, puis paiement securise Wave / Orange Money",
           "imageKey": "stepApply"
         },
         {
@@ -60,7 +60,7 @@
           "icon": "rocket_launch",
           "variant": "light",
           "title": "Document bailleur",
-          "body": "Le partenaire valide et emet l attestation a presenter a l ecole. Vous la telechargez depuis votre espace.",
+          "body": "Le partenaire valide et emet l'attestation a presenter a l'ecole. Vous la telechargez depuis votre espace.",
           "imageKey": "stepDoc"
         }
       ]
@@ -166,8 +166,7 @@
       "title": "Partenaires institutionnels",
       "subtitle": "Le dispositif s'appuie sur un écosystème d'écoles, de collectivités, d'agences et de financeurs — même exigence qualité pour tous les territoires.",
       "items": [
-        { "label": "Écoles · Dakar" },
-        { "label": "Écoles · Thiès" },
+        { "label": "Écoles" },
         { "label": "Mairies" },
         { "label": "Agences" },
         { "label": "Bailleurs" },
@@ -193,7 +192,7 @@
       "heroSubtitle": "Parcourez les métiers d’avenir reliés au catalogue de formations financées, puis affinez avec la comparaison ou la procédure de bourse sur chaque programme.",
       "heroImageKey": "heroOrientation",
       "guidesTitle": "Guides métiers",
-      "guidesSubtitle": "Contenus alignés sur le même référentiel que vos filtres « parcours » dans le catalogue.",
+      "guidesSubtitle": "Contenus alignés sur le même référentiel que vos filtres parcours  dans le catalogue.",
       "comparisonTitle": "Comparaison côte à côte",
       "comparisonSubtitle": "Sélectionnez jusqu’à quatre programmes réels du catalogue et comparez frais, durée, bailleur et débouchés.",
       "comparisonImageKey": "comparisonSection",

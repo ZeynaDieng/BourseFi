@@ -199,7 +199,7 @@ model TestimonialItem {
   avatarUrl String?
 }
 
-/// Fiches « guide métier » (remplace le contenu statique côté affichage)
+/// Fiches guide métier  (remplace le contenu statique côté affichage)
 model MetierPage {
   id               String   @id @default(cuid())
   slug             String   @unique

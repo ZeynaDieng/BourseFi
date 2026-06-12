@@ -166,7 +166,7 @@ function buildHeroCatalogLocation() {
     : { path: "/programmes" as const, hash: "#programmes-catalog" as const };
 }
 
-/** Ouvert le catalogue tant qu’il y a du texte ou un secteur autre que « Tous les secteurs ». */
+/** Ouvert le catalogue tant qu’il y a du texte ou un secteur autre que « Tous les secteurs . */
 function heroHasLiveCatalogTarget() {
   const hasText = heroSearchQ.value.trim().length > 0;
   const sector = heroSector.value && heroSector.value !== "Tous les secteurs";
