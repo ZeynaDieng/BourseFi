@@ -68,6 +68,11 @@ const PAGE_SIZE = 20;
 const currentPage = ref(1);
 
 const catalogSearch = ref("");
+const selectedSector = ref("Tous");
+const selectedCity = ref("Toutes les villes");
+const selectedLevel = ref("Tous les niveaux");
+
+const sectors = ["Tous", "Business & Finance", "Technologie & IA", "Sante & Sciences"];
 
 watch(
   () => route.query.q,
@@ -85,6 +90,16 @@ watch(
 
 const allProgrammes = computed(() => programmes.value ?? []);
 
+const cities = computed(() => {
+  const c = new Set(allProgrammes.value.map(p => p.ville));
+  return ["Toutes les villes", ...Array.from(c).sort()];
+});
+
+const levels = computed(() => {
+  const l = new Set(allProgrammes.value.map(p => p.niveau));
+  return ["Tous les niveaux", ...Array.from(l).sort()];
+});
+
 /** Configuration de Fuse.js pour la recherche floue et la pondération */
 const fuse = computed(() => {
   return new Fuse(allProgrammes.value, {
@@ -95,7 +110,7 @@ const fuse = computed(() => {
       { name: "ville", weight: 0.5 },
       { name: "description", weight: 0.3 }
     ],
-    threshold: 0.35, // Sensibilité aux fautes de frappe (0 = exact, 1 = tout match)
+    threshold: 0.35,
     distance: 100,
     ignoreLocation: true,
     minMatchCharLength: 2
@@ -103,10 +118,38 @@ const fuse = computed(() => {
 });
 
 const programmeList = computed(() => {
-  const q = catalogSearch.value.trim();
-  if (!q) return allProgrammes.value;
+  let base = allProgrammes.value;
 
-  const results = fuse.value.search(q);
+  // 1. Filtrage par secteur (si renseigné)
+  if (selectedSector.value !== "Tous") {
+    const fuseSect = new Fuse(base, { keys: ["titre", "description"], threshold: 0.4 });
+    base = fuseSect.search(selectedSector.value).map(r => r.item);
+  }
+
+  // 2. Filtrage par ville
+  if (selectedCity.value !== "Toutes les villes") {
+    base = base.filter(p => p.ville === selectedCity.value);
+  }
+
+  // 3. Filtrage par niveau
+  if (selectedLevel.value !== "Tous les niveaux") {
+    base = base.filter(p => p.niveau === selectedLevel.value);
+  }
+
+  // 4. Recherche textuelle floue
+  const q = catalogSearch.value.trim();
+  if (!q) return base;
+
+  const results = new Fuse(base, {
+    keys: [
+      { name: "titre", weight: 1.0 },
+      { name: "etablissement", weight: 0.8 },
+      { name: "partnerName", weight: 0.7 },
+      { name: "ville", weight: 0.5 }
+    ],
+    threshold: 0.35
+  }).search(q);
+  
   return results.map((r) => r.item);
 });
 
@@ -162,55 +205,69 @@ onBeforeUnmount(() => {
 
 <template>
   <main class="mx-auto max-w-7xl px-8 py-12">
-    <header class="mb-10 flex flex-col gap-6">
-      <div
-        class="flex flex-wrap items-end justify-between gap-4"
-      >
-        <div class="min-w-0 flex-1">
-          <h1 class="font-headline text-4xl font-extrabold text-primary">
-            Formations disponibles sous bourse
-          </h1>
-          <p class="mt-1 text-slate-600">
-            Choisissez une ligne du catalogue, ouvrez la fiche puis
-            <strong class="text-primary">demandez votre bourse</strong> en
-            quelques étapes (dossier, frais si besoin, suivi dans votre espace).
-          </p>
-        </div>
-        <NuxtLink
-          to="/comparaison"
-          class="shrink-0 rounded-lg border border-primary px-5 py-3 font-semibold text-primary"
-          >Comparer des programmes</NuxtLink
-        >
-      </div>
-      <div
-        class="flex flex-col gap-3 rounded-2xl border border-secondary/20 bg-secondary/5 px-4 py-4 sm:flex-row sm:items-center"
-      >
-        <label class="sr-only" for="catalog-search">Filtrer les formations</label>
-        <div
-          class="flex min-w-0 flex-1 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm transition-all duration-300 focus-within:border-primary/40 focus-within:ring-4 focus-within:ring-primary/5"
-        >
-          <span class="material-symbols-outlined text-slate-400 text-xl"
-            >search</span
+    <header class="mb-12">
+      <div class="flex flex-col gap-8">
+        <!-- Title & Stats -->
+        <div class="flex flex-wrap items-end justify-between gap-4">
+          <div class="min-w-0 flex-1">
+            <h1 class="font-headline text-4xl font-extrabold text-primary md:text-5xl">
+              Catalogue des Formations
+            </h1>
+            <p class="mt-2 text-lg text-slate-600">
+              Trouvez la bourse idéale parmi <span class="font-bold text-primary">{{ allProgrammes.length }}</span> programmes partenaires.
+            </p>
+          </div>
+          <NuxtLink
+            to="/comparaison"
+            class="group flex items-center gap-2 rounded-2xl bg-secondary-container/10 px-6 py-3 font-bold text-primary transition hover:bg-secondary-container/20"
           >
-          <input
-            id="catalog-search"
-            v-model="catalogSearch"
-            type="search"
-            enterkeyhint="search"
-            autocomplete="off"
-            class="min-w-0 flex-1 border-none bg-transparent text-sm focus:ring-0"
-            placeholder="Métier, école, ville, bailleur…"
-            @keydown.enter.prevent="syncCatalogQueryToUrl"
-            @blur="syncCatalogQueryToUrl"
-          />
+            <span class="material-symbols-outlined text-xl">compare_arrows</span>
+            Comparer
+          </NuxtLink>
         </div>
-        <button
-          type="button"
-          class="shrink-0 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white transition hover:opacity-95"
-          @click="syncCatalogQueryToUrl"
-        >
-          Appliquer le filtre
-        </button>
+
+        <!-- Search & Filter Bar -->
+        <div class="space-y-6 rounded-3xl border border-slate-100 bg-white p-6 shadow-2xl">
+          <!-- Text Search -->
+          <div class="flex flex-col gap-4 md:flex-row md:items-center">
+            <div class="flex flex-1 items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50 px-5 py-3.5 transition-all focus-within:border-primary/30 focus-within:ring-4 focus-within:ring-primary/5">
+              <span class="material-symbols-outlined text-slate-400">search</span>
+              <input
+                id="catalog-search"
+                v-model="catalogSearch"
+                type="search"
+                class="w-full border-none bg-transparent text-base focus:ring-0"
+                placeholder="Métier, école, ville..."
+              />
+            </div>
+            
+            <div class="flex gap-4">
+              <!-- City Filter -->
+              <select v-model="selectedCity" class="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3.5 text-sm font-semibold text-slate-700 outline-none focus:ring-2 focus:ring-primary/20">
+                <option v-for="c in cities" :key="c" :value="c">{{ c }}</option>
+              </select>
+              <!-- Level Filter -->
+              <select v-model="selectedLevel" class="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3.5 text-sm font-semibold text-slate-700 outline-none focus:ring-2 focus:ring-primary/20">
+                <option v-for="l in levels" :key="l" :value="l">{{ l }}</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Industry Chips -->
+          <div class="flex flex-wrap items-center gap-2 border-t border-slate-50 pt-4">
+            <span class="mr-2 text-xs font-bold uppercase tracking-wider text-slate-400">Secteurs :</span>
+            <button
+              v-for="s in sectors"
+              :key="s"
+              type="button"
+              class="rounded-full px-5 py-2 text-sm font-semibold transition-all"
+              :class="selectedSector === s ? 'bg-primary text-white shadow-lg' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+              @click="selectedSector = s"
+            >
+              {{ s }}
+            </button>
+          </div>
+        </div>
       </div>
     </header>
 
