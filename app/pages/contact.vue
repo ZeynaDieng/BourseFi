@@ -80,8 +80,8 @@ useHead({
               </div>
               <div>
                 <h3 class="text-xl font-bold text-primary">Téléphone</h3>
-                <p class="mt-1 text-slate-500">Lun - Ven, 9h à 18h</p>
-                <p class="mt-2 font-semibold text-primary">+221 33 000 00 00</p>
+                <p class="mt-1 text-slate-500">Disponible 24h/24, 7j/7</p>
+                <p class="mt-2 font-semibold text-primary">+221 77 778 04 56</p>
               </div>
             </div>
           </div>
@@ -93,8 +93,8 @@ useHead({
               </div>
               <div>
                 <h3 class="text-xl font-bold text-primary">Siège Social</h3>
-                <p class="mt-1 text-slate-500">Nos bureaux à Dakar</p>
-                <p class="mt-2 font-semibold text-primary italic">Dakar Plateau, Immeuble BourseFi</p>
+                <p class="mt-1 text-slate-500">Ouakam, Dakar</p>
+                <p class="mt-2 font-semibold text-primary italic">Dakar, Ouakam - Siège BourseFi</p>
               </div>
             </div>
           </div>
