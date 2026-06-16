@@ -7,9 +7,7 @@
           Guichet numerique pour les bourses d etudes dans les ecoles senegalaises avec les mairies et agences partenaires.
         </p>
         <div class="flex gap-3 text-slate-300">
-          <span class="material-symbols-outlined cursor-pointer transition hover:text-white">public</span>
           <span class="material-symbols-outlined cursor-pointer transition hover:text-white">mail</span>
-          <span class="material-symbols-outlined cursor-pointer transition hover:text-white">hub</span>
         </div>
       </div>
       <div class="space-y-4">
@@ -32,8 +30,7 @@
       </div>
       <div class="space-y-4">
         <h4 class="font-bold text-yellow-500">Assistance</h4>
-        <a class="block text-slate-300 underline-offset-4 transition hover:text-white hover:underline" href="#">Contact support</a>
-       <!-- <a class="block text-slate-300 underline-offset-4 transition hover:text-white hover:underline" href="#">Partenaires institutionnels</a> -->
+        <NuxtLink class="block text-slate-300 underline-offset-4 transition hover:text-white hover:underline" to="/contact">Contact support</NuxtLink>
       </div>
     </div>
     <div class="mx-auto mt-12 max-w-7xl border-t border-white/10 pt-8 text-center text-slate-400">

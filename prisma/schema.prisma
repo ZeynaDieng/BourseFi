@@ -216,3 +216,12 @@ model MetierPage {
   coverImageUrl    String?
   updatedAt        DateTime @updatedAt
 }
+
+model ContactMessage {
+  id         String   @id @default(cuid())
+  senderName String
+  email      String
+  subject    String
+  message    String   @db.Text
+  createdAt  DateTime @default(now())
+}

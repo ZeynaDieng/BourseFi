@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import Fuse from "fuse.js";
+
 const route = useRoute();
 const router = useRouter();
 
@@ -81,49 +83,32 @@ watch(
   { immediate: true },
 );
 
-/** Texte comparable (accents retirés) pour éviter faux négatifs en français. */
-function normalizeForCatalogSearch(s: string): string {
-  return s
-    .normalize("NFD")
-    .replace(/\p{Mn}/gu, "")
-    .toLocaleLowerCase("fr")
-    .trim();
-}
-
-/** Fragments après espaces ou &  — on ne peut pas exiger le caractère & dans les fiches programmes. */
-function catalogSearchFragments(rawQ: string): string[] {
-  const n = normalizeForCatalogSearch(rawQ);
-  if (!n.length) return [];
-  return n
-    .split(/[\s&/,-]+/)
-    .map((t) => t.replace(/[^\p{L}\p{N}]/gu, ""))
-    .filter((t) => t.length >= 2 || /^\d{1,6}$/.test(t));
-}
-
-function programmeMatchesSearch(
-  p: ProgrammeRow,
-  rawQ: string,
-) {
-  const frags = catalogSearchFragments(rawQ);
-  if (!frags.length) return true;
-  const hay = normalizeForCatalogSearch(
-    `${p.titre} ${p.etablissement} ${p.ville} ${p.partnerName} ${p.niveau} ${p.description ?? ""}`,
-  );
-
-  const full = normalizeForCatalogSearch(rawQ.replace(/&+/g, " "));
-  const condensed = normalizeForCatalogSearch(frags.join(" "));
-  if (hay.includes(full) || hay.includes(condensed)) return true;
-
-  return frags.every((frag) => hay.includes(frag));
-}
-
 const allProgrammes = computed(() => programmes.value ?? []);
 
-const programmeList = computed(() =>
-  allProgrammes.value.filter((p) =>
-    programmeMatchesSearch(p, catalogSearch.value),
-  ),
-);
+/** Configuration de Fuse.js pour la recherche floue et la pondération */
+const fuse = computed(() => {
+  return new Fuse(allProgrammes.value, {
+    keys: [
+      { name: "titre", weight: 1.0 },
+      { name: "etablissement", weight: 0.8 },
+      { name: "partnerName", weight: 0.7 },
+      { name: "ville", weight: 0.5 },
+      { name: "description", weight: 0.3 }
+    ],
+    threshold: 0.35, // Sensibilité aux fautes de frappe (0 = exact, 1 = tout match)
+    distance: 100,
+    ignoreLocation: true,
+    minMatchCharLength: 2
+  });
+});
+
+const programmeList = computed(() => {
+  const q = catalogSearch.value.trim();
+  if (!q) return allProgrammes.value;
+
+  const results = fuse.value.search(q);
+  return results.map((r) => r.item);
+});
 
 function syncCatalogQueryToUrl() {
   const q = catalogSearch.value.trim();
