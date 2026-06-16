@@ -225,11 +225,6 @@ watch([metierParam, programmeList, catalogSearch], () => {
 function goToPage(n: number) {
   const p = Math.min(Math.max(1, n), totalPages.value);
   currentPage.value = p;
-  nextTick(() => {
-    document
-      .getElementById("programmes-catalog")
-      ?.scrollIntoView({ behavior: "smooth", block: "start" });
-  });
 }
 
 onBeforeUnmount(() => {
