@@ -244,7 +244,7 @@ onBeforeUnmount(() => {
         <!-- Title & Stats -->
         <div class="flex flex-wrap items-end justify-between gap-4">
           <div class="min-w-0 flex-1">
-            <h1 class="font-headline text-4xl font-extrabold text-primary md:text-5xl">
+            <h1 class="font-headline text-4xl font-extrabold leading-[1.12] text-primary md:text-5xl md:leading-[1.1]">
               Catalogue des Formations
             </h1>
             <p class="mt-2 text-lg text-slate-600">

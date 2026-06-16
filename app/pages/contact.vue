@@ -51,7 +51,7 @@ useHead({
     <div class="mx-auto max-w-7xl">
       <!-- Hero Section -->
       <div class="mb-20 text-center">
-        <h1 class="font-headline text-5xl font-extrabold text-primary md:text-6xl">Contactez-nous</h1>
+        <h1 class="font-headline text-4xl font-extrabold leading-[1.12] text-primary md:text-5xl md:leading-[1.1]">Contactez-nous</h1>
         <p class="mt-6 mx-auto max-w-2xl text-lg text-slate-600 leading-relaxed">
           Notre équipe est là pour répondre à toutes vos questions concernant les bourses d'études, les partenariats ou le fonctionnement de la plateforme.
         </p>
