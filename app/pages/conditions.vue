@@ -1,7 +1,7 @@
 <template>
   <main class="mx-auto max-w-4xl px-8 py-20">
     <div class="mb-12 border-b border-slate-100 pb-12">
-      <h1 class="font-headline text-4xl font-extrabold leading-[1.12] text-primary md:text-5xl md:leading-[1.1]">Conditions d'Utilisation</h1>
+      <h1 class="font-headline text-5xl font-extrabold leading-[1.12] text-primary md:text-6xl md:leading-[1.1]">Conditions d'Utilisation</h1>
       <p class="mt-4 text-lg text-slate-600">Dernière mise à jour : 16 Juin 2026</p>
     </div>
 

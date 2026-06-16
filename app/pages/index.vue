@@ -186,8 +186,7 @@ function handleResultClick(p: any) {
   showLiveResults.value = false;
   router.push({
     path: "/programmes",
-    query: { q: p.titre },
-    hash: "#programmes-catalog"
+    query: { q: p.titre }
   });
 }
 
@@ -202,10 +201,9 @@ function buildHeroCatalogLocation() {
   return q.length
     ? {
         path: "/programmes" as const,
-        query: { q },
-        hash: "#programmes-catalog" as const,
+        query: { q }
       }
-    : { path: "/programmes" as const, hash: "#programmes-catalog" as const };
+    : { path: "/programmes" as const };
 }
 
 function submitHeroSearch() {
