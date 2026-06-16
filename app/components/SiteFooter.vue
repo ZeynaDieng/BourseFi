@@ -34,7 +34,11 @@
       </div>
     </div>
     <div class="mx-auto mt-12 max-w-7xl border-t border-white/10 pt-8 text-center text-slate-400">
-      © 2026 BourseFi Senegal. Tous droits reserves.
+      <div class="flex flex-col items-center justify-center gap-2 md:flex-row md:gap-4">
+        <span>© 2026 BourseFi Senegal. Tous droits reserves.</span>
+        <span class="hidden h-1 w-1 rounded-full bg-white/20 md:block"></span>
+        <span class="normal-case tracking-normal">Un produit de <span class="font-bold text-slate-200">MATKAM</span></span>
+      </div>
     </div>
   </footer>
 </template>
