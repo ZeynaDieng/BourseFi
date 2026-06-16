@@ -247,7 +247,7 @@ onBeforeUnmount(() => {
         </div>
 
         <!-- Search & Filter Bar -->
-        <div class="space-y-6 rounded-3xl border border-slate-100 bg-white p-6 shadow-2xl">
+        <div class="space-y-6 rounded-3xl border border-slate-100/50 bg-white p-6 shadow-premium">
           <!-- Text Search -->
           <div class="flex flex-col gap-4 md:flex-row md:items-center">
             <div class="flex flex-1 items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50 px-5 py-3.5 transition-all focus-within:border-primary/30 focus-within:ring-4 focus-within:ring-primary/5">
@@ -256,18 +256,18 @@ onBeforeUnmount(() => {
                 id="catalog-search"
                 v-model="catalogSearch"
                 type="search"
-                class="w-full border-none bg-transparent text-base focus:ring-0"
+                class="w-full border-none bg-transparent text-base outline-none focus:outline-none focus:ring-0 sm:text-sm md:text-base"
                 placeholder="Métier, école, ville..."
               />
             </div>
             
             <div class="flex gap-4">
               <!-- City Filter -->
-              <select v-model="selectedCity" class="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3.5 text-sm font-semibold text-slate-700 outline-none focus:ring-2 focus:ring-primary/20">
+              <select v-model="selectedCity" class="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3.5 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-primary/5 transition-all">
                 <option v-for="c in cities" :key="c" :value="c">{{ c }}</option>
               </select>
               <!-- Level Filter -->
-              <select v-model="selectedLevel" class="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3.5 text-sm font-semibold text-slate-700 outline-none focus:ring-2 focus:ring-primary/20">
+              <select v-model="selectedLevel" class="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3.5 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-primary/5 transition-all">
                 <option v-for="l in levels" :key="l" :value="l">{{ l }}</option>
               </select>
             </div>
@@ -330,55 +330,51 @@ onBeforeUnmount(() => {
     <div
       v-else
       id="programmes-catalog"
-      class="overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-2xl"
+      class="overflow-hidden rounded-3xl border border-slate-100/50 bg-white shadow-premium"
     >
       <!-- Table Actions / Pagination Header -->
       <div
-        class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-50 bg-slate-50/50 px-6 py-4"
+        class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-50 bg-slate-50/30 px-6 py-4"
       >
-        <p class="text-sm text-slate-500">
-          Affichage de <span class="font-bold text-primary">{{ pageRangeLabel }}</span> formations
+        <p class="text-sm font-medium text-slate-400">
+          Affichage de <span class="text-slate-600">{{ pageRangeLabel }}</span> formations
         </p>
-        <div v-if="totalPages > 1" class="flex items-center gap-2">
+        <div v-if="totalPages > 1" class="flex items-center gap-3">
           <button
             type="button"
-            class="flex h-10 w-10 items-center justify-center rounded-xl bg-white border border-slate-100 text-primary shadow-sm transition hover:bg-primary hover:text-white disabled:opacity-30"
+            class="flex h-9 w-9 items-center justify-center rounded-xl bg-white border border-slate-100 text-slate-400 transition hover:bg-primary hover:text-white hover:border-primary disabled:opacity-20"
             :disabled="currentPage <= 1"
             @click="goToPage(currentPage - 1)"
           >
-            <span class="material-symbols-outlined">chevron_left</span>
+            <span class="material-symbols-outlined text-xl">chevron_left</span>
           </button>
-          <span class="text-sm font-bold text-slate-600">Page {{ currentPage }} / {{ totalPages }}</span>
+          <span class="text-xs font-bold uppercase tracking-widest text-slate-400">Page {{ currentPage }} / {{ totalPages }}</span>
           <button
             type="button"
-            class="flex h-10 w-10 items-center justify-center rounded-xl bg-white border border-slate-100 text-primary shadow-sm transition hover:bg-primary hover:text-white disabled:opacity-30"
+            class="flex h-9 w-9 items-center justify-center rounded-xl bg-white border border-slate-100 text-slate-400 transition hover:bg-primary hover:text-white hover:border-primary disabled:opacity-20"
             :disabled="currentPage >= totalPages"
             @click="goToPage(currentPage + 1)"
           >
-            <span class="material-symbols-outlined">chevron_right</span>
+            <span class="material-symbols-outlined text-xl">chevron_right</span>
           </button>
         </div>
       </div>
 
       <!-- Desktop Table Header -->
       <div class="hidden border-b border-slate-50 bg-white px-6 py-4 md:flex">
-        <button @click="toggleSort('titre')" class="flex min-w-0 flex-[1.5] items-center gap-2 text-left text-xs font-bold uppercase tracking-wider text-slate-400 hover:text-primary">
-          Formation
+        <button @click="toggleSort('titre')" class="flex min-w-0 flex-[2] items-center gap-2 text-left text-[11px] font-bold uppercase tracking-widest text-slate-400 hover:text-primary transition-colors">
+          FORMATION & ÉTABLISSEMENT
           <span class="material-symbols-outlined text-sm">{{ sortField === 'titre' ? (sortOrder === 'asc' ? 'expand_less' : 'expand_more') : 'sort' }}</span>
         </button>
-        <button @click="toggleSort('etablissement')" class="flex w-[12rem] shrink-0 items-center gap-2 text-left text-xs font-bold uppercase tracking-wider text-slate-400 hover:text-primary lg:block">
-          Établissement
-          <span class="material-symbols-outlined text-sm">{{ sortField === 'etablissement' ? (sortOrder === 'asc' ? 'expand_less' : 'expand_more') : 'sort' }}</span>
-        </button>
-        <button @click="toggleSort('niveau')" class="flex w-24 shrink-0 items-center justify-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-400 hover:text-primary xl:flex">
-          Niveau
+        <button @click="toggleSort('niveau')" class="flex w-28 shrink-0 items-center justify-center gap-2 text-[11px] font-bold uppercase tracking-widest text-slate-400 hover:text-primary transition-colors xl:flex">
+          NIVEAU
           <span class="material-symbols-outlined text-sm">{{ sortField === 'niveau' ? (sortOrder === 'asc' ? 'expand_less' : 'expand_more') : 'sort' }}</span>
         </button>
-        <button @click="toggleSort('ville')" class="flex min-w-0 flex-1 items-center gap-2 px-4 text-left text-xs font-bold uppercase tracking-wider text-slate-400 hover:text-primary lg:block lg:max-w-[10rem]">
-          Ville
+        <button @click="toggleSort('ville')" class="flex min-w-0 flex-1 items-center gap-2 px-4 text-left text-[11px] font-bold uppercase tracking-widest text-slate-400 hover:text-primary transition-colors lg:block lg:max-w-[12rem]">
+          VILLE & BAILLEUR
           <span class="material-symbols-outlined text-sm">{{ sortField === 'ville' ? (sortOrder === 'asc' ? 'expand_less' : 'expand_more') : 'sort' }}</span>
         </button>
-        <div class="w-24 shrink-0 text-right text-xs font-bold uppercase tracking-wider text-slate-400">Action</div>
+        <div class="w-16 shrink-0 text-right text-[11px] font-bold uppercase tracking-widest text-slate-400">ACTION</div>
       </div>
 
       <!-- Table Rows -->
@@ -386,25 +382,25 @@ onBeforeUnmount(() => {
         <li
           v-for="programme in paginatedProgrammes"
           :key="programme.id"
-          class="group cursor-pointer transition-all hover:bg-slate-50/50"
+          class="group cursor-pointer transition-all hover:bg-slate-50/30"
           @click="openProcedurePopup(programme)"
         >
           <div class="flex flex-col gap-4 px-6 py-5 md:flex-row md:items-center md:gap-4 md:py-6">
             <!-- Training & School -->
-            <div class="min-w-0 flex-[1.5]">
+            <div class="min-w-0 flex-[2]">
               <h3 class="font-headline text-base font-bold text-primary transition-colors group-hover:text-secondary-fixed md:text-lg">
                 {{ programme.titre }}
               </h3>
-              <p class="mt-1 flex items-center gap-2 text-sm text-slate-500">
-                <span class="material-symbols-outlined text-sm">school</span>
+              <p class="mt-1.5 flex items-center gap-2 text-sm text-slate-500">
+                <span class="material-symbols-outlined text-sm text-slate-400">school</span>
                 {{ programme.etablissement }}
               </p>
             </div>
 
             <!-- Level Badge -->
-            <div class="hidden w-24 shrink-0 text-center xl:block">
+            <div class="hidden w-28 shrink-0 text-center xl:block">
               <span 
-                class="inline-block rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider"
+                class="inline-block rounded-lg px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider"
                 :class="{
                   'bg-blue-50 text-blue-600': programme.niveau.includes('Licence'),
                   'bg-purple-50 text-purple-600': programme.niveau.includes('Master'),
@@ -417,30 +413,30 @@ onBeforeUnmount(() => {
             </div>
 
             <!-- Meta info (City / Partner) -->
-            <div class="hidden min-w-0 flex-1 px-4 lg:block lg:max-w-[10rem]">
+            <div class="hidden min-w-0 flex-1 px-4 lg:block lg:max-w-[12rem]">
               <div class="flex items-center gap-1.5 text-sm font-medium text-slate-600">
                 <span class="material-symbols-outlined text-sm text-slate-400">location_on</span>
                 {{ programme.ville }}
               </div>
-              <p class="mt-1 truncate text-[10px] font-bold uppercase tracking-widest text-secondary opacity-70">
+              <p class="mt-1 truncate text-[9px] font-bold uppercase tracking-widest text-secondary/60">
                 {{ programme.partnerName }}
               </p>
             </div>
 
             <!-- Action Button -->
-            <div class="flex shrink-0 items-center justify-end md:w-24">
+            <div class="flex shrink-0 items-center justify-end md:w-16">
               <button
                 type="button"
                 class="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-white shadow-lg transition-all hover:scale-110 hover:shadow-primary/20 active:scale-95"
                 @click.stop="openProcedurePopup(programme)"
               >
-                <span class="material-symbols-outlined">send</span>
+                <span class="material-symbols-outlined text-xl">send</span>
               </button>
             </div>
 
             <!-- Mobile Only Info -->
             <div class="flex flex-wrap items-center gap-3 md:hidden">
-              <span class="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold uppercase text-slate-600">{{ programme.niveau }}</span>
+              <span class="rounded-lg bg-slate-100 px-2 py-1 text-[10px] font-bold uppercase text-slate-600">{{ programme.niveau }}</span>
               <span class="flex items-center gap-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                 <span class="material-symbols-outlined text-xs">location_on</span>
                 {{ programme.ville }}
