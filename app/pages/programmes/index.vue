@@ -72,7 +72,19 @@ const selectedSector = ref("Tous");
 const selectedCity = ref("Toutes les villes");
 const selectedLevel = ref("Tous les niveaux");
 
+const sortField = ref<"titre" | "etablissement" | "ville" | "niveau">("titre");
+const sortOrder = ref<"asc" | "desc">("asc");
+
 const sectors = ["Tous", "Business & Finance", "Technologie & IA", "Sante & Sciences"];
+
+function toggleSort(field: typeof sortField.value) {
+  if (sortField.value === field) {
+    sortOrder.value = sortOrder.value === "asc" ? "desc" : "asc";
+  } else {
+    sortField.value = field;
+    sortOrder.value = "asc";
+  }
+}
 
 watch(
   () => route.query.q,
@@ -138,19 +150,27 @@ const programmeList = computed(() => {
 
   // 4. Recherche textuelle floue
   const q = catalogSearch.value.trim();
-  if (!q) return base;
+  let results = base;
+  if (q) {
+    results = new Fuse(base, {
+      keys: [
+        { name: "titre", weight: 1.0 },
+        { name: "etablissement", weight: 0.8 },
+        { name: "partnerName", weight: 0.7 },
+        { name: "ville", weight: 0.5 }
+      ],
+      threshold: 0.35
+    }).search(q).map(r => r.item);
+  }
 
-  const results = new Fuse(base, {
-    keys: [
-      { name: "titre", weight: 1.0 },
-      { name: "etablissement", weight: 0.8 },
-      { name: "partnerName", weight: 0.7 },
-      { name: "ville", weight: 0.5 }
-    ],
-    threshold: 0.35
-  }).search(q);
-  
-  return results.map((r) => r.item);
+  // 5. Tri
+  return [...results].sort((a, b) => {
+    const field = sortField.value;
+    const valA = String(a[field]).toLowerCase();
+    const valB = String(b[field]).toLowerCase();
+    if (sortOrder.value === "asc") return valA.localeCompare(valB);
+    return valB.localeCompare(valA);
+  });
 });
 
 function syncCatalogQueryToUrl() {
@@ -310,162 +330,138 @@ onBeforeUnmount(() => {
     <div
       v-else
       id="programmes-catalog"
-      class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-premium"
+      class="overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-2xl"
     >
+      <!-- Table Actions / Pagination Header -->
       <div
-        class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 bg-slate-50/90 px-4 py-3"
+        class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-50 bg-slate-50/50 px-6 py-4"
       >
-        <p class="text-sm text-slate-600">
-          <span class="font-semibold text-primary">{{ pageRangeLabel }}</span>
-          <template v-if="totalCount > 0">
-            — formation<span v-if="totalCount !== 1">s</span>
-          </template>
+        <p class="text-sm text-slate-500">
+          Affichage de <span class="font-bold text-primary">{{ pageRangeLabel }}</span> formations
         </p>
-        <div v-if="totalPages > 1" class="flex items-center gap-2 text-sm">
+        <div v-if="totalPages > 1" class="flex items-center gap-2">
           <button
             type="button"
-            class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-medium text-primary transition hover:border-primary/30 disabled:cursor-not-allowed disabled:opacity-40"
+            class="flex h-10 w-10 items-center justify-center rounded-xl bg-white border border-slate-100 text-primary shadow-sm transition hover:bg-primary hover:text-white disabled:opacity-30"
             :disabled="currentPage <= 1"
             @click="goToPage(currentPage - 1)"
           >
-            Précédent
+            <span class="material-symbols-outlined">chevron_left</span>
           </button>
-          <span class="tabular-nums text-slate-600">
-            Page {{ currentPage }} / {{ totalPages }}
-          </span>
+          <span class="text-sm font-bold text-slate-600">Page {{ currentPage }} / {{ totalPages }}</span>
           <button
             type="button"
-            class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-medium text-primary transition hover:border-primary/30 disabled:cursor-not-allowed disabled:opacity-40"
+            class="flex h-10 w-10 items-center justify-center rounded-xl bg-white border border-slate-100 text-primary shadow-sm transition hover:bg-primary hover:text-white disabled:opacity-30"
             :disabled="currentPage >= totalPages"
             @click="goToPage(currentPage + 1)"
           >
-            Suivant
+            <span class="material-symbols-outlined">chevron_right</span>
           </button>
         </div>
       </div>
 
-      <div
-        class="hidden md:flex border-b border-slate-100 bg-white px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-slate-500"
-      >
-        <div class="min-w-0 flex-[1.2] pr-3">Formation</div>
-        <div class="hidden w-[11rem] shrink-0 lg:block">Établissement</div>
-        <div class="hidden w-16 shrink-0 text-center xl:block">Niveau</div>
-        <!-- <div class="hidden w-[5.5rem] shrink-0 text-right xl:block">Dossier</div -->
-        <div class="hidden min-w-0 flex-1 px-2 lg:block lg:max-w-[12rem]">
-          Bailleur
-        </div>
-        <div class="w-[7.5rem] shrink-0 text-right">Action</div>
+      <!-- Desktop Table Header -->
+      <div class="hidden border-b border-slate-50 bg-white px-6 py-4 md:flex">
+        <button @click="toggleSort('titre')" class="flex min-w-0 flex-[1.5] items-center gap-2 text-left text-xs font-bold uppercase tracking-wider text-slate-400 hover:text-primary">
+          Formation
+          <span class="material-symbols-outlined text-sm">{{ sortField === 'titre' ? (sortOrder === 'asc' ? 'expand_less' : 'expand_more') : 'sort' }}</span>
+        </button>
+        <button @click="toggleSort('etablissement')" class="flex w-[12rem] shrink-0 items-center gap-2 text-left text-xs font-bold uppercase tracking-wider text-slate-400 hover:text-primary lg:block">
+          Établissement
+          <span class="material-symbols-outlined text-sm">{{ sortField === 'etablissement' ? (sortOrder === 'asc' ? 'expand_less' : 'expand_more') : 'sort' }}</span>
+        </button>
+        <button @click="toggleSort('niveau')" class="flex w-24 shrink-0 items-center justify-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-400 hover:text-primary xl:flex">
+          Niveau
+          <span class="material-symbols-outlined text-sm">{{ sortField === 'niveau' ? (sortOrder === 'asc' ? 'expand_less' : 'expand_more') : 'sort' }}</span>
+        </button>
+        <button @click="toggleSort('ville')" class="flex min-w-0 flex-1 items-center gap-2 px-4 text-left text-xs font-bold uppercase tracking-wider text-slate-400 hover:text-primary lg:block lg:max-w-[10rem]">
+          Ville
+          <span class="material-symbols-outlined text-sm">{{ sortField === 'ville' ? (sortOrder === 'asc' ? 'expand_less' : 'expand_more') : 'sort' }}</span>
+        </button>
+        <div class="w-24 shrink-0 text-right text-xs font-bold uppercase tracking-wider text-slate-400">Action</div>
       </div>
 
-      <ul class="divide-y divide-slate-100">
-        <li
-          v-if="totalCount === 0 && programmes && programmes.length > 0"
-          class="bg-white px-4 py-12 text-center"
-        >
-          <p class="text-sm leading-relaxed text-slate-600">
-            Aucune formation ne correspond à
-            <span class="inline-block font-semibold text-primary">{{
-              catalogSearch.trim()
-                ? "" + catalogSearch.trim() + " "
-                : "cette recherche "
-            }}</span
-            >. Essayez une autre formulation (ville, niveau, mot-clé…) ou élargissez les
-            termes.
-          </p>
-          <button
-            type="button"
-            class="mt-5 rounded-xl border border-primary/30 bg-secondary-container/90 px-4 py-2.5 text-sm font-semibold text-on-secondary-container hover:opacity-95"
-            @click="
-              catalogSearch = '';
-              syncCatalogQueryToUrl();
-            "
-          >
-            Effacer et tout afficher
-          </button>
-        </li>
+      <!-- Table Rows -->
+      <ul class="divide-y divide-slate-50">
         <li
           v-for="programme in paginatedProgrammes"
           :key="programme.id"
-          class="transition-colors hover:bg-slate-50/60"
+          class="group cursor-pointer transition-all hover:bg-slate-50/50"
+          @click="openProcedurePopup(programme)"
         >
-          <div
-            class="flex flex-col gap-2 px-4 py-3 md:flex-row md:items-center md:gap-3 md:py-2.5"
-          >
-            <div class="min-w-0 flex-[1.2] pr-0 md:pr-3">
-              <p
-                class="font-headline text-sm font-semibold leading-snug text-primary md:line-clamp-2"
-              >
+          <div class="flex flex-col gap-4 px-6 py-5 md:flex-row md:items-center md:gap-4 md:py-6">
+            <!-- Training & School -->
+            <div class="min-w-0 flex-[1.5]">
+              <h3 class="font-headline text-base font-bold text-primary transition-colors group-hover:text-secondary-fixed md:text-lg">
                 {{ programme.titre }}
+              </h3>
+              <p class="mt-1 flex items-center gap-2 text-sm text-slate-500">
+                <span class="material-symbols-outlined text-sm">school</span>
+                {{ programme.etablissement }}
               </p>
-              <p class="mt-0.5 line-clamp-2 text-xs text-slate-500 md:hidden">
-                {{ programme.etablissement }} · {{ programme.ville }} ·
+            </div>
+
+            <!-- Level Badge -->
+            <div class="hidden w-24 shrink-0 text-center xl:block">
+              <span 
+                class="inline-block rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider"
+                :class="{
+                  'bg-blue-50 text-blue-600': programme.niveau.includes('Licence'),
+                  'bg-purple-50 text-purple-600': programme.niveau.includes('Master'),
+                  'bg-emerald-50 text-emerald-600': programme.niveau.includes('BTS') || programme.niveau.includes('DTS'),
+                  'bg-slate-50 text-slate-600': !['Licence', 'Master', 'BTS', 'DTS'].some(n => programme.niveau.includes(n))
+                }"
+              >
                 {{ programme.niveau }}
-                <span class="text-secondary">
-                  · {{ programme.partnerName }}</span
-                >
+              </span>
+            </div>
+
+            <!-- Meta info (City / Partner) -->
+            <div class="hidden min-w-0 flex-1 px-4 lg:block lg:max-w-[10rem]">
+              <div class="flex items-center gap-1.5 text-sm font-medium text-slate-600">
+                <span class="material-symbols-outlined text-sm text-slate-400">location_on</span>
+                {{ programme.ville }}
+              </div>
+              <p class="mt-1 truncate text-[10px] font-bold uppercase tracking-widest text-secondary opacity-70">
+                {{ programme.partnerName }}
               </p>
             </div>
-            <div
-              class="hidden min-w-0 text-xs text-slate-600 lg:block lg:w-[11rem] lg:shrink-0 lg:truncate"
-              :title="`${programme.etablissement} · ${programme.ville}`"
-            >
-              {{ programme.etablissement }} · {{ programme.ville }}
-            </div>
-            <div
-              class="hidden w-16 shrink-0 text-center text-xs font-medium text-slate-600 xl:block"
-            >
-              {{ programme.niveau }}
-            </div>
-            <!-- <div
-              class="hidden w-[5.5rem] shrink-0 text-right text-xs text-slate-600 xl:block"
-            >
-              <template v-if="programme.fraisDossier > 0">
-                {{ programme.fraisDossier.toLocaleString("fr-FR") }}
-                {{ programme.devise }}
-              </template>
-              <span v-else class="text-slate-400">—</span>
-            </div> -->
-            <div
-              class="hidden min-w-0 flex-1 px-0 text-xs font-medium text-secondary lg:block lg:max-w-[12rem] lg:truncate"
-              :title="programme.partnerName"
-            >
-              {{ programme.partnerName }}
-            </div>
-            <div class="flex shrink-0 justify-end md:w-[7.5rem] md:justify-end">
+
+            <!-- Action Button -->
+            <div class="flex shrink-0 items-center justify-end md:w-24">
               <button
                 type="button"
-                class="rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-white transition hover:opacity-95 md:py-1.5"
-                title="Voir la procédure et demander une bourse pour cette formation"
-                @click="openProcedurePopup(programme)"
+                class="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-white shadow-lg transition-all hover:scale-110 hover:shadow-primary/20 active:scale-95"
+                @click.stop="openProcedurePopup(programme)"
               >
-                Demander une bourse
+                <span class="material-symbols-outlined">send</span>
               </button>
+            </div>
+
+            <!-- Mobile Only Info -->
+            <div class="flex flex-wrap items-center gap-3 md:hidden">
+              <span class="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold uppercase text-slate-600">{{ programme.niveau }}</span>
+              <span class="flex items-center gap-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                <span class="material-symbols-outlined text-xs">location_on</span>
+                {{ programme.ville }}
+              </span>
             </div>
           </div>
         </li>
       </ul>
 
-      <div
-        v-if="totalPages > 1"
-        class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 bg-slate-50/50 px-4 py-3"
-      >
-        <p class="text-xs text-slate-500">{{ pageRangeLabel }}</p>
-        <div class="flex items-center gap-2 text-sm">
+      <!-- Bottom Pagination -->
+      <div v-if="totalPages > 1" class="border-t border-slate-50 bg-slate-50/30 px-6 py-6">
+        <div class="flex items-center justify-center gap-2">
           <button
+            v-for="p in totalPages"
+            :key="p"
             type="button"
-            class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-medium text-primary transition hover:border-primary/30 disabled:cursor-not-allowed disabled:opacity-40"
-            :disabled="currentPage <= 1"
-            @click="goToPage(currentPage - 1)"
+            class="flex h-10 w-10 items-center justify-center rounded-xl border font-bold transition-all"
+            :class="currentPage === p ? 'bg-primary border-primary text-white shadow-xl' : 'bg-white border-slate-100 text-slate-500 hover:border-primary/30 hover:text-primary'"
+            @click="goToPage(p)"
           >
-            Précédent
-          </button>
-          <button
-            type="button"
-            class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-medium text-primary transition hover:border-primary/30 disabled:cursor-not-allowed disabled:opacity-40"
-            :disabled="currentPage >= totalPages"
-            @click="goToPage(currentPage + 1)"
-          >
-            Suivant
+            {{ p }}
           </button>
         </div>
       </div>
