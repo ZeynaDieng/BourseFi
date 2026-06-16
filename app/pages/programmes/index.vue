@@ -64,7 +64,7 @@ function onCandidatureSubmitted(payload: {
   }
 }
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 10;
 const currentPage = ref(1);
 
 const catalogSearch = ref("");
