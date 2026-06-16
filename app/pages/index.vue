@@ -370,7 +370,7 @@ useSeoMeta({
             </div>
 
             <form
-              class="home-hero-stagger-item grid w-full max-w-none grid-cols-1 gap-3 rounded-2xl border border-slate-100/95 bg-white/95 p-3 shadow-premium backdrop-blur-md sm:gap-3 md:p-4 md:grid-cols-[minmax(11rem,1.35fr)_minmax(10rem,.95fr)_auto]"
+              class="home-hero-stagger-item grid w-full max-w-none grid-cols-1 gap-3 rounded-2xl border border-slate-100/95 bg-white/95 p-3 shadow-premium backdrop-blur-md transition-all duration-300 focus-within:border-primary/30 focus-within:ring-4 focus-within:ring-primary/5 sm:gap-3 md:p-4 md:grid-cols-[minmax(11rem,1.35fr)_minmax(10rem,.95fr)_auto]"
               @submit.prevent="submitHeroSearch"
             >
               <div

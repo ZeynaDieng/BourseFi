@@ -202,7 +202,7 @@ onBeforeUnmount(() => {
       >
         <label class="sr-only" for="catalog-search">Filtrer les formations</label>
         <div
-          class="flex min-w-0 flex-1 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm"
+          class="flex min-w-0 flex-1 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm transition-all duration-300 focus-within:border-primary/40 focus-within:ring-4 focus-within:ring-primary/5"
         >
           <span class="material-symbols-outlined text-slate-400 text-xl"
             >search</span
