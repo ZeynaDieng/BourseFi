@@ -223,7 +223,7 @@ async function submitPayment() {
             <h3 class="mb-6 font-headline text-2xl font-bold">Résumé</h3>
             <div v-if="dossier" class="mb-6 flex gap-4 rounded-xl bg-white/5 p-4 border border-white/10">
               <div class="h-16 w-16 overflow-hidden rounded-lg bg-white/10">
-                <img src="/logo.png" alt="" class="h-full w-full object-cover" @error="(e: any) => e.target.style.display='none'" />
+                <img src="/boursefi-logo.png" alt="" class="h-full w-full object-cover" @error="(e: any) => e.target.style.display='none'" />
               </div>
               <div class="flex-1 text-sm min-w-0">
                 <p class="truncate font-bold text-secondary-fixed">{{ dossier.programmeTitre }}</p>
