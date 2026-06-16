@@ -1,9 +1,14 @@
 <script setup lang="ts">
+import Fuse from "fuse.js";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import type { PartnerSchoolCardEcole } from "~/types/partner-school-card";
 
 const { data: ecoles } = await useFetch("/api/etablissements");
 const { data: site } = await usePublicSite();
+
+// Chargement de tous les programmes pour la recherche live sur l'accueil
+const { data: allProgrammesRaw } = await useFetch("/api/programmes");
+const allProgrammes = computed(() => allProgrammesRaw.value ?? []);
 
 const ecolesPartenairesLanding = computed(
   () =>
@@ -76,7 +81,6 @@ watch(
 );
 
 onUnmounted(() => {
-  clearTimeout(heroCatalogLiveTimer);
   if (heroCarouselTimer) clearInterval(heroCarouselTimer);
 });
 
@@ -132,6 +136,7 @@ const ctaLabel = computed(
 
 const heroSearchQ = ref("");
 const heroSector = ref("");
+const showLiveResults = ref(false);
 
 watch(
   sectorOptions,
@@ -147,7 +152,32 @@ watch(
 const router = useRouter();
 const route = useRoute();
 
-let heroCatalogLiveTimer: ReturnType<typeof setTimeout> | undefined;
+/** Configuration Fuse.js pour la recherche live sur l'accueil */
+const fuse = computed(() => {
+  return new Fuse(allProgrammes.value, {
+    keys: [
+      { name: "titre", weight: 1.0 },
+      { name: "etablissement", weight: 0.8 },
+      { name: "partnerName", weight: 0.7 }
+    ],
+    threshold: 0.4
+  });
+});
+
+const liveResults = computed(() => {
+  const q = heroSearchQ.value.trim();
+  if (q.length < 2) return [];
+  return fuse.value.search(q).slice(0, 6).map(r => r.item);
+});
+
+function handleResultClick(p: any) {
+  showLiveResults.value = false;
+  router.push({
+    path: "/programmes",
+    query: { q: p.titre },
+    hash: "#programmes-catalog"
+  });
+}
 
 function buildHeroCatalogLocation() {
   const terms: string[] = [];
@@ -166,35 +196,8 @@ function buildHeroCatalogLocation() {
     : { path: "/programmes" as const, hash: "#programmes-catalog" as const };
 }
 
-/** Ouvert le catalogue tant qu’il y a du texte ou un secteur autre que « Tous les secteurs . */
-function heroHasLiveCatalogTarget() {
-  const hasText = heroSearchQ.value.trim().length > 0;
-  const sector = heroSector.value && heroSector.value !== "Tous les secteurs";
-  return !!(hasText || sector);
-}
-
-function flushHeroCatalogNavigation() {
-  heroCatalogLiveTimer = undefined;
-  if (!heroHasLiveCatalogTarget()) return;
-
-  const loc = buildHeroCatalogLocation();
-  if (route.path === "/programmes") {
-    void router.replace(loc);
-  } else {
-    void router.push(loc);
-  }
-}
-
-function scheduleHeroCatalogWhileTyping() {
-  clearTimeout(heroCatalogLiveTimer);
-  heroCatalogLiveTimer = setTimeout(() => {
-    flushHeroCatalogNavigation();
-  }, 380);
-}
-
 function submitHeroSearch() {
-  clearTimeout(heroCatalogLiveTimer);
-  heroCatalogLiveTimer = undefined;
+  showLiveResults.value = false;
   void router.push(buildHeroCatalogLocation());
 }
 
@@ -370,16 +373,12 @@ useSeoMeta({
             </div>
 
             <form
-              class="home-hero-stagger-item grid w-full max-w-none grid-cols-1 gap-3 rounded-2xl border border-slate-100/95 bg-white/95 p-3 shadow-premium backdrop-blur-md transition-all duration-300 focus-within:border-primary/30 focus-within:ring-4 focus-within:ring-primary/5 sm:gap-3 md:p-4 md:grid-cols-[minmax(11rem,1.35fr)_minmax(10rem,.95fr)_auto]"
+              class="home-hero-stagger-item group relative grid w-full max-w-none grid-cols-1 gap-3 rounded-2xl border border-slate-100/95 bg-white/95 p-3 shadow-premium transition-all duration-300 focus-within:border-primary/30 focus-within:ring-4 focus-within:ring-primary/5 sm:gap-3 md:p-4 md:grid-cols-[minmax(11rem,1.35fr)_minmax(10rem,.95fr)_auto]"
               @submit.prevent="submitHeroSearch"
             >
-              <div
-                class="flex min-h-[52px] min-w-0 items-center px-4 md:border-r md:border-slate-100 md:py-1"
-              >
-                <span
-                  class="material-symbols-outlined mr-3 shrink-0 text-slate-400"
-                  >search</span
-                >
+              <!-- Input Recherche avec Dropdown -->
+              <div class="relative flex min-h-[52px] min-w-0 items-center px-4 md:border-r md:border-slate-100 md:py-1">
+                <span class="material-symbols-outlined mr-3 shrink-0 text-slate-400">search</span>
                 <input
                   id="hero-search-programmes"
                   v-model="heroSearchQ"
@@ -390,27 +389,54 @@ useSeoMeta({
                   class="w-full min-w-0 border-none bg-transparent py-3 text-base focus:outline-none focus:ring-0 sm:text-sm md:text-base"
                   :placeholder="searchPlaceholder"
                   :aria-label="searchPlaceholder"
-                  @input="scheduleHeroCatalogWhileTyping"
+                  @focus="showLiveResults = true"
+                  @blur="() => setTimeout(() => showLiveResults = false, 200)"
                 />
+
+                <!-- Dropdown Résultats Live -->
+                <div v-if="showLiveResults && liveResults.length > 0" class="absolute left-0 top-full z-50 mt-2 w-full min-w-[320px] overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-2xl backdrop-blur-xl">
+                  <div class="max-h-[380px] overflow-y-auto p-2">
+                    <button
+                      v-for="p in liveResults"
+                      :key="p.id"
+                      type="button"
+                      class="flex w-full items-start gap-4 rounded-xl p-3 text-left transition hover:bg-slate-50"
+                      @click="handleResultClick(p)"
+                    >
+                      <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/5 text-primary">
+                        <span class="material-symbols-outlined text-xl">school</span>
+                      </div>
+                      <div class="min-w-0 flex-1">
+                        <p class="truncate font-bold text-primary text-sm">{{ p.titre }}</p>
+                        <p class="truncate text-xs text-slate-500">{{ p.etablissement }} · {{ p.ville }}</p>
+                      </div>
+                    </button>
+                  </div>
+                  <div class="border-t border-slate-50 bg-slate-50/50 p-3 text-center">
+                    <button type="submit" class="text-xs font-bold text-primary hover:underline">Voir tous les résultats</button>
+                  </div>
+                </div>
               </div>
-              <div
-                class="flex min-h-[52px] min-w-0 items-center px-4 md:border-r md:border-slate-100 md:py-1"
-              >
-                <label for="hero-secteur" class="sr-only">Secteur</label>
+
+              <!-- Select Secteur Stylisé -->
+              <div class="relative flex min-h-[52px] min-w-0 items-center px-4 md:border-r md:border-slate-100 md:py-1">
+                <span class="material-symbols-outlined mr-3 shrink-0 text-slate-400 text-xl">category</span>
                 <select
                   id="hero-secteur"
                   v-model="heroSector"
-                  class="w-full min-w-0 border-none bg-transparent py-3 text-base focus:outline-none focus:ring-0 sm:text-sm md:text-base"
-                  @change="scheduleHeroCatalogWhileTyping"
+                  class="w-full cursor-pointer appearance-none border-none bg-transparent py-3 pr-8 text-base font-medium text-slate-700 focus:outline-none focus:ring-0 sm:text-sm md:text-base"
                 >
                   <option v-for="opt in sectorOptions" :key="opt" :value="opt">
                     {{ opt }}
                   </option>
                 </select>
+                <span class="pointer-events-none absolute right-4 material-symbols-outlined text-slate-400">expand_more</span>
               </div>
+
+              <!-- Bouton CTA -->
               <button
                 type="submit"
-                class="min-h-[52px] shrink-0 rounded-xl bg-primary px-7 py-3 text-center text-sm font-semibold text-white whitespace-nowrap shadow-sm transition-[transform,opacity] motion-safe:active:scale-[0.98] hover:opacity-95 md:text-base"
+                class="min-h-[52px] shrink-0 rounded-xl bg-primary px-7 py-3 text-center text-sm font-semibold text-white whitespace-nowrap shadow-xl transition-all duration-300 hover:scale-[1.02] hover:bg-primary-hover active:scale-95 md:text-base"
               >
                 {{ ctaLabel }}
               </button>
