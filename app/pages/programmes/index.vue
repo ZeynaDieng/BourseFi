@@ -72,6 +72,20 @@ const selectedSector = ref("Tous");
 const selectedCity = ref("Toutes les villes");
 const selectedLevel = ref("Tous les niveaux");
 
+const showCityDropdown = ref(false);
+const showLevelDropdown = ref(false);
+
+// Fermer les menus au clic à l'extérieur
+if (typeof window !== "undefined") {
+  window.addEventListener("click", (e: MouseEvent) => {
+    const target = e.target as HTMLElement;
+    if (!target.closest(".relative-dropdown")) {
+      showCityDropdown.value = false;
+      showLevelDropdown.value = false;
+    }
+  });
+}
+
 const sortField = ref<"titre" | "etablissement" | "ville" | "niveau">("titre");
 const sortOrder = ref<"asc" | "desc">("asc");
 
@@ -262,14 +276,57 @@ onBeforeUnmount(() => {
             </div>
             
             <div class="flex gap-4">
-              <!-- City Filter -->
-              <select v-model="selectedCity" class="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3.5 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-primary/5 transition-all">
-                <option v-for="c in cities" :key="c" :value="c">{{ c }}</option>
-              </select>
-              <!-- Level Filter -->
-              <select v-model="selectedLevel" class="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3.5 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-primary/5 transition-all">
-                <option v-for="l in levels" :key="l" :value="l">{{ l }}</option>
-              </select>
+              <!-- City Filter Dropdown -->
+              <div class="relative relative-dropdown">
+                <button
+                  type="button"
+                  class="flex min-w-[160px] items-center justify-between gap-2 rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3.5 text-sm font-semibold text-slate-700 transition-all hover:bg-slate-100 focus:ring-4 focus:ring-primary/5"
+                  @click="showCityDropdown = !showCityDropdown"
+                >
+                  <span class="truncate">{{ selectedCity }}</span>
+                  <span class="material-symbols-outlined text-slate-400 text-xl transition-transform" :class="{ 'rotate-180': showCityDropdown }">expand_more</span>
+                </button>
+                <div v-if="showCityDropdown" class="absolute right-0 top-full z-50 mt-2 w-full min-w-[200px] overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-premium animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div class="max-h-60 overflow-y-auto p-2">
+                    <button
+                      v-for="c in cities"
+                      :key="c"
+                      type="button"
+                      class="flex w-full items-center rounded-xl px-4 py-3 text-left text-sm font-medium text-slate-700 transition hover:bg-primary/5 hover:text-primary"
+                      @click="() => { selectedCity = c; showCityDropdown = false; }"
+                    >
+                      <span v-if="selectedCity === c" class="material-symbols-outlined mr-2 text-primary text-lg">check</span>
+                      <span :class="{ 'ml-7': selectedCity !== c }">{{ c }}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Level Filter Dropdown -->
+              <div class="relative relative-dropdown">
+                <button
+                  type="button"
+                  class="flex min-w-[160px] items-center justify-between gap-2 rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3.5 text-sm font-semibold text-slate-700 transition-all hover:bg-slate-100 focus:ring-4 focus:ring-primary/5"
+                  @click="showLevelDropdown = !showLevelDropdown"
+                >
+                  <span class="truncate">{{ selectedLevel }}</span>
+                  <span class="material-symbols-outlined text-slate-400 text-xl transition-transform" :class="{ 'rotate-180': showLevelDropdown }">expand_more</span>
+                </button>
+                <div v-if="showLevelDropdown" class="absolute right-0 top-full z-50 mt-2 w-full min-w-[200px] overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-premium animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div class="max-h-60 overflow-y-auto p-2">
+                    <button
+                      v-for="l in levels"
+                      :key="l"
+                      type="button"
+                      class="flex w-full items-center rounded-xl px-4 py-3 text-left text-sm font-medium text-slate-700 transition hover:bg-primary/5 hover:text-primary"
+                      @click="() => { selectedLevel = l; showLevelDropdown = false; }"
+                    >
+                      <span v-if="selectedLevel === l" class="material-symbols-outlined mr-2 text-primary text-lg">check</span>
+                      <span :class="{ 'ml-7': selectedLevel !== l }">{{ l }}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
