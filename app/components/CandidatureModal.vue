@@ -281,12 +281,10 @@ const stepTitles = ['Coordonnées', 'Parcours scolaire', 'Pièce d’identité',
       >
         <header class="sticky top-0 z-10 flex items-start justify-between border-b border-slate-100 bg-white px-6 py-4">
           <div>
-            <p class="text-xs font-bold uppercase tracking-widest text-secondary">Demande de bourse</p>
             <h2 id="candidature-modal-title" class="font-headline text-xl font-extrabold text-primary">
-              Formulaire de candidature
+              Ma candidature
             </h2>
-            <p class="text-sm text-slate-500">{{ programme.titre }}</p>
-            <p class="mt-2 text-xs font-medium text-primary">
+            <p class="text-xs font-bold text-primary uppercase tracking-widest mt-1">
               Étape {{ step + 1 }}/4 — {{ stepTitles[step] }}
             </p>
           </div>
@@ -300,138 +298,62 @@ const stepTitles = ['Coordonnées', 'Parcours scolaire', 'Pièce d’identité',
           </button>
         </header>
 
-        <div class="space-y-4 px-6 py-4 text-sm text-slate-600">
-          <p>
-            Bailleur :
-            <strong class="text-primary">{{ programme.partnerName }}</strong>
-            — après validation, le document officiel est émis par cette structure.
-          </p>
-          <div v-if="programme.eligibilite" class="rounded-lg bg-slate-50 p-3 text-xs">
-            {{ programme.eligibilite }}
+        <div class="space-y-4 px-6 py-4">
+          <div v-if="programme.eligibilite" class="rounded-xl bg-primary/5 p-4 text-xs italic text-primary">
+            "{{ programme.eligibilite }}"
           </div>
-          <p v-if="programme.fraisDossier > 0" class="rounded-lg bg-amber-50 px-3 py-2 text-amber-900">
-            Frais de dossier :
-            <strong>{{ programme.fraisDossier.toLocaleString('fr-FR') }} {{ programme.devise }}</strong>
-            (paiement après envoi du dossier, si requis).
-          </p>
+          <div v-if="programme.fraisDossier > 0" class="rounded-xl border border-amber-100 bg-amber-50 px-4 py-3 text-xs font-bold text-amber-900">
+            Frais de dossier : {{ programme.fraisDossier.toLocaleString('fr-FR') }} {{ programme.devise }}
+          </div>
 
           <!-- Étape 0 : identité & contact -->
-          <div v-if="step === 0" class="space-y-3">
-            <div class="grid gap-3 sm:grid-cols-2">
-              <label class="block sm:col-span-1">
-                <span class="text-xs font-semibold text-primary">Prénom</span>
-                <input
-                  v-model="form.firstName"
-                  autocomplete="given-name"
-                  class="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-800"
-                />
+            <div class="grid gap-4 sm:grid-cols-2">
+              <label class="block">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Prénom</span>
+                <input v-model="form.firstName" class="mt-1 w-full rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-sm" />
               </label>
-              <label class="block sm:col-span-1">
-                <span class="text-xs font-semibold text-primary">Nom</span>
-                <input
-                  v-model="form.lastName"
-                  autocomplete="family-name"
-                  class="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-800"
-                />
+              <label class="block">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Nom</span>
+                <input v-model="form.lastName" class="mt-1 w-full rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-sm" />
               </label>
             </div>
             <label class="block">
-              <span class="text-xs font-semibold text-primary">Adresse e-mail</span>
-              <input
-                v-model="form.email"
-                type="email"
-                autocomplete="email"
-                class="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-800"
-              />
+              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Email</span>
+              <input v-model="form.email" type="email" class="mt-1 w-full rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-sm" />
             </label>
             <label class="block">
-              <span class="text-xs font-semibold text-primary">Numéro de téléphone</span>
-              <input
-                v-model="form.phone"
-                type="tel"
-                autocomplete="tel"
-                class="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-800"
-                placeholder="Ex. +221 77 …"
-              />
+              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Téléphone</span>
+              <input v-model="form.phone" type="tel" class="mt-1 w-full rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-sm" placeholder="+221 ..." />
             </label>
             <label class="block">
-              <span class="text-xs font-semibold text-primary">Adresse postale complète</span>
-              <textarea
-                v-model="form.address"
-                rows="3"
-                autocomplete="street-address"
-                class="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-800"
-                placeholder="Rue, quartier, ville, pays…"
-              />
+              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Adresse</span>
+              <input v-model="form.address" class="mt-1 w-full rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-sm" />
             </label>
-          </div>
 
           <!-- Étape 1 : formation visée + parcours -->
           <div v-if="step === 1" class="space-y-3">
-            <div class="rounded-xl border border-secondary-container/30 bg-secondary-container/10 p-4 text-xs text-slate-800">
-              <p class="font-bold text-primary">Formation demandée (catalogue)</p>
-              <p class="mt-1"><strong>{{ programme.etablissement }}</strong> · {{ programme.ville }}</p>
-              <p class="mt-0.5 font-medium text-primary">{{ programme.titre }}</p>
-              <p v-if="programme.niveau" class="mt-1 text-slate-600">
-                Niveau indicatif du programme : {{ programme.niveau }}
-              </p>
+            <div class="rounded-xl border border-secondary-container/30 bg-secondary-container/10 p-4 text-[10px] text-slate-800">
+              <p class="font-bold text-primary">Formation : {{ programme.titre }}</p>
+              <p>École : {{ programme.etablissement }}</p>
             </div>
-            <p class="text-xs text-slate-500">
-              Les champs ci-dessous décrivent <strong>votre parcours</strong>. L’établissement et la filière sont
-              pré-remplis à partir de la formation choisie ; modifiez si votre situation est différente.
-            </p>
             <label class="block">
-              <span class="text-xs font-semibold text-primary">École / établissement de référence</span>
-              <input
-                v-model="form.institution"
-                class="mt-1 w-full rounded-lg border border-slate-200 bg-slate-50/80 px-3 py-2 text-slate-800"
-              />
+              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Établissement</span>
+              <input v-model="form.institution" class="mt-1 w-full rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-sm" />
             </label>
             <label class="block">
-              <span class="text-xs font-semibold text-primary">Formation / filière suivie ou visée</span>
-              <input
-                v-model="form.field"
-                class="mt-1 w-full rounded-lg border border-slate-200 bg-slate-50/80 px-3 py-2 text-slate-800"
-              />
+              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Filière visée</span>
+              <input v-model="form.field" class="mt-1 w-full rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-sm" />
             </label>
-            <label class="block">
-              <span class="text-xs font-semibold text-primary">Niveau poursuivi</span>
-              <select v-model="form.level" class="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2">
-                <option v-for="opt in LEVEL_OPTIONS" :key="opt" :value="opt">{{ opt }}</option>
-              </select>
-            </label>
-            <label class="block">
-              <span class="text-xs font-semibold text-primary">Dernier niveau d’études atteint</span>
-              <input
-                v-model="form.lastEducationLevel"
-                class="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-800"
-                placeholder="Ex. Terminale, Bac+2, Licence 3…"
-              />
-            </label>
-            <label class="block">
-              <span class="text-xs font-semibold text-primary">Dernier diplôme (ou en cours)</span>
-              <input
-                v-model="form.lastDiploma"
-                class="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-800"
-                placeholder="Ex. Baccalauréat série S, BTS Commerce…"
-              />
-            </label>
-            <label class="block">
-              <span class="text-xs font-semibold text-primary">Année d’obtention ou prévue (optionnel)</span>
-              <input
-                v-model="form.graduationDate"
-                class="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-800"
-                placeholder="Ex. 2025"
-              />
-            </label>
-            <label class="block">
-              <span class="text-xs font-semibold text-primary">Dernière moyenne ou note</span>
-              <input
-                v-model="form.gpa"
-                class="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-800"
-                placeholder="Ex. 14,5/20 ou B"
-              />
-            </label>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <label class="block">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Dernier diplôme</span>
+                <input v-model="form.lastDiploma" class="mt-1 w-full rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-sm" placeholder="Ex. BAC" />
+              </label>
+              <label class="block">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Moyenne</span>
+                <input v-model="form.gpa" class="mt-1 w-full rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-sm" placeholder="14/20" />
+              </label>
+            </div>
           </div>
 
           <!-- Étape 2 : CNI -->

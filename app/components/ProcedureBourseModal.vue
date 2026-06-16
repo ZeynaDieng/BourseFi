@@ -60,53 +60,35 @@ function goApply() {
           </button>
         </header>
 
-        <div class="space-y-6 px-6 py-6">
-          <p class="text-sm text-slate-600">
-            La prise en charge est assurée par
-            <strong class="text-primary">{{ programme.partnerName }}</strong>
-            (bailleur). Voici les étapes pour obtenir la bourse via BourseFi.
-          </p>
-
-          <ol class="grid gap-4 sm:grid-cols-1">
-            <li class="rounded-xl border border-slate-100 bg-slate-50/80 p-4">
-              <span
-                class="mb-2 inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-white"
-              >
-                1
-              </span>
-              <h3 class="font-headline font-semibold text-primary">Déposer votre candidature</h3>
-              <p class="mt-1 text-sm text-slate-600">
-                Renseignez vos informations pour cette formation. Les pièces demandées figurent dans le formulaire
-                de candidature.
-              </p>
-            </li>
-            <li class="rounded-xl border border-slate-100 bg-slate-50/80 p-4">
-              <span
-                class="mb-2 inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-white"
-              >
-                2
-              </span>
-              <h3 class="font-headline font-semibold text-primary">Frais de dossier le cas échéant</h3>
-              <p v-if="programme.fraisDossier > 0" class="mt-1 text-sm text-slate-600">
-                Montant :
-                <strong>{{ programme.fraisDossier.toLocaleString('fr-FR') }} {{ programme.devise }}</strong>
-                — paiement sécurisé après l’envoi du formulaire, si applicable.
-              </p>
-              <p v-else class="mt-1 text-sm text-slate-600">Aucun frais de dossier n’est indiqué pour ce programme.</p>
-            </li>
-            <li class="rounded-xl border border-slate-100 bg-slate-50/80 p-4">
-              <span
-                class="mb-2 inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-white"
-              >
-                3
-              </span>
-              <h3 class="font-headline font-semibold text-primary">Validation et attestation</h3>
-              <p class="mt-1 text-sm text-slate-600">
-                {{ programme.partnerName }} examine le dossier. Après décision favorable, l’attestation du bailleur est
-                disponible dans votre espace pour la présenter à l’établissement.
-              </p>
-            </li>
-          </ol>
+        <div class="px-6 py-8">
+          <div class="grid gap-6">
+            <div class="flex items-start gap-4">
+              <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold text-white">1</span>
+              <div>
+                <h3 class="font-bold text-primary">Candidature</h3>
+                <p class="text-sm text-slate-500">Remplissez vos informations en 2 minutes.</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-4">
+              <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold text-white">2</span>
+              <div>
+                <h3 class="font-bold text-primary">Frais de dossier</h3>
+                <p class="text-sm text-slate-600">
+                  <span v-if="programme.fraisDossier > 0">
+                    Réglez <strong>{{ programme.fraisDossier.toLocaleString('fr-FR') }} {{ programme.devise }}</strong> par Mobile Money.
+                  </span>
+                  <span v-else>Gratuit pour cette formation.</span>
+                </p>
+              </div>
+            </div>
+            <div class="flex items-start gap-4">
+              <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold text-white">3</span>
+              <div>
+                <h3 class="font-bold text-primary">Attestation</h3>
+                <p class="text-sm text-slate-500">Recevez votre document officiel après validation.</p>
+              </div>
+            </div>
+          </div>
         </div>
 
         <footer class="sticky bottom-0 flex flex-col gap-2 border-t border-slate-100 bg-white px-6 py-4 sm:flex-row sm:justify-end">
