@@ -8,10 +8,6 @@ const { data: site } = await usePublicSite();
 const { data: publicStats } = await useFetch("/api/stats/public");
 const { data: allBourses } = await useFetch("/api/bourses");
 
-// Chargement de tous les programmes pour la recherche live sur l'accueil
-const { data: allProgrammesRaw } = await useFetch("/api/programmes");
-const allProgrammes = computed(() => allProgrammesRaw.value ?? []);
-
 const ecolesPartenairesLanding = computed(
   () =>
     (ecoles.value ?? []).slice(0, 8) as unknown as PartnerSchoolCardEcole[],
@@ -134,13 +130,7 @@ const ctaLabel = computed(
 
 const ctaHref = computed(() => (hero.value.ctaHref as string) || "/bourses");
 
-const ctaSecondaryLabel = computed(
-  () => (hero.value.ctaSecondaryLabel as string) || "Explorer les formations",
-);
-
-const ctaSecondaryHref = computed(
-  () => (hero.value.ctaSecondaryHref as string) || "/programmes",
-);
+const ctaSecondaryHref = computed(() => (hero.value.ctaSecondaryHref as string) || "/bourses");
 
 const heroSearchQ = ref("");
 const heroSector = ref("");
@@ -172,39 +162,27 @@ watch(
 const router = useRouter();
 const route = useRoute();
 
-/** Configuration Fuse.js — programmes + bourses */
+/** Configuration Fuse.js — bourses */
 const fuse = computed(() => {
-  const items = [
-    ...allProgrammes.value.map(
-      (p: {
-        titre: string;
-        slug: string;
-        etablissement: string;
-        partnerName?: string;
-      }) => ({
-        ...p,
-        kind: "formation",
-        searchLabel: p.titre,
-        href: `/programmes/${p.slug}`,
-      }),
-    ),
-    ...(allBourses.value ?? []).map(
-      (b: {
-        titre: string;
-        slug: string;
-        etablissement: string;
-        partnerName: string;
-      }) => ({
-        ...b,
-        kind: "bourse",
-        searchLabel: b.titre,
-        href: `/bourses/${b.slug}`,
-      }),
-    ),
-  ];
+  const items = (allBourses.value ?? []).map(
+    (b: {
+      id: string
+      titre: string
+      slug: string
+      etablissement: string
+      partnerName: string
+      programmeTitre: string
+    }) => ({
+      ...b,
+      kind: "bourse",
+      searchLabel: b.titre,
+      href: `/bourses/${b.slug}`,
+    }),
+  );
   return new Fuse(items, {
     keys: [
       { name: "searchLabel", weight: 1.0 },
+      { name: "programmeTitre", weight: 0.9 },
       { name: "etablissement", weight: 0.8 },
       { name: "partnerName", weight: 0.7 },
     ],
@@ -453,8 +431,7 @@ useSeoMeta({
                           {{ p.searchLabel ?? p.titre }}
                         </p>
                         <p class="truncate text-xs text-slate-500">
-                          {{ p.etablissement }} ·
-                          {{ p.kind === "bourse" ? "Bourse" : "Formation" }}
+                          {{ p.etablissement }} · Bourse
                         </p>
                       </div>
                     </button>
@@ -565,11 +542,14 @@ useSeoMeta({
       </div>
     </section>
 
+    <LandingStatsBand
+      :items="stats"
+      :dossiers-valides="publicStats?.candidaturesValidees ?? publicStats?.socialProof?.dossiersValides"
+    />
+
     <LandingBoursesDisponibles />
 
-    <LandingFormationsDisponibles />
-
-    <section class="bg-surface-container-low py-12 md:py-20">
+    <section class="landing-rise bg-surface-container-low py-12 md:py-20">
       <div class="mx-auto max-w-7xl px-4 sm:px-6 md:px-8">
         <div class="mb-8 flex flex-wrap items-end justify-between gap-3 md:mb-12 md:gap-4">
           <div>
@@ -583,19 +563,24 @@ useSeoMeta({
           }}</NuxtLink>
         </div>
         <div
-          class="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4"
+          class="landing-scroll-row -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 md:mx-0 md:grid md:grid-cols-2 md:gap-6 md:overflow-visible md:px-0 md:pb-0 lg:grid-cols-3 xl:grid-cols-4"
         >
-          <PartnerSchoolCard
-            v-for="(e, i) in ecolesPartenairesLanding"
+          <div
+            v-for="e in ecolesPartenairesLanding"
             :key="e.slug"
-            :class="i >= 4 ? 'hidden md:block' : ''"
-            :ecole="e"
-          />
+            class="w-[min(88vw,300px)] shrink-0 snap-center md:w-auto"
+          >
+            <PartnerSchoolCard :ecole="e" />
+          </div>
         </div>
       </div>
     </section>
 
     <LandingCommentObtenirBourse />
+
+    <LandingEspaceEtudiant />
+
+    <LandingTrustQuotes />
 
     <LandingFaq />
   </main>

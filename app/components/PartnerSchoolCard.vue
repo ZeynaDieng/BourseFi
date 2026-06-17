@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import type { PartnerSchoolCardEcole } from '~/types/partner-school-card'
 import { partnerSchoolCoverFallback } from '~/utils/marketing-visuals'
-import { btnSecondary, cardBase } from '~/utils/design-tokens'
+import { btnSecondary, cardBase, cardInteractive, badgePopular } from '~/utils/design-tokens'
 
 const props = defineProps<{
   ecole: PartnerSchoolCardEcole
@@ -33,17 +33,23 @@ function formatBourses(count: number) {
 </script>
 
 <template>
-  <article :class="[cardBase, 'flex flex-col']">
+  <article :class="[cardBase, cardInteractive, 'group flex flex-col overflow-hidden']">
     <div class="relative aspect-[16/10] w-full shrink-0 overflow-hidden bg-slate-100">
       <img
         :src="coverSrc"
         :alt="`Campus — ${ecole.nom}`"
-        class="h-full w-full object-cover"
+        class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
         width="640"
         height="400"
         loading="lazy"
         decoding="async"
       />
+      <span
+        v-if="boursesCount > 0"
+        :class="[badgePopular, 'absolute right-3 top-3 shadow-sm']"
+      >
+        {{ boursesCount }} bourse{{ boursesCount !== 1 ? 's' : '' }}
+      </span>
       <div
         class="absolute left-3 top-3 flex h-[52px] w-[52px] items-center justify-center overflow-hidden rounded-xl bg-white p-1.5 shadow-md ring-1 ring-black/5"
       >

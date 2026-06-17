@@ -54,7 +54,7 @@ useSeoMeta({
       <p class="text-xs font-bold uppercase tracking-widest text-secondary">Catalogue bourses</p>
       <h1 class="font-headline text-4xl font-extrabold text-primary">Bourses disponibles</h1>
       <p class="mt-2 max-w-2xl text-slate-600">
-        Trouvez une bourse pour financer votre formation. Comparez la couverture, l'école et le partenaire financeur.
+        Trouvez une bourse, consultez la formation associée et postulez en quelques clics.
       </p>
     </header>
 

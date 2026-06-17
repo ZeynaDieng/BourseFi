@@ -19,3 +19,12 @@ export const sectionTitle =
 
 export const sectionKicker =
   'text-xs font-bold uppercase tracking-widest text-secondary'
+
+export const cardInteractive =
+  'card-interactive transition duration-300 ease-out hover:-translate-y-0.5 hover:shadow-lg motion-reduce:transform-none motion-reduce:transition-none'
+
+export const badgeLimited =
+  'inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-900'
+
+export const badgePopular =
+  'inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary'

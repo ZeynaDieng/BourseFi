@@ -245,7 +245,7 @@ defineExpose({ buildPayload })
       <label class="admin-label">Libellé bouton secondaire</label>
       <input v-model="state.ctaSecondaryLabel as string" class="admin-input" placeholder="Explorer les formations" />
       <label class="admin-label">Lien bouton secondaire</label>
-      <input v-model="state.ctaSecondaryHref as string" class="admin-input font-mono text-xs" placeholder="/programmes" />
+      <input v-model="state.ctaSecondaryHref as string" class="admin-input font-mono text-xs" placeholder="/bourses" />
       <label class="admin-label">Méta titre (optionnel)</label>
       <input v-model="state.title as string" class="admin-input" placeholder="Pour balises ou SEO — non affiché dans le hero." />
     </template>

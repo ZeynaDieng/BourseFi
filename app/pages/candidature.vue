@@ -58,10 +58,10 @@ useSeoMeta({
         Trouver une bourse
       </NuxtLink>
       <NuxtLink
-        to="/programmes"
+        to="/bourses"
         class="rounded-xl border border-primary px-6 py-3 text-center text-sm font-semibold text-primary transition hover:bg-primary/5"
       >
-        Voir les formations
+        Voir les bourses
       </NuxtLink>
       <NuxtLink
         v-if="!me?.user"

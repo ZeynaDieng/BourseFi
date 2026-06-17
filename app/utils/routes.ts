@@ -6,6 +6,6 @@ export function isSafeStudentRedirect(path: string): boolean {
   return (
     path.startsWith('/etudiant/') ||
     path.startsWith('/paiement') ||
-    path.startsWith('/programmes')
+    path.startsWith('/bourses')
   )
 }

@@ -1,11 +1,14 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { BourseDto } from '~/types/bourse'
 
 const { data: bourses } = await useFetch<BourseDto[]>('/api/bourses')
+
+const featured = computed(() => (bourses.value ?? []).slice(0, 8))
 </script>
 
 <template>
-  <section class="bg-surface-container-low py-12 md:py-20">
+  <section class="landing-rise bg-surface-container-low py-12 md:py-20">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 md:px-8">
       <div class="mb-8 flex items-center justify-between gap-3 md:mb-12">
         <div>
@@ -21,11 +24,25 @@ const { data: bourses } = await useFetch<BourseDto[]>('/api/bourses')
           <span class="hidden md:inline">Voir toutes →</span>
         </NuxtLink>
       </div>
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
-        <ScholarshipCard
-          v-for="(b, i) in (bourses ?? []).slice(0, 8)"
+
+      <!-- Mobile : carousel horizontal -->
+      <div
+        class="landing-scroll-row -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 md:hidden"
+      >
+        <div
+          v-for="b in featured.slice(0, 6)"
           :key="b.id"
-          :class="i >= 4 ? 'hidden md:block' : ''"
+          class="w-[min(88vw,320px)] shrink-0 snap-center"
+        >
+          <ScholarshipCard :bourse="b" />
+        </div>
+      </div>
+
+      <!-- Desktop : grille -->
+      <div class="hidden gap-6 md:grid md:grid-cols-2 lg:grid-cols-3">
+        <ScholarshipCard
+          v-for="b in featured"
+          :key="b.id"
           :bourse="b"
         />
       </div>

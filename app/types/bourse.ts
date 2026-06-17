@@ -5,6 +5,13 @@ export type BourseDto = {
   programmeId: string
   programmeSlug: string
   programmeTitre: string
+  programmeNiveau: string
+  programmeDuree: string
+  programmeDescription: string
+  programmePlacement: string | null
+  programmePerspectives: string | null
+  programmeEligibilite: string | null
+  programmeBrochureUrl: string | null
   etablissement: string
   etablissementSlug: string
   partnerName: string

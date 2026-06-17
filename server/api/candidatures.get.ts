@@ -10,7 +10,8 @@ const includeRelations = {
       partner: true
     }
   },
-  partner: true
+  partner: true,
+  bourse: { select: { slug: true, titre: true } }
 } as const
 
 export default defineEventHandler(async (event) => {
@@ -80,6 +81,7 @@ function formatCandidature(raw: {
     partner: { name: string; slug: string }
   }
   partner: { id: string; name: string; slug: string }
+  bourse: { slug: string; titre: string } | null
 }) {
   return {
     id: raw.id,
@@ -106,6 +108,8 @@ function formatCandidature(raw: {
     createdAt: raw.createdAt,
     programmeSlug: raw.programme.slug,
     programmeTitre: raw.programme.titre,
+    bourseSlug: raw.bourse?.slug ?? null,
+    bourseTitre: raw.bourse?.titre ?? null,
     programmeVille: raw.programme.ville,
     etablissementNom: raw.programme.etablissement.nom,
     etablissementSlug: raw.programme.etablissement.slug,

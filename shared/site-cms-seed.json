@@ -26,8 +26,8 @@
       ],
       "ctaLabel": "Trouver une bourse",
       "ctaHref": "/bourses",
-      "ctaSecondaryLabel": "Explorer les formations",
-      "ctaSecondaryHref": "/programmes"
+      "ctaSecondaryLabel": "Voir les bourses",
+      "ctaSecondaryHref": "/bourses"
     },
     "home_stats": {
       "items": [
@@ -110,29 +110,29 @@
     "espace_etudiant": {
       "kicker": "Espace étudiant",
       "title": "Votre dossier, clair et à jour",
-      "subtitle": "Tableau de bord, alertes et documents : tout ce qu'il faut pour avancer sereinement, sur ordinateur ou téléphone.",
+      "subtitle": "Visualisez votre parcours candidat : statuts, documents et notifications, sur ordinateur ou mobile.",
       "ctaLabel": "Créer un compte gratuitement",
       "ctaHref": "/auth/register",
       "features": [
         {
           "icon": "dashboard",
           "title": "Tableau de bord unifié",
-          "text": "Vue d'ensemble des candidatures, des échéances et des prochaines actions."
+          "text": "Vos candidatures, échéances et prochaines actions en un coup d'œil."
         },
         {
           "icon": "timeline",
-          "title": "Suivi des candidatures",
-          "text": "Historique des statuts : dépôt, analyse, compléments et décision du partenaire."
+          "title": "Suivi en temps réel",
+          "text": "Dépôt, analyse, compléments et décision — chaque étape est visible."
         },
         {
           "icon": "folder_open",
           "title": "Documents centralisés",
-          "text": "Téléversement sécurisé et téléchargement des attestations et reçus quand ils sont prêts."
+          "text": "Attestations et reçus disponibles dès validation, prêts à télécharger."
         },
         {
           "icon": "notifications_active",
-          "title": "Notifications utiles",
-          "text": "Alertes lorsqu'une pièce est demandée ou lorsque votre dossier change de statut."
+          "title": "Alertes utiles",
+          "text": "Soyez prévenu dès qu'une action est requise sur votre dossier."
         }
       ]
     },

@@ -20,7 +20,6 @@
         </NuxtLink>
         <NuxtLink class="block text-slate-300 underline-offset-4 transition hover:text-white hover:underline" to="/bourses">Bourses</NuxtLink>
         <NuxtLink class="block text-slate-300 underline-offset-4 transition hover:text-white hover:underline" to="/ecoles">Écoles</NuxtLink>
-        <NuxtLink class="block text-slate-300 underline-offset-4 transition hover:text-white hover:underline" to="/programmes">Formations</NuxtLink>
         <NuxtLink class="hidden normal-case tracking-normal text-slate-300 underline-offset-4 transition hover:text-white hover:underline md:block" to="/candidature">Comment ça marche</NuxtLink>
       </div>
       <div class="space-y-4">

@@ -228,24 +228,24 @@ async function logout() {
                     rel="noopener noreferrer"
                     class="rounded-lg border border-primary px-3 py-1.5 text-xs font-semibold text-primary"
                   >
-                    Attestation bailleur
+                    Attestation
                   </a>
                   <NuxtLink
-                    :to="`/programmes/${c.programmeSlug}`"
+                    :to="c.bourseSlug ? `/bourses/${c.bourseSlug}` : '/bourses'"
                     class="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600"
                   >
-                    Voir formation
+                    Voir la bourse
                   </NuxtLink>
                 </div>
               </li>
             </ul>
             <NuxtLink
               v-else
-              to="/programmes#programmes-catalog"
+              to="/bourses"
               class="flex items-center justify-center gap-2 rounded-xl border border-dashed border-slate-200 py-6 text-sm font-semibold text-primary transition hover:border-primary/30 hover:bg-primary/5"
             >
               <span class="material-symbols-outlined text-[20px]">school</span>
-              Trouver une formation
+              Trouver une bourse
             </NuxtLink>
           </div>
 

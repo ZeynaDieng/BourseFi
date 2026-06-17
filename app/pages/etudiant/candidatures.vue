@@ -75,10 +75,10 @@ useSeoMeta({ title: 'Mes candidatures — BourseFi' })
               Attestation
             </a>
             <NuxtLink
-              :to="`/programmes/${c.programmeSlug}`"
+              :to="c.bourseSlug ? `/bourses/${c.bourseSlug}` : '/bourses'"
               class="flex min-h-10 items-center justify-center rounded-xl border border-slate-200 px-3 text-xs font-semibold text-slate-600 active:scale-[0.98]"
             >
-              Formation
+              Voir la bourse
             </NuxtLink>
           </div>
         </li>

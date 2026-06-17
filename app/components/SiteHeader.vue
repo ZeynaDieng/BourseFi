@@ -6,19 +6,20 @@ const { data } = await useFetch('/api/auth/me')
 const { profileHref, profileLabel } = useProfileDestination()
 
 const links = [
+  { to: '/', label: 'Accueil', mobileLabel: 'Accueil', exact: true },
   { to: '/bourses', label: 'Bourses disponibles', mobileLabel: 'Bourses' },
-  { to: '/programmes', label: 'Formations', mobileLabel: 'Formations' },
   { to: '/ecoles', label: 'Écoles partenaires', mobileLabel: 'Écoles' },
   { to: '/candidature', label: 'Comment ça marche', mobileLabel: 'Aide' },
 ]
 
-const isActive = (to: string | { path?: string }) => {
+const isActive = (to: string | { path?: string }, exact = false) => {
   const path =
     typeof to === 'string'
       ? to
       : typeof to.path === 'string'
         ? to.path
         : '/'
+  if (exact || path === '/') return route.path === path
   return route.path.startsWith(path)
 }
 
@@ -81,7 +82,7 @@ const headerBarClass = computed(() =>
           :to="link.to"
           class="border-b-2 pb-1 text-sm font-semibold transition"
           :class="
-            isActive(link.to)
+            isActive(link.to, 'exact' in link && link.exact)
               ? 'border-secondary text-primary'
               : 'border-transparent text-slate-600 hover:text-primary'
           "

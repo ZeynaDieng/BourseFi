@@ -28,7 +28,7 @@ const sectionSubtitle = computed(
 </script>
 
 <template>
-  <section class="mx-auto max-w-7xl px-4 py-12 sm:px-6 md:px-8 md:py-20">
+  <section class="landing-rise mx-auto max-w-7xl px-4 py-12 sm:px-6 md:px-8 md:py-20">
     <div class="mx-auto max-w-2xl text-center">
       <h2 class="font-headline text-2xl font-extrabold text-primary md:text-4xl">
         {{ sectionTitle }}

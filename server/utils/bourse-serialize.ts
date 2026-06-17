@@ -18,6 +18,13 @@ type BourseRow = {
     slug: string
     titre: string
     ville: string
+    duree: string
+    niveau: string
+    placement: string | null
+    description: string
+    eligibilite: string | null
+    brochureUrl: string | null
+    perspectives: string | null
     fraisDossier: number
     fraisScolarite: number
     devise: string
@@ -48,6 +55,13 @@ export function serializeBourse(b: BourseRow) {
     partnerSlug: b.partner.slug,
     partnerLogoUrl: b.partner.logoUrl,
     ville: b.programme.ville,
+    programmeNiveau: b.programme.niveau,
+    programmeDuree: b.programme.duree,
+    programmeDescription: b.programme.description,
+    programmePlacement: b.programme.placement,
+    programmePerspectives: b.programme.perspectives,
+    programmeEligibilite: b.programme.eligibilite,
+    programmeBrochureUrl: b.programme.brochureUrl,
     coveragePercent: b.coveragePercent,
     montantMax: b.montantMax,
     montantBourse: economy.montantBourse,
