@@ -1,5 +1,9 @@
 <script setup lang="ts">
+import { STUDENT_HOME } from '~/utils/routes'
+
 const { data: me } = await useFetch('/api/auth/me')
+
+const loginHref = { path: '/auth/login', query: { redirect: STUDENT_HOME } }
 </script>
 
 <template>
@@ -39,7 +43,7 @@ const { data: me } = await useFetch('/api/auth/me')
       </NuxtLink>
       <NuxtLink
         v-if="!me?.user"
-        to="/auth/login"
+        :to="loginHref"
         class="rounded-xl border border-slate-200 px-6 py-3 text-center text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
       >
         J’ai déjà un compte

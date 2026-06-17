@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import Fuse from "fuse.js";
+import { STUDENT_HOME } from "~/utils/routes";
 
 const route = useRoute();
 const router = useRouter();
@@ -60,7 +61,7 @@ function onCandidatureSubmitted(payload: {
       `/paiement?candidatureId=${encodeURIComponent(payload.candidatureId)}`,
     );
   } else {
-    router.push("/etudiant/dashboard");
+    router.push(STUDENT_HOME);
   }
 }
 

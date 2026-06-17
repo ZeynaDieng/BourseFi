@@ -1,5 +1,14 @@
 <script setup lang="ts">
+import { STUDENT_HOME } from '~/utils/routes'
+
+definePageMeta({ layout: 'student-app' })
+
 const route = useRoute()
+const loginHref = computed(() => ({
+  path: '/auth/login',
+  query: { redirect: route.fullPath },
+}))
+
 const candidatureId = computed(() => {
   const raw = route.query.candidatureId
   return typeof raw === 'string' ? raw : ''
@@ -108,7 +117,7 @@ async function submitPayment() {
         Votre paiement pour le programme <span class="font-semibold text-primary">{{ dossier?.programmeTitre }}</span> a été validé avec succès.
       </p>
       <div class="mt-10 flex flex-col gap-4 sm:flex-row">
-        <NuxtLink to="/etudiant/dashboard" class="rounded-xl bg-primary px-8 py-4 font-bold text-white shadow-xl transition hover:scale-105">
+        <NuxtLink :to="STUDENT_HOME" class="rounded-xl bg-primary px-8 py-4 font-bold text-white shadow-xl transition hover:scale-105">
           Accéder à mon espace
         </NuxtLink>
         <NuxtLink to="/" class="rounded-xl border border-slate-200 bg-white px-8 py-4 font-bold text-slate-600 transition hover:bg-slate-50">
@@ -126,7 +135,7 @@ async function submitPayment() {
           </p>
           <p v-if="!authState?.user" class="mt-2 text-sm text-slate-600">
             Connexion requise.
-            <NuxtLink to="/auth/login" class="font-semibold text-primary">Se connecter</NuxtLink>
+            <NuxtLink :to="loginHref" class="font-semibold text-primary">Se connecter</NuxtLink>
           </p>
           <p v-else-if="!candidatureId" class="mt-2 text-sm text-amber-800">
             Ajoutez <code class="rounded bg-slate-100 px-1">?candidatureId=...</code> ou repassez depuis la fiche programme.
@@ -134,7 +143,7 @@ async function submitPayment() {
           <p v-else-if="!dossier" class="mt-2 text-sm text-red-700">Ce dossier n appartient pas a votre session ou est introuvable.</p>
           <p v-else-if="dossier.status !== 'EN_ATTENTE_PAIEMENT'" class="mt-2 text-sm text-emerald-800">
             Ce dossier n attend plus de paiement (statut : {{ dossier.statusLabel }}).
-            <NuxtLink to="/etudiant/dashboard" class="font-semibold text-primary">Espace candidat</NuxtLink>
+            <NuxtLink :to="STUDENT_HOME" class="font-semibold text-primary">Espace candidat</NuxtLink>
           </p>
         </div>
 

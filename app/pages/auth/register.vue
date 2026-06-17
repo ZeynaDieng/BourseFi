@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { STUDENT_HOME } from '~/utils/routes'
+
 const form = reactive({
   name: '',
   email: '',
@@ -17,7 +19,7 @@ async function submitRegister() {
       method: 'POST',
       body: form
     })
-    await navigateTo('/etudiant/dashboard')
+    await navigateTo(STUDENT_HOME)
   } catch (error) {
     errorMessage.value = 'Inscription impossible. Verifiez les informations.'
   } finally {

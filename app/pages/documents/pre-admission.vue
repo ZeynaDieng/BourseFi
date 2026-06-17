@@ -1,7 +1,11 @@
+<script setup lang="ts">
+import { STUDENT_HOME } from '~/utils/routes'
+</script>
+
 <template>
   <main class="min-h-screen bg-slate-100 px-6 py-12">
     <div class="mx-auto mb-8 flex max-w-4xl items-center justify-between">
-      <NuxtLink to="/etudiant/dashboard" class="text-sm font-semibold text-slate-500">← Retour dashboard</NuxtLink>
+      <NuxtLink :to="STUDENT_HOME" class="text-sm font-semibold text-slate-500">← Retour mon espace</NuxtLink>
       <div class="flex gap-3">
         <button class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-primary">Imprimer</button>
         <button class="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white">Telecharger PDF</button>

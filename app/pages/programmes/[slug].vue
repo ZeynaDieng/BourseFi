@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { STUDENT_HOME } from '~/utils/routes'
+
 const route = useRoute()
 const router = useRouter()
 const { data: programmes } = await useFetch('/api/programmes')
@@ -15,7 +17,7 @@ function onCandidatureSubmitted(payload: { candidatureId: string; requiresPaymen
   if (payload.requiresPayment) {
     router.push(`/paiement?candidatureId=${encodeURIComponent(payload.candidatureId)}`)
   } else {
-    router.push('/etudiant/dashboard')
+    router.push(STUDENT_HOME)
   }
 }
 </script>

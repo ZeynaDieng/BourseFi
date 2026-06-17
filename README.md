@@ -20,7 +20,7 @@ Projet Nuxt 4 + Tailwind reproduisant la maquette BourseFi en francais, avec ada
 - `/comparaison` - Matrice de comparaison
 - `/candidature` - Formulaire de candidature
 - `/paiement` - Paiement securise (Wave/Orange/PayTech)
-- `/etudiant/dashboard` - Espace etudiant
+- `/etudiant/profil` - Espace etudiant (hub unique ; `/etudiant/dashboard` redirige ici)
 - `/admin/dashboard` - Espace administration
 - `/admin/audit` - Audit des actions admin
 - `/partenaire/dashboard` - Espace partenaire institutionnel

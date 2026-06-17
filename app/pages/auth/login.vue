@@ -1,14 +1,28 @@
 <script setup lang="ts">
+import { isSafeStudentRedirect, STUDENT_HOME } from '~/utils/routes'
+
 const route = useRoute()
-const redirectTo = computed(() => (typeof route.query.redirect === 'string' ? route.query.redirect : '/'))
+const redirectTo = computed(() =>
+  typeof route.query.redirect === 'string' ? route.query.redirect : '',
+)
 
 const form = reactive({
   email: '',
-  password: ''
+  password: '',
 })
 
 const isLoading = ref(false)
 const errorMessage = ref('')
+
+function resolvePostLoginPath(role: string): string {
+  const custom = redirectTo.value
+  if (custom && isSafeStudentRedirect(custom) && role === 'STUDENT') {
+    return custom
+  }
+  if (role === 'ADMIN') return '/admin/dashboard'
+  if (role === 'PARTNER') return '/partenaire/dashboard'
+  return STUDENT_HOME
+}
 
 async function submitLogin() {
   errorMessage.value = ''
@@ -17,23 +31,10 @@ async function submitLogin() {
   try {
     const response = await $fetch<{ user: { role: string } }>('/api/auth/login', {
       method: 'POST',
-      body: form
+      body: form,
     })
-    if (route.query.redirect) {
-      await navigateTo(redirectTo.value)
-      return
-    }
-
-    if (response.user.role === 'ADMIN') {
-      await navigateTo('/admin/dashboard')
-      return
-    }
-    if (response.user.role === 'PARTNER') {
-      await navigateTo('/partenaire/dashboard')
-      return
-    }
-    await navigateTo('/etudiant/dashboard')
-  } catch (error) {
+    await navigateTo(resolvePostLoginPath(response.user.role))
+  } catch {
     errorMessage.value = 'Connexion impossible. Verifiez vos identifiants.'
   } finally {
     isLoading.value = false
