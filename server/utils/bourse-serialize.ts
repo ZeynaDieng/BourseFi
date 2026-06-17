@@ -5,6 +5,7 @@ type BourseRow = {
   slug: string
   titre: string
   programmeId: string
+  partnerId: string
   coveragePercent: number
   montantMax: number | null
   quota: number
@@ -38,6 +39,7 @@ export function serializeBourse(b: BourseRow) {
     slug: b.slug,
     titre: b.titre,
     programmeId: b.programmeId,
+    partnerId: b.partnerId,
     programmeSlug: b.programme.slug,
     programmeTitre: b.programme.titre,
     etablissement: b.programme.etablissement.nom,

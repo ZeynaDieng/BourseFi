@@ -124,9 +124,7 @@ const ctaLabel = computed(
   () => (hero.value.ctaLabel as string) || "Trouver une bourse",
 );
 
-const ctaHref = computed(
-  () => (hero.value.ctaHref as string) || "/bourses",
-);
+const ctaHref = computed(() => (hero.value.ctaHref as string) || "/bourses");
 
 const ctaSecondaryLabel = computed(
   () => (hero.value.ctaSecondaryLabel as string) || "Explorer les formations",
@@ -142,10 +140,10 @@ const showLiveResults = ref(false);
 const showSectorDropdown = ref(false);
 
 // Fermer les menus au clic à l'extérieur
-if (typeof window !== 'undefined') {
-  window.addEventListener('click', (e: MouseEvent) => {
+if (typeof window !== "undefined") {
+  window.addEventListener("click", (e: MouseEvent) => {
     const target = e.target as HTMLElement;
-    if (!target.closest('.group.relative')) {
+    if (!target.closest(".group.relative")) {
       showLiveResults.value = false;
       showSectorDropdown.value = false;
     }
@@ -169,36 +167,57 @@ const route = useRoute();
 /** Configuration Fuse.js — programmes + bourses */
 const fuse = computed(() => {
   const items = [
-    ...allProgrammes.value.map((p: { titre: string; slug: string; etablissement: string; partnerName?: string }) => ({
-      ...p,
-      kind: 'formation',
-      searchLabel: p.titre,
-      href: `/programmes/${p.slug}`,
-    })),
-    ...(allBourses.value ?? []).map((b: { titre: string; slug: string; etablissement: string; partnerName: string }) => ({
-      ...b,
-      kind: 'bourse',
-      searchLabel: b.titre,
-      href: `/bourses/${b.slug}`,
-    })),
-  ]
+    ...allProgrammes.value.map(
+      (p: {
+        titre: string;
+        slug: string;
+        etablissement: string;
+        partnerName?: string;
+      }) => ({
+        ...p,
+        kind: "formation",
+        searchLabel: p.titre,
+        href: `/programmes/${p.slug}`,
+      }),
+    ),
+    ...(allBourses.value ?? []).map(
+      (b: {
+        titre: string;
+        slug: string;
+        etablissement: string;
+        partnerName: string;
+      }) => ({
+        ...b,
+        kind: "bourse",
+        searchLabel: b.titre,
+        href: `/bourses/${b.slug}`,
+      }),
+    ),
+  ];
   return new Fuse(items, {
     keys: [
       { name: "searchLabel", weight: 1.0 },
       { name: "etablissement", weight: 0.8 },
-      { name: "partnerName", weight: 0.7 }
+      { name: "partnerName", weight: 0.7 },
     ],
-    threshold: 0.4
+    threshold: 0.4,
   });
 });
 
 const liveResults = computed(() => {
   const q = heroSearchQ.value.trim();
   if (q.length < 2) return [];
-  return fuse.value.search(q).slice(0, 6).map(r => r.item);
+  return fuse.value
+    .search(q)
+    .slice(0, 6)
+    .map((r) => r.item);
 });
 
-function handleResultClick(p: { href?: string; titre?: string; searchLabel?: string }) {
+function handleResultClick(p: {
+  href?: string;
+  titre?: string;
+  searchLabel?: string;
+}) {
   showLiveResults.value = false;
   if (p.href) {
     router.push(p.href);
@@ -206,7 +225,7 @@ function handleResultClick(p: { href?: string; titre?: string; searchLabel?: str
   }
   router.push({
     path: "/recherche",
-    query: { q: p.searchLabel ?? p.titre ?? "" }
+    query: { q: p.searchLabel ?? p.titre ?? "" },
   });
 }
 
@@ -320,10 +339,7 @@ useSeoMeta({
             i === activeHeroSlide ? 'z-[2] opacity-100' : 'z-[1] opacity-0',
           ]"
         />
-        <div
-          class="absolute inset-0 z-[3] bg-black/18"
-          aria-hidden="true"
-        />
+        <div class="absolute inset-0 z-[3] bg-black/18" aria-hidden="true" />
         <div
           class="absolute inset-0 z-[4] bg-gradient-to-br from-white/10 via-transparent to-primary/[0.08]"
           aria-hidden="true"
@@ -382,8 +398,13 @@ useSeoMeta({
               @submit.prevent="submitHeroSearch"
             >
               <!-- Input Recherche avec Dropdown -->
-              <div class="relative flex min-h-[52px] min-w-0 items-center px-4 md:border-r md:border-slate-100 md:py-1">
-                <span class="material-symbols-outlined mr-3 shrink-0 text-slate-400">search</span>
+              <div
+                class="relative flex min-h-[52px] min-w-0 items-center px-4 md:border-r md:border-slate-100 md:py-1"
+              >
+                <span
+                  class="material-symbols-outlined mr-3 shrink-0 text-slate-400"
+                  >search</span
+                >
                 <input
                   id="hero-search-programmes"
                   v-model="heroSearchQ"
@@ -395,11 +416,14 @@ useSeoMeta({
                   :placeholder="searchPlaceholder"
                   :aria-label="searchPlaceholder"
                   @focus="showLiveResults = true"
-                  @blur="() => setTimeout(() => showLiveResults = false, 200)"
+                  @blur="() => setTimeout(() => (showLiveResults = false), 200)"
                 />
 
                 <!-- Dropdown Résultats Live -->
-                <div v-if="showLiveResults && liveResults.length > 0" class="absolute left-0 top-full z-50 mt-2 w-full min-w-[320px] overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-2xl backdrop-blur-xl">
+                <div
+                  v-if="showLiveResults && liveResults.length > 0"
+                  class="absolute left-0 top-full z-50 mt-2 w-full min-w-[320px] overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-2xl backdrop-blur-xl"
+                >
                   <div class="max-h-[380px] overflow-y-auto p-2">
                     <button
                       v-for="p in liveResults"
@@ -408,49 +432,89 @@ useSeoMeta({
                       class="flex w-full items-start gap-4 rounded-xl p-3 text-left transition hover:bg-slate-50"
                       @click="handleResultClick(p)"
                     >
-                      <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/5 text-primary">
-                        <span class="material-symbols-outlined text-xl">school</span>
+                      <div
+                        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/5 text-primary"
+                      >
+                        <span class="material-symbols-outlined text-xl"
+                          >school</span
+                        >
                       </div>
                       <div class="min-w-0 flex-1">
-                        <p class="truncate font-bold text-primary text-sm">{{ p.searchLabel ?? p.titre }}</p>
-                        <p class="truncate text-xs text-slate-500">{{ p.etablissement }} · {{ p.kind === 'bourse' ? 'Bourse' : 'Formation' }}</p>
+                        <p class="truncate font-bold text-primary text-sm">
+                          {{ p.searchLabel ?? p.titre }}
+                        </p>
+                        <p class="truncate text-xs text-slate-500">
+                          {{ p.etablissement }} ·
+                          {{ p.kind === "bourse" ? "Bourse" : "Formation" }}
+                        </p>
                       </div>
                     </button>
                   </div>
-                  <div class="border-t border-slate-50 bg-slate-50/50 p-3 text-center">
-                    <button type="submit" class="text-xs font-bold text-primary hover:underline">Voir tous les résultats</button>
+                  <div
+                    class="border-t border-slate-50 bg-slate-50/50 p-3 text-center"
+                  >
+                    <button
+                      type="submit"
+                      class="text-xs font-bold text-primary hover:underline"
+                    >
+                      Voir tous les résultats
+                    </button>
                   </div>
                 </div>
               </div>
 
               <!-- Sélecteur de Secteur sur mesure (Premium) -->
-              <div class="relative flex min-h-[52px] min-w-0 items-center px-4 md:py-1">
+              <div
+                class="relative flex min-h-[52px] min-w-0 items-center px-4 md:py-1"
+              >
                 <button
                   type="button"
                   class="flex w-full items-center gap-3 py-3 text-left focus:outline-none"
                   @click="showSectorDropdown = !showSectorDropdown"
                 >
-                  <span class="material-symbols-outlined shrink-0 text-slate-400 text-xl">category</span>
-                  <span class="block truncate text-base font-medium text-slate-700 sm:text-sm md:text-base">
-                    {{ heroSector || 'Tous les secteurs' }}
+                  <span
+                    class="material-symbols-outlined shrink-0 text-slate-400 text-xl"
+                    >category</span
+                  >
+                  <span
+                    class="block truncate text-base font-medium text-slate-700 sm:text-sm md:text-base"
+                  >
+                    {{ heroSector || "Tous les secteurs" }}
                   </span>
-                  <span class="material-symbols-outlined ml-auto text-slate-400 transition-transform duration-300" :class="{ 'rotate-180': showSectorDropdown }">
+                  <span
+                    class="material-symbols-outlined ml-auto text-slate-400 transition-transform duration-300"
+                    :class="{ 'rotate-180': showSectorDropdown }"
+                  >
                     expand_more
                   </span>
                 </button>
 
                 <!-- Dropdown personnalisé (Options) -->
-                <div v-if="showSectorDropdown" class="absolute left-0 top-full z-50 mt-2 w-full min-w-[240px] overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-2xl animate-in fade-in slide-in-from-top-2 duration-200">
+                <div
+                  v-if="showSectorDropdown"
+                  class="absolute left-0 top-full z-50 mt-2 w-full min-w-[240px] overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-2xl animate-in fade-in slide-in-from-top-2 duration-200"
+                >
                   <div class="p-2">
                     <button
                       v-for="opt in sectorOptions"
                       :key="opt"
                       type="button"
                       class="flex w-full items-center rounded-xl px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-primary/5 hover:text-primary"
-                      @click="() => { heroSector = opt; showSectorDropdown = false; }"
+                      @click="
+                        () => {
+                          heroSector = opt;
+                          showSectorDropdown = false;
+                        }
+                      "
                     >
-                      <span v-if="heroSector === opt" class="material-symbols-outlined mr-2 text-primary text-lg">check</span>
-                      <span :class="{ 'ml-7': heroSector !== opt }">{{ opt }}</span>
+                      <span
+                        v-if="heroSector === opt"
+                        class="material-symbols-outlined mr-2 text-primary text-lg"
+                        >check</span
+                      >
+                      <span :class="{ 'ml-7': heroSector !== opt }">{{
+                        opt
+                      }}</span>
                     </button>
                   </div>
                 </div>
@@ -464,30 +528,6 @@ useSeoMeta({
                 {{ ctaLabel }}
               </button>
             </form>
-
-            <div class="home-hero-stagger-item flex flex-wrap gap-3">
-              <NuxtLink
-                :to="ctaHref"
-                class="rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:opacity-95"
-              >
-                {{ ctaLabel }}
-              </NuxtLink>
-              <NuxtLink
-                :to="ctaSecondaryHref"
-                class="rounded-xl border border-primary px-6 py-3 text-sm font-semibold text-primary transition hover:bg-primary/5"
-              >
-                {{ ctaSecondaryLabel }}
-              </NuxtLink>
-            </div>
-
-            <div class="home-hero-stagger-item grid grid-cols-2 gap-4 rounded-2xl border border-slate-100/80 bg-white/90 p-4 shadow-premium md:grid-cols-4">
-              <StatCard
-                v-for="(s, i) in stats"
-                :key="i"
-                :value="s.value"
-                :label="s.label"
-              />
-            </div>
           </div>
         </div>
       </div>

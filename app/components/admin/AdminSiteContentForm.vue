@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { reactive, watch } from 'vue'
+import { cloneJson } from '~/utils/clone-json'
 import {
   VISUAL_ASSET_KEYS,
   VISUAL_ASSET_HELP,
@@ -18,7 +19,7 @@ watch(
   () => [props.contentKey, props.seed] as const,
   () => {
     Object.keys(state).forEach((k) => delete state[k])
-    Object.assign(state, structuredClone(props.seed ?? {}))
+    Object.assign(state, cloneJson(props.seed ?? {}))
     ensureSiteContentDraft(props.contentKey, state)
   },
   { immediate: true, deep: false }
@@ -190,7 +191,7 @@ function buildPayload(): Record<string, unknown> {
         heroImageKey: String(state.heroImageKey ?? '').trim()
       }
     default:
-      return structuredClone(state)
+      return cloneJson(state)
   }
 }
 

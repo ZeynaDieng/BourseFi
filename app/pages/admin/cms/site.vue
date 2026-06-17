@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { getAdminErrorMessage } from '~/utils/admin-error'
+import { cloneJson } from '~/utils/clone-json'
 import { SITE_CONTENT_LABELS } from '~/utils/site-content-labels'
 
 definePageMeta({ layout: 'portal', middleware: 'admin-auth' })
@@ -45,7 +46,7 @@ function openDrawer(row: Row) {
   if (!supportsForm(row.key)) return
   message.value = ''
   selectedKey.value = row.key
-  seedPayload.value = structuredClone((row.payload ?? {}) as Record<string, unknown>)
+  seedPayload.value = cloneJson((row.payload ?? {}) as Record<string, unknown>)
   drawerOpen.value = true
 }
 
