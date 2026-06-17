@@ -17,6 +17,7 @@ export type DossierProgress = {
 }
 
 const STATUS_PERCENT: Record<string, number> = {
+  BROUILLON: 10,
   SOUMIS: 35,
   EN_ATTENTE_PAIEMENT: 48,
   EN_REVUE_PARTENAIRE: 72,
@@ -24,6 +25,7 @@ const STATUS_PERCENT: Record<string, number> = {
   ACCEPTE: 88,
   DOCUMENT_EMIS: 100,
   REFUSE: 100,
+  TERMINE: 100,
 }
 
 export function computeDossierProgress(
@@ -88,13 +90,18 @@ export function candidatureBadge(status: string): {
   label: string
   className: string
 } {
-  if (status === 'DOCUMENT_EMIS' || status === 'ACCEPTE') {
-    return { label: 'Validée', className: 'bg-emerald-50 text-emerald-800' }
+  const map: Record<string, { label: string; className: string }> = {
+    BROUILLON: { label: 'Brouillon', className: 'bg-slate-100 text-slate-700' },
+    SOUMIS: { label: 'Déposé', className: 'bg-sky-50 text-sky-800' },
+    EN_ATTENTE_PAIEMENT: { label: 'Paiement en attente', className: 'bg-amber-50 text-amber-900' },
+    EN_REVUE_PARTENAIRE: { label: 'En analyse', className: 'bg-violet-50 text-violet-800' },
+    COMPLEMENT_DEMANDE: { label: 'Pièces demandées', className: 'bg-orange-50 text-orange-900' },
+    ACCEPTE: { label: 'Accepté', className: 'bg-emerald-50 text-emerald-800' },
+    REFUSE: { label: 'Refusé', className: 'bg-red-50 text-red-800' },
+    DOCUMENT_EMIS: { label: 'Attestation dispo', className: 'bg-emerald-50 text-emerald-800' },
+    TERMINE: { label: 'Terminé', className: 'bg-slate-100 text-slate-700' },
   }
-  if (status === 'REFUSE') {
-    return { label: 'Refusée', className: 'bg-red-50 text-red-800' }
-  }
-  return { label: 'En cours', className: 'bg-amber-50 text-amber-900' }
+  return map[status] ?? { label: 'En cours', className: 'bg-amber-50 text-amber-900' }
 }
 
 export function userInitials(name: string | undefined | null): string {

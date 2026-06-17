@@ -12,6 +12,8 @@ type Row = {
   role: string
   quote: string
   avatarUrl: string | null
+  ecoleNom: string | null
+  partenaireNom: string | null
 }
 
 const items = ref<Row[]>([])
@@ -24,6 +26,8 @@ const emptyForm = () => ({
   quote: '',
   initials: '',
   avatarUrl: '',
+  ecoleNom: '',
+  partenaireNom: '',
   published: true,
   sortOrder: 0
 })
@@ -56,6 +60,8 @@ function openEdit(row: Row) {
     quote: row.quote,
     initials: row.initials ?? '',
     avatarUrl: row.avatarUrl ?? '',
+    ecoleNom: row.ecoleNom ?? '',
+    partenaireNom: row.partenaireNom ?? '',
     published: row.published,
     sortOrder: row.sortOrder
   }
@@ -72,7 +78,9 @@ async function submitDrawer() {
     const body = {
       ...form.value,
       initials: form.value.initials.trim() || null,
-      avatarUrl: form.value.avatarUrl.trim() || null
+      avatarUrl: form.value.avatarUrl.trim() || null,
+      ecoleNom: form.value.ecoleNom.trim() || null,
+      partenaireNom: form.value.partenaireNom.trim() || null,
     }
     if (editingId.value) {
       await $fetch(`/api/admin/testimonials/${editingId.value}`, { method: 'PATCH', body })
@@ -183,6 +191,10 @@ const drawerTitle = computed(() => (editingId.value ? 'Modifier le témoignage' 
           <input v-model="form.initials" class="admin-input" maxlength="8" />
           <label class="admin-label">URL photo (optionnel)</label>
           <input v-model="form.avatarUrl" type="url" class="admin-input" placeholder="https://…" />
+          <label class="admin-label">École (preuve sociale)</label>
+          <input v-model="form.ecoleNom" class="admin-input" placeholder="ESP" />
+          <label class="admin-label">Partenaire financeur</label>
+          <input v-model="form.partenaireNom" class="admin-input" placeholder="Mairie de Dakar" />
         </div>
         <template #footer>
           <div class="flex justify-end gap-2">

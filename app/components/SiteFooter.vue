@@ -14,14 +14,14 @@
         <h4 class="font-bold text-yellow-500">Parcours</h4>
         <NuxtLink
           class="block rounded-lg bg-secondary-container/90 px-3 py-2 text-center text-xs font-extrabold normal-case tracking-normal text-on-secondary-container transition hover:opacity-95"
-          :to="{ path: '/programmes', hash: '#programmes-catalog' }"
+          to="/bourses"
         >
-          Demander une bourse
+          Obtenir une bourse
         </NuxtLink>
+        <NuxtLink class="block text-slate-300 underline-offset-4 transition hover:text-white hover:underline" to="/bourses">Bourses disponibles</NuxtLink>
         <NuxtLink class="block text-slate-300 underline-offset-4 transition hover:text-white hover:underline" to="/ecoles">Écoles partenaires</NuxtLink>
         <NuxtLink class="block text-slate-300 underline-offset-4 transition hover:text-white hover:underline" to="/programmes">Catalogue des formations</NuxtLink>
-        <!-- <NuxtLink class="block text-slate-300 underline-offset-4 transition hover:text-white hover:underline" to="/orientation">Orientation</NuxtLink> -->
-        <NuxtLink class="block normal-case tracking-normal text-slate-300 underline-offset-4 transition hover:text-white hover:underline" to="/candidature">Comment postuler</NuxtLink>
+        <NuxtLink class="block normal-case tracking-normal text-slate-300 underline-offset-4 transition hover:text-white hover:underline" to="/candidature">Comment ça marche</NuxtLink>
       </div>
       <div class="space-y-4">
         <h4 class="font-bold text-yellow-500">Juridique</h4>

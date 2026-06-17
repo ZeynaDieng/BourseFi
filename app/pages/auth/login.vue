@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { isSafeStudentRedirect, STUDENT_HOME } from '~/utils/routes'
+import { PARTNER_PORTAL_ENABLED } from '~/utils/product-config'
 
 const route = useRoute()
 const redirectTo = computed(() =>
@@ -20,7 +21,8 @@ function resolvePostLoginPath(role: string): string {
     return custom
   }
   if (role === 'ADMIN') return '/admin/dashboard'
-  if (role === 'PARTNER') return '/partenaire/dashboard'
+  if (role === 'PARTNER' && PARTNER_PORTAL_ENABLED) return '/partenaire/dashboard'
+  if (role === 'PARTNER') return '/'
   return STUDENT_HOME
 }
 

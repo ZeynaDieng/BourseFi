@@ -8,5 +8,9 @@ export type PartnerSchoolCardEcole = {
   coverImageUrl?: string | null
   logoUrl?: string | null
   typeLabel?: string | null
+  formationsCount?: number
+  boursesCount?: number
+  tauxInsertion?: string | null
+  partenairePrincipal?: string | null
   programmes?: unknown[]
 }

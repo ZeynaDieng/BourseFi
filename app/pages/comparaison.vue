@@ -3,8 +3,13 @@ const route = useRoute()
 const router = useRouter()
 
 const { data: allProgrammes } = await useFetch('/api/programmes')
+const { data: allBourses } = await useFetch('/api/bourses')
 
 type Programme = NonNullable<typeof allProgrammes.value>[number]
+
+function bourseForProgramme(slug: string) {
+  return (allBourses.value ?? []).find((b: { programmeSlug: string }) => b.programmeSlug === slug)
+}
 
 const MAX_COMPARE = 4
 
@@ -171,8 +176,28 @@ useHead({
             </tr>
             <tr class="border-t border-slate-100">
               <td class="sticky left-0 z-10 bg-white p-4 font-semibold text-primary shadow-[4px_0_8px_-4px_rgba(0,0,0,0.08)]">
-                Durée
+                Couverture bourse
               </td>
+              <td v-for="p in comparedProgrammes" :key="`${p.id}-cov`" class="p-4 text-slate-600">
+                <template v-if="bourseForProgramme(p.slug)">
+                  {{ bourseForProgramme(p.slug)!.coveragePercent }} %
+                  ({{ bourseForProgramme(p.slug)!.montantBourse.toLocaleString('fr-FR') }} {{ p.devise }})
+                </template>
+                <span v-else>—</span>
+              </td>
+            </tr>
+            <tr class="border-t border-slate-100">
+              <td class="sticky left-0 z-10 bg-white p-4 font-semibold text-primary shadow-[4px_0_8px_-4px_rgba(0,0,0,0.08)]">
+                Reste à charge
+              </td>
+              <td v-for="p in comparedProgrammes" :key="`${p.id}-reste`" class="p-4 font-bold text-primary">
+                <template v-if="bourseForProgramme(p.slug)">
+                  {{ bourseForProgramme(p.slug)!.resteACharge.toLocaleString('fr-FR') }} {{ p.devise }}
+                </template>
+                <span v-else>—</span>
+              </td>
+            </tr>
+            <tr class="border-t border-slate-100">
               <td v-for="p in comparedProgrammes" :key="`${p.id}-duree`" class="p-4 text-slate-600">{{ p.duree }}</td>
             </tr>
             <tr class="border-t border-slate-100">
@@ -197,10 +222,10 @@ useHead({
               <td class="sticky left-0 z-10 bg-slate-50/30 p-4" />
               <td v-for="p in comparedProgrammes" :key="`${p.id}-cta`" class="p-4">
                 <NuxtLink
-                  :to="`/programmes/${p.slug}#procedure-bourse`"
+                  :to="bourseForProgramme(p.slug) ? `/bourses/${bourseForProgramme(p.slug)!.slug}` : `/programmes/${p.slug}#procedure-bourse`"
                   class="block rounded-lg bg-primary px-3 py-2.5 text-center text-xs font-bold text-white"
                 >
-                  Procédure & candidature
+                  Postuler
                 </NuxtLink>
               </td>
             </tr>
@@ -213,8 +238,10 @@ useHead({
       <div class="space-y-4">
         <h2 class="font-headline text-3xl font-extrabold text-primary">Besoin d'un conseil ?</h2>
         <p class="text-slate-600">
-          Explorez le <NuxtLink to="/metiers" class="font-semibold text-primary underline-offset-2 hover:underline">guide des métiers</NuxtLink>
-          ou la page <NuxtLink to="/orientation" class="font-semibold text-primary underline-offset-2 hover:underline">orientation</NuxtLink>.
+          Consultez les
+          <NuxtLink to="/bourses" class="font-semibold text-primary underline-offset-2 hover:underline">bourses disponibles</NuxtLink>
+          ou la page
+          <NuxtLink to="/candidature" class="font-semibold text-primary underline-offset-2 hover:underline">Comment obtenir une bourse</NuxtLink>.
         </p>
         <div class="flex gap-3">
           <NuxtLink to="/candidature" class="rounded-lg bg-primary px-6 py-3 font-semibold text-white">Candidature</NuxtLink>

@@ -4,6 +4,7 @@ import {
   computeDossierProgress,
   userInitials,
 } from '~/utils/student-dossier'
+import { buildStudentDocuments } from '~/composables/useStudentDossier'
 
 definePageMeta({ layout: 'student-app', middleware: 'student-auth' })
 
@@ -17,39 +18,7 @@ const firstName = computed(
 const initials = computed(() => userInitials(me.value?.user?.name))
 const dossier = computed(() => computeDossierProgress(candidatures.value))
 
-const documents = computed(() => {
-  const list: { id: string; label: string; url?: string }[] = []
-  for (const c of candidatures.value || []) {
-    if (c.documentUrl) {
-      list.push({
-        id: `doc-${c.id}`,
-        label: `Attestation — ${c.programmeTitre}`,
-        url: c.documentUrl,
-      })
-    }
-    if (c.identityCardRectoUrl) {
-      list.push({
-        id: `recto-${c.id}`,
-        label: 'CNI recto',
-        url: c.identityCardRectoUrl,
-      })
-    }
-    if (c.identityCardVersoUrl) {
-      list.push({
-        id: `verso-${c.id}`,
-        label: 'CNI verso',
-        url: c.identityCardVersoUrl,
-      })
-    }
-  }
-  for (const p of paiements.value || []) {
-    list.push({
-      id: `pay-${p.id}`,
-      label: `Reçu — ${p.amount.toLocaleString('fr-FR')} ${p.currency}`,
-    })
-  }
-  return list
-})
+const documents = computed(() => buildStudentDocuments(candidatures.value, paiements.value))
 
 const stats = computed(() => ({
   candidatures: candidatures.value?.length ?? 0,
@@ -58,19 +27,16 @@ const stats = computed(() => ({
 }))
 
 const quickActions = [
-  {
-    to: '/programmes#programmes-catalog',
-    icon: 'add_circle',
-    label: 'Nouvelle bourse',
-    tint: 'bg-primary text-white',
-  },
-  {
-    to: '/paiement',
-    icon: 'payments',
-    label: 'Paiements',
-    tint: 'bg-white text-primary ring-1 ring-slate-100',
-  },
+  { to: '/bourses', icon: 'add_circle', label: 'Nouvelle bourse', tint: 'bg-primary text-white' },
+  { to: '/etudiant/candidatures', icon: 'description', label: 'Candidatures', tint: 'bg-white text-primary ring-1 ring-slate-100' },
+  { to: '/etudiant/documents', icon: 'folder', label: 'Documents', tint: 'bg-white text-primary ring-1 ring-slate-100' },
+  { to: '/etudiant/notifications', icon: 'notifications', label: 'Alertes', tint: 'bg-white text-primary ring-1 ring-slate-100' },
+  { to: '/comparateur', icon: 'compare', label: 'Comparer', tint: 'bg-white text-primary ring-1 ring-slate-100' },
+  { to: '/etudiant/support', icon: 'help', label: 'Support', tint: 'bg-white text-primary ring-1 ring-slate-100' },
 ]
+
+const ringCircumference = 2 * Math.PI * 34
+const ringOffset = computed(() => ringCircumference * (1 - dossier.value.percent / 100))
 
 async function logout() {
   await $fetch('/api/auth/logout', { method: 'POST' })
@@ -83,17 +49,30 @@ async function logout() {
   <main
     class="min-h-[calc(100dvh-4rem)] bg-gradient-to-b from-primary/[0.06] via-background to-background md:pb-12"
   >
-    <div class="mx-auto max-w-lg px-4 pt-5 md:max-w-xl">
-      <!-- En-tête léger -->
+    <div class="mx-auto max-w-lg px-4 pt-5 md:max-w-3xl md:px-6">
+      <!-- En-tête -->
       <header class="flex items-center gap-4">
-        <div
-          class="relative flex h-[4.5rem] w-[4.5rem] shrink-0 items-center justify-center rounded-[1.35rem] bg-primary text-lg font-bold text-white shadow-lg shadow-primary/25"
-        >
-          <span
-            class="absolute -inset-0.5 rounded-[1.4rem] bg-gradient-to-br from-secondary-fixed/80 to-secondary-fixed/20 opacity-70"
-            aria-hidden="true"
-          />
-          <span class="relative">{{ initials }}</span>
+        <div class="relative flex h-[4.75rem] w-[4.75rem] shrink-0 items-center justify-center">
+          <svg class="absolute inset-0 -rotate-90" viewBox="0 0 80 80" aria-hidden="true">
+            <circle cx="40" cy="40" r="34" fill="none" stroke="rgb(226 232 240)" stroke-width="5" />
+            <circle
+              cx="40"
+              cy="40"
+              r="34"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="5"
+              stroke-linecap="round"
+              class="text-secondary transition-all duration-700"
+              :stroke-dasharray="ringCircumference"
+              :stroke-dashoffset="ringOffset"
+            />
+          </svg>
+          <div
+            class="relative flex h-[3.75rem] w-[3.75rem] items-center justify-center rounded-[1.2rem] bg-primary text-base font-bold text-white shadow-lg shadow-primary/25"
+          >
+            {{ initials }}
+          </div>
         </div>
         <div class="min-w-0 flex-1">
           <p
@@ -141,8 +120,8 @@ async function logout() {
         </div>
       </div>
 
-      <!-- Actions — grille pleine largeur, pas de scroll horizontal -->
-      <div class="mt-4 grid grid-cols-2 gap-2">
+      <!-- Actions — grille 2×3 mobile -->
+      <div class="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
         <NuxtLink
           v-for="action in quickActions"
           :key="action.label"
@@ -158,8 +137,9 @@ async function logout() {
       </div>
 
       <!-- Carte dossier -->
+      <div class="mt-5 lg:grid lg:grid-cols-2 lg:gap-5">
       <section
-        class="mt-5 overflow-hidden rounded-[1.35rem] border border-slate-100 bg-white shadow-premium"
+        class="overflow-hidden rounded-[1.35rem] border border-slate-100 bg-white shadow-premium"
       >
         <div
           class="flex items-center justify-between border-b border-slate-100 bg-slate-50/80 px-4 py-3"
@@ -308,6 +288,7 @@ async function logout() {
           </div>
         </div>
       </section>
+      </div>
     </div>
   </main>
 </template>

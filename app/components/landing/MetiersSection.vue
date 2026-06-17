@@ -36,8 +36,11 @@
             </div>
             <p class="mb-5 flex-1 text-sm leading-relaxed text-on-surface-variant">{{ metier.shortDescription }}</p>
             <div class="mb-5 rounded-xl bg-surface-container-low px-4 py-3 text-sm">
-              <span class="font-semibold text-primary">Salaire indicatif</span>
+              <span class="font-semibold text-primary">Salaire moyen</span>
               <p class="mt-0.5 text-on-surface-variant">{{ metier.salary }}</p>
+              <p class="mt-2 text-xs text-slate-500">
+                {{ countFormations(metier.slug) }} formation(s) · {{ countBourses(metier.slug) }} bourse(s)
+              </p>
             </div>
             <div class="mt-auto flex flex-col gap-2 sm:flex-row">
               <NuxtLink
@@ -68,9 +71,24 @@ import { computed } from 'vue'
 import { metierVisual } from '~/utils/marketing-visuals'
 
 const { data: site } = await usePublicSite()
+const { data: bourses } = await useFetch('/api/bourses')
+const { data: programmes } = await useFetch('/api/programmes')
 
 const block = computed(() => (site.value?.content?.landing_metiers ?? {}) as Record<string, string>)
-const metiers = computed(() => site.value?.metiers ?? [])
+const metiers = computed(() => (site.value?.metiers ?? []).slice(0, 6))
+
+function countFormations(slug: string) {
+  return (programmes.value ?? []).filter((p: { slug: string; titre: string; description?: string }) => {
+    const q = slug.replace(/-/g, ' ')
+    return p.titre.toLowerCase().includes(q.split(' ')[0] ?? '') || p.slug.includes(slug.split('-')[0] ?? '')
+  }).length
+}
+
+function countBourses(slug: string) {
+  return (bourses.value ?? []).filter((b: { programmeSlug: string }) =>
+    b.programmeSlug.includes(slug.split('-')[0] ?? slug),
+  ).length
+}
 const defaultFootnote =
   'Les fourchettes sont indicatives (FCFA / an, Dakar et grandes villes) et évoluent selon l’expérience.'
 </script>

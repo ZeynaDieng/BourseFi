@@ -11,6 +11,7 @@ export default <Partial<Config>>{
     extend: {
       colors: {
         primary: '#002045',
+        'primary-container': '#e8eef5',
         secondary: '#735c00',
         'secondary-container': '#fed65b',
         'on-secondary-container': '#745c00',

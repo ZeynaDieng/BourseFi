@@ -1,8 +1,10 @@
 import { z } from 'zod'
+import { assertPartnerPortalEnabled } from '../../utils/product-config'
 import { CANDIDATURE_STATUSES, type CandidatureStatus } from '../../utils/candidature-types'
 import { requireRole } from '../../utils/auth'
 import { prisma } from '../../utils/prisma'
 import { writeAuditLog } from '../../utils/audit'
+import { notifyStatusChange } from '../../utils/notifications'
 
 const candidatureStatusZod = z.enum(CANDIDATURE_STATUSES)
 
@@ -30,6 +32,7 @@ export default defineEventHandler(async (event) => {
   }
 
   if (user.role === 'PARTNER') {
+    assertPartnerPortalEnabled()
     if (!user.partnerId || dossier.partnerId !== user.partnerId) {
       throw createError({ statusCode: 403, statusMessage: 'Acces refuse a ce dossier.' })
     }
@@ -75,6 +78,10 @@ export default defineEventHandler(async (event) => {
           data
         })
       : dossier
+
+  if (nextStatus && nextStatus !== dossier.status) {
+    await notifyStatusChange(dossier.userId, nextStatus, id)
+  }
 
   await writeAuditLog({
     actorId: user.id,

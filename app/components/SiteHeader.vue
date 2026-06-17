@@ -6,11 +6,10 @@ const { data } = await useFetch('/api/auth/me')
 const { profileHref, profileLabel } = useProfileDestination()
 
 const links = [
+  { to: '/bourses', label: 'Bourses disponibles' },
+  { to: '/programmes', label: 'Formations' },
   { to: '/ecoles', label: 'Écoles partenaires' },
-  {
-    to: { path: '/programmes', hash: '#programmes-catalog' },
-    label: 'Demander une bourse',
-  },
+  { to: '/candidature', label: 'Comment ça marche' },
 ]
 
 const isActive = (to: string | { path?: string }) => {
@@ -24,6 +23,22 @@ const isActive = (to: string | { path?: string }) => {
 }
 
 const currentUser = computed(() => data.value?.user || null)
+const isStudent = computed(() => currentUser.value?.role === 'STUDENT')
+
+const { data: notifData, refresh: refreshNotifs } = useFetch('/api/notifications', {
+  immediate: false,
+  server: false,
+})
+
+watch(
+  isStudent,
+  (v) => {
+    if (v) void refreshNotifs()
+  },
+  { immediate: true },
+)
+
+const unreadNotifs = computed(() => notifData.value?.unreadCount ?? 0)
 const isProfileActive = computed(() => route.path === profileHref.value)
 
 const isHome = computed(() => route.path === '/')
@@ -76,6 +91,20 @@ const headerBarClass = computed(() =>
       </nav>
       <div class="flex items-center gap-2 sm:gap-3">
         <NuxtLink
+          v-if="isStudent"
+          to="/etudiant/notifications"
+          class="relative inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-600 transition hover:bg-slate-100 hover:text-primary"
+          aria-label="Notifications"
+        >
+          <span class="material-symbols-outlined text-[24px]">notifications</span>
+          <span
+            v-if="unreadNotifs > 0"
+            class="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-secondary-container px-1 text-[10px] font-bold text-on-secondary-container"
+          >
+            {{ unreadNotifs > 9 ? '9+' : unreadNotifs }}
+          </span>
+        </NuxtLink>
+        <NuxtLink
           v-if="!currentUser"
           :to="loginHref"
           class="hidden rounded-lg px-4 py-2 font-medium text-slate-600 transition hover:text-primary md:inline-flex"
@@ -97,10 +126,10 @@ const headerBarClass = computed(() =>
           <span class="material-symbols-outlined text-[26px]">account_circle</span>
         </NuxtLink>
         <NuxtLink
-          :to="{ path: '/programmes', hash: '#programmes-catalog' }"
+          to="/bourses"
           class="rounded-lg bg-secondary-container px-3 py-2 text-sm font-semibold text-on-secondary-container shadow-sm transition hover:opacity-90 active:scale-95 sm:px-5"
         >
-          <span class="hidden sm:inline">Demander une bourse</span>
+          <span class="hidden sm:inline">Obtenir une bourse</span>
           <span class="sm:hidden">Bourse</span>
         </NuxtLink>
         <details class="relative md:hidden">
@@ -113,10 +142,10 @@ const headerBarClass = computed(() =>
             class="absolute right-0 top-12 w-60 max-w-[calc(100vw-2rem)] rounded-xl border border-slate-200 bg-white p-3 shadow-xl"
           >
             <NuxtLink
-              :to="{ path: '/programmes', hash: '#programmes-catalog' }"
+              to="/bourses"
               class="mb-2 block rounded-lg bg-primary px-3 py-2.5 text-center text-sm font-semibold text-white"
             >
-              Demander une bourse
+              Obtenir une bourse
             </NuxtLink>
             <NuxtLink
               v-for="link in links"

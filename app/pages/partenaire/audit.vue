@@ -1,23 +1,36 @@
 <script setup lang="ts">
+import { usePartnerPortalNav } from '~/composables/usePartnerPortalNav'
+
 definePageMeta({ layout: 'portal', middleware: 'partner-auth' })
+
+const { navItems, partnerDrawerLinks } = usePartnerPortalNav()
 const { data: logs } = await useFetch('/api/audit-logs?limit=100')
 </script>
 
 <template>
-  <div class="flex min-h-screen">
-    <aside class="w-64 border-r border-slate-200 bg-white p-4">
-      <div class="mb-8">
-        <AppBrandLogo to="/" img-class="h-12 w-auto max-h-14 object-contain object-left" />
-        <p class="mt-2 text-xs font-semibold uppercase tracking-wider text-slate-500">Portail partenaire</p>
+  <PortalShell
+    :nav-items="navItems"
+    :drawer-links="partnerDrawerLinks"
+    drawer-title="Portail partenaire"
+    logo-to="/partenaire/dashboard"
+    aria-label="Navigation partenaire"
+  >
+    <template #sidebar>
+      <PartnerSidebar />
+    </template>
+
+    <div class="space-y-6 p-4 md:space-y-8 md:p-8">
+      <PortalPageHeader title="Journal des actions" />
+
+      <div class="flex flex-col gap-3 md:hidden">
+        <article v-for="log in logs || []" :key="log.id" class="portal-dash-card p-4 text-sm">
+          <p class="font-semibold text-primary">{{ log.action }}</p>
+          <p class="text-slate-500">{{ log.entityType }} · {{ log.actorRole }}</p>
+          <p class="mt-1 text-xs text-slate-400">{{ new Date(log.createdAt).toLocaleString('fr-FR') }}</p>
+        </article>
       </div>
-      <nav class="space-y-1">
-        <NuxtLink to="/partenaire/dashboard" class="block rounded-lg px-4 py-3 text-slate-500">Tableau de bord</NuxtLink>
-        <NuxtLink to="/partenaire/audit" class="block rounded-lg bg-slate-50 px-4 py-3 font-semibold text-primary">Audit partenaire</NuxtLink>
-      </nav>
-    </aside>
-    <main class="flex-1 p-8">
-      <h2 class="mb-6 font-headline text-3xl font-extrabold text-primary">Journal des actions</h2>
-      <div class="overflow-hidden rounded-xl border border-slate-100 bg-white shadow-premium">
+
+      <div class="portal-dash-card hidden overflow-hidden md:block">
         <table class="w-full text-left">
           <thead class="bg-slate-50 text-xs uppercase tracking-widest text-slate-500">
             <tr><th class="p-4">Date</th><th class="p-4">Action</th><th class="p-4">Entite</th><th class="p-4">Role</th></tr>
@@ -32,6 +45,6 @@ const { data: logs } = await useFetch('/api/audit-logs?limit=100')
           </tbody>
         </table>
       </div>
-    </main>
-  </div>
+    </div>
+  </PortalShell>
 </template>

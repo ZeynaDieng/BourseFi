@@ -12,91 +12,71 @@
       "comparisonSection": "https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=1200&q=80"
     },
     "home_hero": {
-      "title": "",
+      "title": "Trouvez une bourse d'étude pour financer votre formation au Sénégal | BourseFi",
       "bannerImageUrl": "",
-      "headlinePrimary": "Votre avenir,",
-      "headlineAccent": "notre priorité.",
-      "subtitle": "",
-      "searchPlaceholder": "Rechercher une école, un domaine...",
+      "headlinePrimary": "Trouvez une bourse d'étude",
+      "headlineAccent": "pour financer votre formation au Sénégal.",
+      "subtitle": "Comparez les écoles partenaires, découvrez les formations disponibles et obtenez votre attestation de bourse en quelques minutes.",
+      "searchPlaceholder": "Rechercher une bourse, une école…",
       "sectorOptions": [
         "Tous les secteurs",
         "Business & Finance",
         "Technologie & IA",
         "Sante & Sciences"
       ],
-      "ctaLabel": "Demander une bourse",
-      "ctaHref": "/programmes"
+      "ctaLabel": "Trouver une bourse",
+      "ctaHref": "/bourses",
+      "ctaSecondaryLabel": "Explorer les formations",
+      "ctaSecondaryHref": "/programmes"
     },
     "home_stats": {
       "items": [
-        { "value": "25k+", "label": "Etudiants accompagnes" },
-        { "value": "180+", "label": "Ecoles & agences partenaires" },
-        { "value": "94%", "label": "Taux d'insertion" },
-        { "value": "40M+", "label": "Bourses distribuees" }
+        { "value": "245", "label": "Bourses disponibles" },
+        { "value": "37", "label": "Écoles partenaires" },
+        { "value": "8", "label": "Partenaires financeurs" },
+        { "value": "1200", "label": "Candidatures validées" }
       ]
     },
     "home_process": {
-      "sectionTitle": "Decouvrir les ecoles",
-      "sectionSubtitle": "De la selection d une formation au document telecharge emis par le bailleur.",
+      "sectionTitle": "Comment obtenir une bourse",
+      "sectionSubtitle": "Quatre étapes simples, de la bourse à l'attestation téléchargeable.",
       "cards": [
         {
           "step": "01",
-          "icon": "search_insights",
-          "variant": "light",
-          "title": "Choisir formation & ecole",
-          "body": "Fiches detaillees : debouches, brochures, partenaire financier et frais de dossier.",
-          "imageKey": "stepExplore"
+          "title": "Choisissez une formation",
+          "body": "Parcourez les bourses et sélectionnez la formation couverte par un partenaire financeur."
         },
         {
           "step": "02",
-          "icon": "verified_user",
-          "variant": "primary",
-          "title": "Pop-up candidature",
-          "body": "Vos infos personnelles sont saisies tres vite, puis paiement securise Wave / Orange Money",
-          "imageKey": "stepApply"
+          "title": "Soumettez votre demande",
+          "body": "Complétez votre dossier en ligne en quelques minutes depuis votre espace candidat."
         },
         {
           "step": "03",
-          "icon": "rocket_launch",
-          "variant": "light",
-          "title": "Document bailleur",
-          "body": "Le partenaire valide et emet l'attestation a presenter a l'ecole. Vous la telechargez depuis votre espace.",
-          "imageKey": "stepDoc"
+          "title": "Payez les frais de dossier",
+          "body": "Réglez les frais de dossier par Wave ou Orange Money pour transmettre votre candidature."
+        },
+        {
+          "step": "04",
+          "title": "Recevez votre attestation",
+          "body": "Suivez votre dossier et téléchargez l'attestation dès validation par le partenaire."
         }
       ]
     },
     "home_partner_section": {
-      "title": "Ecoles partenaires",
-      "subtitle": "Formations couvertes avec un bailleur mairie ou agence rattache.",
+      "title": "Écoles éligibles aux bourses",
+      "subtitle": "Formations couvertes par une bourse partenaire.",
       "ctaLabel": "Toutes les ecoles",
       "ctaHref": "/ecoles"
     },
     "why_choose": {
       "kicker": "Avantages",
-      "title": "Pourquoi choisir la plateforme",
-      "subtitle": "Un parcours pensé pour les familles et les étudiants au Sénégal : moins de friction, plus de clarté.",
-      "bannerImageKey": "whyChooseBanner",
+      "title": "Pourquoi BourseFi",
       "reasons": [
-        {
-          "icon": "schedule",
-          "title": "Gain de temps",
-          "description": "Une seule interface pour explorer les formations, comprendre les conditions et lancer votre dossier sans multiplier les déplacements."
-        },
-        {
-          "icon": "hub",
-          "title": "Centralisation des bourses",
-          "description": "Les opportunités financées par mairies, agences et bailleurs sont regroupées avec des fiches claires et à jour."
-        },
-        {
-          "icon": "visibility",
-          "title": "Suivi transparent",
-          "description": "Chaque étape de candidature est visible : statut, documents demandés et validation par le partenaire financier."
-        },
-        {
-          "icon": "smartphone",
-          "title": "Mobile partout au Sénégal",
-          "description": "Interface responsive et pensée pour les connexions mobiles : postulez et suivez votre dossier depuis votre smartphone."
-        }
+        { "title": "Trouvez une bourse rapidement" },
+        { "title": "Candidatez en ligne" },
+        { "title": "Suivez votre dossier" },
+        { "title": "Téléchargez votre attestation" }
       ]
     },
     "financement": {
@@ -162,20 +142,13 @@
       ]
     },
     "partners_strip": {
-      "kicker": "Réseau national",
-      "title": "Partenaires institutionnels",
-      "subtitle": "Le dispositif s'appuie sur un écosystème d'écoles, de collectivités, d'agences et de financeurs — même exigence qualité pour tous les territoires.",
-      "items": [
-        { "label": "Écoles" },
-        { "label": "Mairies" },
-        { "label": "Agences" },
-        { "label": "Bailleurs" },
-        { "label": "Fintech & banques" }
-      ]
+      "kicker": "Partenaires financeurs",
+      "title": "Logos des partenaires",
+      "subtitle": "Mairies, agences et bailleurs qui financent les bourses sur la plateforme."
     },
     "landing_metiers": {
       "kicker": "Orientation",
-      "title": "Métiers & débouchés",
+      "title": "Débouchés populaires",
       "subtitle": "Des parcours alignés sur la demande des entreprises et institutions au Sénégal et en Afrique de l'Ouest.",
       "footnote": "Les fourchettes sont indicatives (FCFA / an, Dakar et grandes villes) et évoluent selon l'expérience."
     },
@@ -210,28 +183,28 @@
   },
   "faq": [
     {
-      "question": "Qui peut postuler ?",
-      "answer": "Les profils éligibles dépendent de chaque bourse et du bailleur : niveau d'études, résidence, filière. Chaque fiche formation indique les critères avant le dépôt du dossier."
+      "question": "Qui finance les bourses ?",
+      "answer": "Les bourses sont financées par des partenaires institutionnels : mairies, agences régionales et bailleurs publics. Chaque fiche bourse indique le partenaire financeur et ses conditions."
     },
     {
-      "question": "Comment fonctionne une bourse sur BourseFi ?",
-      "answer": "Vous choisissez une formation couverte par un financement, déposez votre candidature en ligne et payez éventuellement les frais de dossier. Le partenaire financier étudie le dossier et émet une décision accessible sur votre espace."
+      "question": "Comment récupérer mon attestation ?",
+      "answer": "Une fois votre candidature acceptée et le document émis par le bailleur, l'attestation est disponible au téléchargement depuis votre espace étudiant, section Mes documents."
     },
     {
-      "question": "Quels documents fournir ?",
-      "answer": "La liste dépend du programme : souvent pièce d'identité, derniers diplômes ou relevés, justificatif de domicile et lettre de motivation. Le formulaire vous indique exactement ce qui manque."
-    },
-    {
-      "question": "Peut-on postuler à plusieurs écoles ?",
-      "answer": "Oui, vous pouvez envoyer plusieurs candidatures si les conditions de chaque programme le permettent. Chaque dossier est suivi séparément dans votre tableau de bord."
-    },
-    {
-      "question": "Comment récupérer l'attestation ?",
-      "answer": "Une fois la décision favorable, l'attestation du bailleur est disponible au téléchargement depuis votre espace étudiant, avec un historique des validations."
+      "question": "Puis-je postuler à plusieurs bourses ?",
+      "answer": "Oui, vous pouvez déposer plusieurs candidatures si les conditions de chaque bourse le permettent. Chaque dossier est suivi séparément dans votre tableau de bord."
     },
     {
       "question": "Les frais sont-ils remboursables ?",
-      "answer": "Les éventuels frais de dossier et les règles de remboursement sont précisés sur la fiche de chaque programme et par le partenaire financier avant paiement."
+      "answer": "Les frais de dossier et les règles de remboursement sont précisés sur la fiche de chaque bourse et par le partenaire financeur avant le paiement."
+    },
+    {
+      "question": "Comment se fait le paiement ?",
+      "answer": "Les frais de dossier, lorsqu'ils s'appliquent, se règlent en ligne par Mobile Money (Orange Money, Wave) depuis votre espace candidat, après validation du formulaire."
+    },
+    {
+      "question": "Que couvre la bourse ?",
+      "answer": "Chaque bourse indique un pourcentage de couverture (25 %, 50 %, 75 % ou 100 %) des frais de scolarité. Le reste à charge et le montant pris en charge sont affichés avant toute candidature."
     }
   ],
   "testimonials": [
@@ -239,13 +212,17 @@
       "initials": "AD",
       "name": "Aminata D.",
       "role": "Étudiante en data, Pikine",
-      "quote": "On voyait enfin où en était le dossier. Plus besoin de rappeler l'agence tous les jours : tout est sur le téléphone."
+      "quote": "On voyait enfin où en était le dossier. Plus besoin de rappeler l'agence tous les jours : tout est sur le téléphone.",
+      "ecoleNom": "ESP",
+      "partenaireNom": "Mairie de Dakar"
     },
     {
       "initials": "MK",
       "name": "Moussa K.",
       "role": "Parent, Saint-Louis",
-      "quote": "Les étapes étaient claires pour les documents et les frais. L'attestation téléchargeable nous a rassurés avant la rentrée."
+      "quote": "Les étapes étaient claires pour les documents et les frais. L'attestation téléchargeable nous a rassurés avant la rentrée.",
+      "ecoleNom": "UCAD",
+      "partenaireNom": "Mairie de Dakar"
     },
     {
       "initials": "IPE",

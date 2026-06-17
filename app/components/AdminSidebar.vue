@@ -12,6 +12,53 @@
       >
         Tableau de bord
       </NuxtLink>
+
+      <p class="mt-4 px-4 text-[10px] font-bold uppercase tracking-widest text-slate-400">Opérations</p>
+      <NuxtLink
+        to="/admin/candidatures"
+        class="block rounded-lg px-4 py-3 font-semibold text-slate-600 hover:bg-slate-50 hover:text-primary"
+        active-class="bg-slate-50 text-primary"
+      >
+        Candidatures
+      </NuxtLink>
+      <NuxtLink
+        to="/admin/transactions"
+        class="block rounded-lg px-4 py-3 font-semibold text-slate-600 hover:bg-slate-50 hover:text-primary"
+        active-class="bg-slate-50 text-primary"
+      >
+        Paiements
+      </NuxtLink>
+
+      <p class="mt-4 px-4 text-[10px] font-bold uppercase tracking-widest text-slate-400">Catalogue bourses</p>
+      <NuxtLink
+        to="/admin/catalogue/bourses"
+        class="block rounded-lg px-4 py-3 font-semibold text-slate-600 hover:bg-slate-50 hover:text-primary"
+        active-class="bg-slate-50 text-primary"
+      >
+        Bourses
+      </NuxtLink>
+      <NuxtLink
+        to="/admin/catalogue/programmes"
+        class="block rounded-lg px-4 py-3 font-semibold text-slate-600 hover:bg-slate-50 hover:text-primary"
+        active-class="bg-slate-50 text-primary"
+      >
+        Formations
+      </NuxtLink>
+      <NuxtLink
+        to="/admin/catalogue/ecoles"
+        class="block rounded-lg px-4 py-3 font-semibold text-slate-600 hover:bg-slate-50 hover:text-primary"
+        active-class="bg-slate-50 text-primary"
+      >
+        Écoles
+      </NuxtLink>
+      <NuxtLink
+        to="/admin/catalogue/partenaires"
+        class="block rounded-lg px-4 py-3 font-semibold text-slate-600 hover:bg-slate-50 hover:text-primary"
+        active-class="bg-slate-50 text-primary"
+      >
+        Partenaires
+      </NuxtLink>
+
       <p class="mt-4 px-4 text-[10px] font-bold uppercase tracking-widest text-slate-400">Contenu site</p>
       <NuxtLink
         to="/admin/cms/site"
@@ -34,36 +81,22 @@
       >
         Témoignages
       </NuxtLink>
+
+      <p class="mt-4 px-4 text-[10px] font-bold uppercase tracking-widest text-slate-400">Rapports & système</p>
       <NuxtLink
-        to="/admin/cms/metiers"
+        to="/admin/rapports"
         class="block rounded-lg px-4 py-3 font-semibold text-slate-600 hover:bg-slate-50 hover:text-primary"
         active-class="bg-slate-50 text-primary"
       >
-        Fiches métiers
+        Rapports
       </NuxtLink>
-      <p class="mt-4 px-4 text-[10px] font-bold uppercase tracking-widest text-slate-400">Données catalogue</p>
       <NuxtLink
-        to="/admin/catalogue/ecoles"
+        to="/admin/users"
         class="block rounded-lg px-4 py-3 font-semibold text-slate-600 hover:bg-slate-50 hover:text-primary"
         active-class="bg-slate-50 text-primary"
       >
-        Écoles
+        Utilisateurs
       </NuxtLink>
-      <NuxtLink
-        to="/admin/catalogue/partenaires"
-        class="block rounded-lg px-4 py-3 font-semibold text-slate-600 hover:bg-slate-50 hover:text-primary"
-        active-class="bg-slate-50 text-primary"
-      >
-        Partenaires
-      </NuxtLink>
-      <NuxtLink
-        to="/admin/catalogue/programmes"
-        class="block rounded-lg px-4 py-3 font-semibold text-slate-600 hover:bg-slate-50 hover:text-primary"
-        active-class="bg-slate-50 text-primary"
-      >
-        Programmes
-      </NuxtLink>
-      <p class="mt-4 px-4 text-[10px] font-bold uppercase tracking-widest text-slate-400">Système</p>
       <NuxtLink
         to="/admin/audit"
         class="block rounded-lg px-4 py-3 font-semibold text-slate-600 hover:bg-slate-50 hover:text-primary"

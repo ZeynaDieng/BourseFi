@@ -16,6 +16,7 @@ enum Role {
 }
 
 enum CandidatureStatus {
+  BROUILLON
   SOUMIS
   EN_ATTENTE_PAIEMENT
   EN_REVUE_PARTENAIRE
@@ -23,6 +24,7 @@ enum CandidatureStatus {
   ACCEPTE
   REFUSE
   DOCUMENT_EMIS
+  TERMINE
 }
 
 model Partner {
@@ -31,11 +33,14 @@ model Partner {
   slug                String        @unique
   logoUrl             String?
   contactEmail        String?
+  description         String?       @db.Text
+  conditions          String?       @db.Text
   /// Part du montant total (0-100) attribuee au partenaire bailleur
   partnerSharePercent Int           @default(75)
   createdAt           DateTime      @default(now())
   users               User[]
   programmes          Programme[]
+  bourses             Bourse[]
   candidatures        Candidature[]
 }
 
@@ -75,7 +80,33 @@ model Programme {
   eligibilite     String?
   brochureUrl     String?
   perspectives    String?
+  bourses         Bourse[]
   candidatures    Candidature[]
+}
+
+model Bourse {
+  id              String        @id @default(cuid())
+  slug            String        @unique
+  titre           String
+  programmeId     String
+  programme       Programme     @relation(fields: [programmeId], references: [id], onDelete: Cascade)
+  partnerId       String
+  partner         Partner       @relation(fields: [partnerId], references: [id], onDelete: Restrict)
+  coveragePercent Int
+  montantMax      Int?
+  quota           Int           @default(0)
+  placesRestantes Int           @default(0)
+  dateLimite      DateTime
+  conditions      String?       @db.Text
+  documentsRequis String?       @db.Text
+  isActive        Boolean       @default(true)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  candidatures    Candidature[]
+
+  @@index([programmeId])
+  @@index([partnerId])
+  @@index([isActive])
 }
 
 model User {
@@ -89,9 +120,10 @@ model User {
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
   sessions     Session[]
-  candidatures Candidature[]
-  paiements    Paiement[]
-  auditLogs    AuditLog[]
+  candidatures  Candidature[]
+  paiements     Paiement[]
+  auditLogs     AuditLog[]
+  notifications Notification[]
 }
 
 model Session {
@@ -109,6 +141,8 @@ model Candidature {
   user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   programmeId      String
   programme        Programme         @relation(fields: [programmeId], references: [id], onDelete: Restrict)
+  bourseId         String?
+  bourse           Bourse?           @relation(fields: [bourseId], references: [id], onDelete: SetNull)
   partnerId        String
   partner          Partner           @relation(fields: [partnerId], references: [id], onDelete: Restrict)
   firstName        String            @default("")
@@ -135,7 +169,24 @@ model Candidature {
 
   @@index([partnerId])
   @@index([programmeId])
+  @@index([bourseId])
   @@index([status])
+}
+
+model Notification {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type          String
+  title         String
+  body          String    @db.Text
+  readAt        DateTime?
+  candidatureId String?
+  bourseId      String?
+  createdAt     DateTime  @default(now())
+
+  @@index([userId])
+  @@index([readAt])
 }
 
 model Paiement {
@@ -195,8 +246,10 @@ model TestimonialItem {
   initials  String?
   name      String
   role      String
-  quote     String
-  avatarUrl String?
+  quote         String
+  avatarUrl     String?
+  ecoleNom      String?
+  partenaireNom String?
 }
 
 /// Fiches guide métier  (remplace le contenu statique côté affichage)

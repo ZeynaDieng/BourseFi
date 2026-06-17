@@ -18,7 +18,10 @@ const typeDisplay = computed(
     'Établissement partenaire'
 )
 
-const programmeCount = computed(() => props.ecole.programmes?.length ?? 0)
+const programmeCount = computed(
+  () => props.ecole.formationsCount ?? props.ecole.programmes?.length ?? 0,
+)
+const boursesCount = computed(() => props.ecole.boursesCount ?? 0)
 
 const initials = computed(() => {
   const words = props.ecole.nom.split(/\s+/).filter(Boolean)
@@ -74,8 +77,11 @@ const initials = computed(() => {
       <p v-if="ecole.resume" class="mt-3 line-clamp-2 text-xs leading-relaxed text-slate-500">
         {{ ecole.resume }}
       </p>
-      <p class="mt-auto pt-4 text-xs font-semibold text-primary">
-        {{ programmeCount }} formation{{ programmeCount !== 1 ? 's' : '' }} · {{ ecole.ville }}
+      <p class="mt-auto space-y-1 pt-4 text-xs font-semibold text-primary">
+        <span class="block">{{ programmeCount }} formation{{ programmeCount !== 1 ? 's' : '' }} · {{ boursesCount }} bourse{{ boursesCount !== 1 ? 's' : '' }}</span>
+        <span v-if="ecole.tauxInsertion" class="block text-slate-500">{{ ecole.tauxInsertion }} insertion</span>
+        <span v-if="ecole.partenairePrincipal" class="block text-slate-500">Partenaire : {{ ecole.partenairePrincipal }}</span>
+        <span class="block text-slate-400">{{ ecole.ville }}</span>
       </p>
     </div>
   </NuxtLink>

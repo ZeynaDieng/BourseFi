@@ -222,7 +222,9 @@ export async function buildPublicSiteSnapshot(prisma: PrismaClient) {
           name: t.name,
           role: t.role,
           quote: t.quote,
-          avatarUrl: t.avatarUrl
+          avatarUrl: t.avatarUrl,
+          ecoleNom: t.ecoleNom,
+          partenaireNom: t.partenaireNom,
         }))
       : disk.testimonials.map((t, i) => ({
           id: `disk-t-${i}`,
@@ -230,7 +232,9 @@ export async function buildPublicSiteSnapshot(prisma: PrismaClient) {
           name: t.name,
           role: t.role,
           quote: t.quote,
-          avatarUrl: t.avatarUrl ?? null
+          avatarUrl: t.avatarUrl ?? null,
+          ecoleNom: (t as { ecoleNom?: string }).ecoleNom ?? null,
+          partenaireNom: (t as { partenaireNom?: string }).partenaireNom ?? null,
         }))
 
   const metierRows = await prisma.metierPage.findMany({

@@ -24,6 +24,12 @@ const { data: programmes } = await useAsyncData(
   },
 );
 
+const { data: boursesCatalog } = await useFetch('/api/bourses')
+
+function bourseForProgramme(slug: string) {
+  return (boursesCatalog.value ?? []).find((b: { programmeSlug: string }) => b.programmeSlug === slug)
+}
+
 const metierLabel = computed(() => getMetierTrackLabel(metierParam.value));
 
 const procedureOpen = ref(false);
@@ -376,8 +382,11 @@ onBeforeUnmount(() => {
 
             <div class="flex items-center justify-between border-t border-slate-50 pt-4 md:border-none md:pt-0 md:justify-end md:gap-6">
               <div class="text-left md:text-right">
-                <p class="text-[9px] font-bold uppercase tracking-widest text-slate-400">Referentiel</p>
+                <p class="text-[9px] font-bold uppercase tracking-widest text-slate-400">Référentiel</p>
                 <p class="text-sm font-extrabold text-primary">{{ programme.frais.toLocaleString('fr-FR') }} {{ programme.devise }}</p>
+                <p v-if="bourseForProgramme(programme.slug)" class="mt-1 text-xs font-semibold text-secondary">
+                  Couverture {{ bourseForProgramme(programme.slug)!.coveragePercent }} %
+                </p>
               </div>
               <NuxtLink
                 :to="`/programmes/${programme.slug}`"

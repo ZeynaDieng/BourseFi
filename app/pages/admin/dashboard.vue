@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useAdminPortalNav } from '~/composables/useAdminPortalNav'
+
 definePageMeta({ layout: 'portal', middleware: 'admin-auth' })
 
 type DashboardStats = {
@@ -25,6 +27,7 @@ type CandidatureRow = {
 }
 
 const { data: me } = await useFetch('/api/auth/me')
+const { navItems, adminDrawerLinks } = useAdminPortalNav()
 const { data: stats } = await useFetch<DashboardStats>('/api/dashboard/stats')
 const { data: candidatures } = await useFetch<CandidatureRow[]>('/api/candidatures')
 
@@ -44,12 +47,16 @@ const displayName = computed(() => {
 const recentList = computed(() => (candidatures.value || []).slice(0, 10))
 
 const shortcuts = [
-  { to: '/admin/cms/site', label: 'Blocs du site', hint: 'Titres & sections' },
-  { to: '/admin/cms/faq', label: 'FAQ', hint: 'Questions fréquentes' },
-  { to: '/admin/cms/metiers', label: 'Métiers', hint: 'Hub orientation' },
-  { to: '/admin/catalogue/programmes', label: 'Programmes', hint: 'Offre & frais' },
-  { to: '/admin/catalogue/ecoles', label: 'Écoles', hint: 'Établissements' },
-  { to: '/admin/audit', label: 'Audit', hint: 'Traçabilité' }
+  { to: '/admin/candidatures', label: 'Candidatures', hint: 'Valider & attestations', icon: 'fact_check' },
+  { to: '/admin/catalogue/bourses', label: 'Bourses', hint: 'Offres & quotas', icon: 'school' },
+  { to: '/admin/catalogue/programmes', label: 'Formations', hint: 'Catalogue programmes', icon: 'menu_book' },
+  { to: '/admin/catalogue/ecoles', label: 'Écoles', hint: 'Établissements', icon: 'apartment' },
+  { to: '/admin/transactions', label: 'Paiements', hint: 'Historique & commissions', icon: 'payments' },
+  { to: '/admin/rapports', label: 'Rapports', hint: 'Export & KPI', icon: 'analytics' },
+  { to: '/admin/users', label: 'Utilisateurs', hint: 'Comptes & rôles', icon: 'group' },
+  { to: '/admin/cms/site', label: 'Blocs du site', hint: 'Titres & sections', icon: 'web' },
+  { to: '/admin/cms/faq', label: 'FAQ', hint: 'Questions fréquentes', icon: 'quiz' },
+  { to: '/admin/audit', label: 'Audit', hint: 'Traçabilité', icon: 'history' },
 ] as const
 
 function formatRelative(date: string | Date) {
@@ -84,24 +91,23 @@ function statusTone(status: string) {
 </script>
 
 <template>
-  <div class="flex min-h-screen">
-    <AdminSidebar />
-    <main class="relative flex-1 overflow-hidden bg-gradient-to-b from-slate-50 via-white to-slate-50/90">
-      <div
-        aria-hidden="true"
-        class="pointer-events-none absolute -left-24 top-0 h-72 w-72 rounded-full bg-secondary-fixed/15 blur-3xl"
-      />
-      <div
-        aria-hidden="true"
-        class="pointer-events-none absolute bottom-0 right-0 h-96 w-96 translate-x-1/4 rounded-full bg-primary/5 blur-3xl"
-      />
+  <PortalShell
+    :nav-items="navItems"
+    :drawer-links="adminDrawerLinks"
+    drawer-title="Administration"
+    logo-to="/admin/dashboard"
+    aria-label="Navigation administration"
+  >
+    <template #sidebar>
+      <AdminSidebar />
+    </template>
 
-      <div class="relative z-10 space-y-8 p-8 pb-14">
-        <header class="admin-dash-rise max-w-3xl space-y-2">
-          <p class="text-sm font-semibold uppercase tracking-widest text-slate-400">
+    <div class="relative space-y-6 p-4 pb-14 md:space-y-8 md:p-8">
+        <header class="portal-dash-rise max-w-3xl space-y-2">
+          <p class="text-xs font-semibold uppercase tracking-widest text-slate-400 md:text-sm">
             Espace administration
           </p>
-          <h2 class="font-headline text-3xl font-extrabold text-primary md:text-4xl">
+          <h2 class="font-headline text-2xl font-extrabold text-primary md:text-4xl">
             {{ greeting }}<template v-if="displayName">, {{ displayName }}</template>
           </h2>
           <p class="max-w-2xl text-base leading-relaxed text-slate-600">
@@ -113,7 +119,7 @@ function statusTone(status: string) {
         <!-- Bento KPI -->
         <section class="grid grid-cols-1 gap-4 md:grid-cols-12 md:gap-5">
           <article
-            class="admin-dash-rise relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-[#001a38] to-slate-900 p-6 text-white shadow-xl md:col-span-5 md:row-span-2"
+            class="portal-dash-rise relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-[#001a38] to-slate-900 p-5 text-white shadow-xl md:col-span-5 md:row-span-2 md:p-6"
             style="animation-delay: 40ms"
           >
             <div
@@ -123,7 +129,7 @@ function statusTone(status: string) {
               <p class="text-xs font-bold uppercase tracking-[0.2em] text-white/60">
                 Dossiers cumulés
               </p>
-              <p class="font-headline text-5xl font-black tracking-tight md:text-6xl">
+              <p class="font-headline text-4xl font-black tracking-tight md:text-6xl">
                 {{ stats?.candidatures ?? '—' }}
               </p>
               <div class="flex flex-wrap gap-2">
@@ -141,7 +147,7 @@ function statusTone(status: string) {
             </div>
           </article>
 
-          <article class="admin-dash-card admin-dash-rise md:col-span-3" style="animation-delay: 90ms">
+          <article class="portal-dash-card portal-dash-rise hidden min-w-0 md:block md:col-span-3" style="animation-delay: 90ms">
             <p class="text-[11px] font-bold uppercase tracking-widest text-slate-400">
               Taux de conversion
             </p>
@@ -154,7 +160,7 @@ function statusTone(status: string) {
           </article>
 
           <article
-            class="admin-dash-card admin-dash-rise border-secondary-fixed/25 bg-gradient-to-br from-secondary-container/40 to-white md:col-span-4"
+            class="portal-dash-card portal-dash-rise hidden border-secondary-fixed/25 bg-gradient-to-br from-secondary-container/40 to-white md:block md:col-span-4"
             style="animation-delay: 120ms"
           >
             <p class="text-[11px] font-bold uppercase tracking-widest text-slate-600">
@@ -192,7 +198,7 @@ function statusTone(status: string) {
             </template>
           </article>
 
-          <article class="admin-dash-card admin-dash-rise md:col-span-3" style="animation-delay: 160ms">
+          <article class="portal-dash-card portal-dash-rise hidden md:block md:col-span-3" style="animation-delay: 160ms">
             <p class="text-[11px] font-bold uppercase tracking-widest text-slate-400">
               En revue active
             </p>
@@ -205,7 +211,7 @@ function statusTone(status: string) {
             </p>
           </article>
 
-          <article class="admin-dash-card admin-dash-rise md:col-span-3" style="animation-delay: 200ms">
+          <article class="portal-dash-card portal-dash-rise hidden md:block md:col-span-3" style="animation-delay: 200ms">
             <p class="text-[11px] font-bold uppercase tracking-widest text-slate-400">
               Programmes publiés
             </p>
@@ -214,7 +220,7 @@ function statusTone(status: string) {
             </p>
           </article>
 
-          <article class="admin-dash-card admin-dash-rise md:col-span-3" style="animation-delay: 240ms">
+          <article class="portal-dash-card portal-dash-rise hidden md:block md:col-span-3" style="animation-delay: 240ms">
             <p class="text-[11px] font-bold uppercase tracking-widest text-slate-400">
               Écoles
             </p>
@@ -223,7 +229,7 @@ function statusTone(status: string) {
             </p>
           </article>
 
-          <article class="admin-dash-card admin-dash-rise md:col-span-3" style="animation-delay: 280ms">
+          <article class="portal-dash-card portal-dash-rise hidden md:block md:col-span-3" style="animation-delay: 280ms">
             <p class="text-[11px] font-bold uppercase tracking-widest text-slate-400">
               Partenaires
             </p>
@@ -233,29 +239,26 @@ function statusTone(status: string) {
           </article>
         </section>
 
+        <!-- KPI scroll mobile -->
+        <div class="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 md:mx-0 md:hidden md:overflow-visible md:px-0">
+          <article class="portal-dash-card min-w-[10rem] shrink-0 snap-start p-4">
+            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Conversion</p>
+            <p class="mt-1 font-headline text-2xl font-black text-primary">{{ stats?.conversion ?? '—' }}<span v-if="stats?.conversion != null">%</span></p>
+          </article>
+          <article class="portal-dash-card min-w-[10rem] shrink-0 snap-start p-4">
+            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">En revue</p>
+            <p class="mt-1 font-headline text-2xl font-black text-primary">{{ stats?.enRevue ?? '—' }}</p>
+          </article>
+          <article class="portal-dash-card min-w-[10rem] shrink-0 snap-start p-4">
+            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Programmes</p>
+            <p class="mt-1 font-headline text-2xl font-black text-primary">{{ stats?.programmesCount ?? '—' }}</p>
+          </article>
+        </div>
+
         <!-- Raccourcis + flux -->
-        <div class="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:items-start">
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:items-start lg:gap-8">
           <section class="lg:col-span-4">
-            <h3 class="mb-4 font-headline text-lg font-bold text-primary">Aller vite</h3>
-            <nav class="flex flex-col gap-2">
-              <NuxtLink
-                v-for="(item, i) in shortcuts"
-                :key="item.to"
-                :to="item.to"
-                class="admin-dash-rise group flex items-center justify-between rounded-xl border border-slate-100 bg-white/90 px-4 py-3 shadow-sm backdrop-blur-sm transition hover:border-primary/20 hover:bg-white hover:shadow-md"
-                :style="{ animationDelay: `${320 + i * 35}ms` }"
-              >
-                <span>
-                  <span class="block font-semibold text-primary">{{ item.label }}</span>
-                  <span class="text-xs text-slate-500">{{ item.hint }}</span>
-                </span>
-                <span
-                  class="material-symbols-outlined text-slate-400 transition group-hover:translate-x-0.5 group-hover:text-primary"
-                >
-                  arrow_forward
-                </span>
-              </NuxtLink>
-            </nav>
+            <PortalActionList title="Aller vite" :items="[...shortcuts]" />
           </section>
 
           <section class="lg:col-span-8">
@@ -272,7 +275,7 @@ function statusTone(status: string) {
               <article
                 v-for="(c, i) in recentList"
                 :key="c.id"
-                class="admin-dash-rise flex flex-col gap-3 rounded-2xl border border-slate-100/90 bg-white/95 p-4 shadow-sm backdrop-blur-sm transition hover:border-secondary-fixed/35 hover:shadow-md sm:flex-row sm:items-center sm:justify-between sm:gap-4"
+                class="portal-dash-rise flex flex-col gap-3 rounded-2xl border border-slate-100/90 bg-white/95 p-4 shadow-sm backdrop-blur-sm transition hover:border-secondary-fixed/35 hover:shadow-md sm:flex-row sm:items-center sm:justify-between sm:gap-4"
                 :style="{ animationDelay: `${380 + i * 40}ms` }"
               >
                 <div class="min-w-0 flex-1 space-y-1">
@@ -306,7 +309,6 @@ function statusTone(status: string) {
             </div>
           </section>
         </div>
-      </div>
-    </main>
-  </div>
+    </div>
+  </PortalShell>
 </template>

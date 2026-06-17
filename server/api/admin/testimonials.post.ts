@@ -10,6 +10,8 @@ export default defineEventHandler(async (event) => {
     quote?: string
     initials?: string | null
     avatarUrl?: string | null
+    ecoleNom?: string | null
+    partenaireNom?: string | null
     published?: boolean
     sortOrder?: number
   }>(event)
@@ -25,6 +27,8 @@ export default defineEventHandler(async (event) => {
       quote: body.quote.trim(),
       initials: body.initials?.trim() || null,
       avatarUrl: body.avatarUrl?.trim() || null,
+      ecoleNom: body.ecoleNom?.trim() || null,
+      partenaireNom: body.partenaireNom?.trim() || null,
       published: body.published ?? true,
       sortOrder
     }

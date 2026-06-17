@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { writeAuditLog } from '../utils/audit'
 import type { CandidatureStatus } from '../utils/candidature-types'
 import { saveCandidatureIdentityImages } from '../utils/candidature-files'
+import { createNotification } from '../utils/notifications'
 
 const imageDataUrl = z
   .string()
@@ -12,6 +13,7 @@ const imageDataUrl = z
 
 const candidatureSchema = z.object({
   programmeId: z.string().min(1),
+  bourseId: z.string().min(1).optional(),
   firstName: z.string().min(1).max(80).trim(),
   lastName: z.string().min(1).max(80).trim(),
   email: z.email(),
@@ -47,6 +49,24 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, statusMessage: 'Programme introuvable.' })
   }
 
+  let bourseId: string | null = null
+  if (parsed.data.bourseId) {
+    const bourse = await prisma.bourse.findFirst({
+      where: {
+        id: parsed.data.bourseId,
+        programmeId: programme.id,
+        isActive: true,
+      },
+    })
+    if (!bourse) {
+      throw createError({ statusCode: 400, statusMessage: 'Bourse invalide pour ce programme.' })
+    }
+    if (bourse.placesRestantes <= 0) {
+      throw createError({ statusCode: 400, statusMessage: 'Plus de places disponibles pour cette bourse.' })
+    }
+    bourseId = bourse.id
+  }
+
   let initialStatus: CandidatureStatus = 'SOUMIS'
   if (programme.fraisDossier > 0) {
     initialStatus = 'EN_ATTENTE_PAIEMENT'
@@ -60,6 +80,7 @@ export default defineEventHandler(async (event) => {
     data: {
       userId: user.id,
       programmeId: programme.id,
+      bourseId,
       partnerId: programme.partnerId,
       firstName: parsed.data.firstName,
       lastName: parsed.data.lastName,
@@ -94,11 +115,26 @@ export default defineEventHandler(async (event) => {
         identityCardVersoUrl: urls.identityCardVersoUrl
       }
     })
+    if (bourseId) {
+      await prisma.bourse.update({
+        where: { id: bourseId },
+        data: { placesRestantes: { decrement: 1 } },
+      })
+    }
   } catch (err) {
     await prisma.candidature.delete({ where: { id: candidature.id } })
     const msg = err instanceof Error ? err.message : 'Erreur enregistrement des pièces d identité.'
     throw createError({ statusCode: 400, statusMessage: msg })
   }
+
+  await createNotification({
+    userId: user.id,
+    type: 'candidature_submitted',
+    title: 'Candidature déposée',
+    body: `Votre demande de bourse pour ${programme.titre} a été enregistrée.`,
+    candidatureId: candidature.id,
+    bourseId: bourseId ?? undefined,
+  })
 
   await writeAuditLog({
     actorId: user.id,

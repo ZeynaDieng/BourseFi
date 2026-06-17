@@ -12,6 +12,8 @@ export default defineEventHandler(async (event) => {
     quote?: string
     initials?: string | null
     avatarUrl?: string | null
+    ecoleNom?: string | null
+    partenaireNom?: string | null
     published?: boolean
     sortOrder?: number
   }>(event)
@@ -23,6 +25,8 @@ export default defineEventHandler(async (event) => {
       ...(body.quote !== undefined ? { quote: body.quote } : {}),
       ...(body.initials !== undefined ? { initials: body.initials } : {}),
       ...(body.avatarUrl !== undefined ? { avatarUrl: body.avatarUrl } : {}),
+      ...(body.ecoleNom !== undefined ? { ecoleNom: body.ecoleNom } : {}),
+      ...(body.partenaireNom !== undefined ? { partenaireNom: body.partenaireNom } : {}),
       ...(body.published !== undefined ? { published: body.published } : {}),
       ...(body.sortOrder !== undefined ? { sortOrder: body.sortOrder } : {})
     }

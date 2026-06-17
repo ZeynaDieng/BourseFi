@@ -61,6 +61,8 @@ async function seedCmsFromDisk() {
         role: item.role,
         quote: item.quote,
         avatarUrl: item.avatarUrl ?? null,
+        ecoleNom: item.ecoleNom ?? null,
+        partenaireNom: item.partenaireNom ?? null,
         published: true
       }))
     })
@@ -565,9 +567,93 @@ async function main() {
     role: 'STUDENT'
   })
 
+  await seedBourses()
   await seedCmsFromDisk()
 
-  console.log('Seed catalogue partenaires / ecoles / programmes termine.')
+  console.log('Seed catalogue partenaires / ecoles / programmes / bourses termine.')
+}
+
+async function seedBourses() {
+  const programmes = await prisma.programme.findMany({
+    include: { partner: true, etablissement: true },
+    orderBy: { titre: 'asc' }
+  })
+
+  const coverageBySlug = {
+    'ingenieur-developpement-logiciel-esp': 70,
+    'master-data-science-esp': 75,
+    'master-finance-numerique-ucad': 50,
+    'mba-fintech-ism': 100,
+    'master-cybersecurite-esp': 50,
+    'msc-marketing-digital-ism': 75,
+    'master-sante-publique-ucad': 25,
+    'master-ia-appliquee-esp': 75,
+    'bts-maintenance-automobile-auto-academie': 50,
+    'ingenieur-genie-biologique-esgib': 50,
+    'ingenieur-telecom-esmt': 75
+  }
+
+  const dateLimite = new Date('2026-07-15T23:59:59.000Z')
+
+  for (const p of programmes) {
+    const slug = `bourse-${p.slug}`
+    const coveragePercent = coverageBySlug[p.slug] ?? 50
+    const quota = 20
+    const placesRestantes = p.slug === 'ingenieur-developpement-logiciel-esp' ? 12 : Math.floor(Math.random() * 15) + 5
+
+    const titre =
+      p.slug === 'ingenieur-developpement-logiciel-esp'
+        ? 'Bourse Ingénierie Logicielle'
+        : `Bourse ${p.titre.split(' ').slice(0, 3).join(' ')}`
+
+    await prisma.bourse.upsert({
+      where: { slug },
+      update: {
+        titre,
+        coveragePercent,
+        quota,
+        placesRestantes,
+        dateLimite,
+        isActive: true,
+        conditions:
+          'Étudiant sénégalais ou résident. Dossier complet avec CNI et relevés de notes.',
+        documentsRequis: 'CNI recto/verso, relevé de notes, diplôme ou attestation de niveau.'
+      },
+      create: {
+        slug,
+        titre,
+        programmeId: p.id,
+        partnerId: p.partnerId,
+        coveragePercent,
+        quota,
+        placesRestantes,
+        dateLimite,
+        isActive: true,
+        conditions:
+          'Étudiant sénégalais ou résident. Dossier complet avec CNI et relevés de notes.',
+        documentsRequis: 'CNI recto/verso, relevé de notes, diplôme ou attestation de niveau.'
+      }
+    })
+  }
+
+  await prisma.partner.update({
+    where: { slug: 'mairie-dakar-bourses' },
+    data: {
+      description:
+        'La Mairie de Dakar finance des bourses d’études pour les formations partenaires à Dakar et en région.',
+      conditions:
+        'Résidence à Dakar ou banlieue. Dossier complet avant la date limite. Une bourse par étudiant et par vague.'
+    }
+  })
+
+  await prisma.partner.update({
+    where: { slug: 'agence-regionale-solidarite-education' },
+    data: {
+      description:
+        'L’ARSE accompagne les étudiants sénégalais dans l’accès aux formations supérieures via des bourses régionales.',
+      conditions: 'Priorité aux filières à fort taux d’insertion. Pièces justificatives obligatoires.'
+    }
+  })
 }
 
 main()

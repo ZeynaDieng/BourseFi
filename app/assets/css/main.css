@@ -113,6 +113,19 @@ summary::-webkit-details-marker {
   animation: admin-dash-rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+/* Alias portails (admin + partenaire) */
+.portal-dash-card {
+  @apply rounded-2xl border border-slate-100/90 bg-white/95 p-5 shadow-premium backdrop-blur-sm transition duration-300;
+}
+
+.portal-dash-card:hover {
+  @apply border-secondary-fixed/30 shadow-lg;
+}
+
+.portal-dash-rise {
+  animation: admin-dash-rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 /* Accueil — photo plein écran (évite un léger flou GPU sur certains navigateurs) ; pas de filtres CSS sur le fond pour garder fidélité à la source. */
 .hero-bg-photo {
   backface-visibility: hidden;

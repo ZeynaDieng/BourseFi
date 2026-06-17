@@ -5,6 +5,8 @@ import type { PartnerSchoolCardEcole } from "~/types/partner-school-card";
 
 const { data: ecoles } = await useFetch("/api/etablissements");
 const { data: site } = await usePublicSite();
+const { data: publicStats } = await useFetch("/api/stats/public");
+const { data: allBourses } = await useFetch("/api/bourses");
 
 // Chargement de tous les programmes pour la recherche live sur l'accueil
 const { data: allProgrammesRaw } = await useFetch("/api/programmes");
@@ -16,21 +18,9 @@ const ecolesPartenairesLanding = computed(
 );
 
 type StatItem = { value: string; label: string };
-type ProcessCard = {
-  step?: string;
-  icon: string;
-  variant?: string;
-  title: string;
-  body: string;
-  imageUrl?: string;
-  imageKey?: string;
-};
 
 const hero = computed(
   () => (site.value?.content?.home_hero ?? {}) as Record<string, unknown>,
-);
-const visuals = computed(
-  () => (site.value?.content?.visual_assets ?? {}) as Record<string, string>,
 );
 
 /** Carrousel d’accueil : bannière métier puis visuels 1, 2, 4, 5 et 6 — sans `slide-3.png`. Champ CMS `bannerImageUrl` plein → image fixe (remplace le carrousel). */
@@ -94,7 +84,7 @@ const heroHeadlinePrimary = computed(() => {
     typeof hero.value.headlinePrimary === "string"
       ? hero.value.headlinePrimary.trim()
       : "";
-  return raw || "Votre avenir,";
+  return raw || "Trouvez une bourse d'étude";
 });
 
 const heroHeadlineAccent = computed(() => {
@@ -102,7 +92,7 @@ const heroHeadlineAccent = computed(() => {
     typeof hero.value.headlineAccent === "string"
       ? hero.value.headlineAccent.trim()
       : "";
-  return raw || "notre priorité.";
+  return raw || "pour financer votre formation au Sénégal.";
 });
 
 /** Sous-texte depuis le CMS uniquement ; si vide, affichage structuré par défaut. */
@@ -131,7 +121,19 @@ const sectorOptions = computed(() => {
 });
 
 const ctaLabel = computed(
-  () => (hero.value.ctaLabel as string) || "Demander une bourse",
+  () => (hero.value.ctaLabel as string) || "Trouver une bourse",
+);
+
+const ctaHref = computed(
+  () => (hero.value.ctaHref as string) || "/bourses",
+);
+
+const ctaSecondaryLabel = computed(
+  () => (hero.value.ctaSecondaryLabel as string) || "Explorer les formations",
+);
+
+const ctaSecondaryHref = computed(
+  () => (hero.value.ctaSecondaryHref as string) || "/programmes",
 );
 
 const heroSearchQ = ref("");
@@ -164,11 +166,25 @@ watch(
 const router = useRouter();
 const route = useRoute();
 
-/** Configuration Fuse.js pour la recherche live sur l'accueil */
+/** Configuration Fuse.js — programmes + bourses */
 const fuse = computed(() => {
-  return new Fuse(allProgrammes.value, {
+  const items = [
+    ...allProgrammes.value.map((p: { titre: string; slug: string; etablissement: string; partnerName?: string }) => ({
+      ...p,
+      kind: 'formation',
+      searchLabel: p.titre,
+      href: `/programmes/${p.slug}`,
+    })),
+    ...(allBourses.value ?? []).map((b: { titre: string; slug: string; etablissement: string; partnerName: string }) => ({
+      ...b,
+      kind: 'bourse',
+      searchLabel: b.titre,
+      href: `/bourses/${b.slug}`,
+    })),
+  ]
+  return new Fuse(items, {
     keys: [
-      { name: "titre", weight: 1.0 },
+      { name: "searchLabel", weight: 1.0 },
       { name: "etablissement", weight: 0.8 },
       { name: "partnerName", weight: 0.7 }
     ],
@@ -182,11 +198,15 @@ const liveResults = computed(() => {
   return fuse.value.search(q).slice(0, 6).map(r => r.item);
 });
 
-function handleResultClick(p: any) {
+function handleResultClick(p: { href?: string; titre?: string; searchLabel?: string }) {
   showLiveResults.value = false;
+  if (p.href) {
+    router.push(p.href);
+    return;
+  }
   router.push({
-    path: "/programmes",
-    query: { q: p.titre }
+    path: "/recherche",
+    query: { q: p.searchLabel ?? p.titre ?? "" }
   });
 }
 
@@ -199,11 +219,8 @@ function buildHeroCatalogLocation() {
   }
   const q = terms.join(" ").trim();
   return q.length
-    ? {
-        path: "/programmes" as const,
-        query: { q }
-      }
-    : { path: "/programmes" as const };
+    ? { path: "/recherche" as const, query: { q } }
+    : { path: "/bourses" as const };
 }
 
 function submitHeroSearch() {
@@ -212,42 +229,20 @@ function submitHeroSearch() {
 }
 
 const stats = computed(() => {
+  if (publicStats.value?.heroStats?.length) {
+    return publicStats.value.heroStats;
+  }
   const items = (
     site.value?.content?.home_stats as { items?: StatItem[] } | undefined
   )?.items;
   return (
     items ?? [
-      { value: "25k+", label: "Etudiants accompagnes" },
-      { value: "180+", label: "Ecoles & agences partenaires" },
-      { value: "94%", label: "Taux d'insertion" },
-      { value: "40M+", label: "Bourses distribuees" },
+      { value: "245", label: "Bourses disponibles" },
+      { value: "37", label: "Écoles partenaires" },
+      { value: "8", label: "Partenaires financeurs" },
+      { value: "1200", label: "Candidatures validées" },
     ]
   );
-});
-
-const processSection = computed(
-  () => (site.value?.content?.home_process ?? {}) as Record<string, unknown>,
-);
-
-const processTitle = computed(
-  () => (processSection.value.sectionTitle as string) || "Decouvrir les ecoles",
-);
-
-const processSubtitle = computed(
-  () =>
-    (processSection.value.sectionSubtitle as string) ||
-    "De la selection d une formation au document telecharge emis par le bailleur.",
-);
-
-const processCards = computed((): ProcessCard[] => {
-  const cards = (processSection.value.cards as ProcessCard[] | undefined) ?? [];
-  const va = visuals.value;
-  return cards.map((c) => ({
-    ...c,
-    imageUrl:
-      c.imageUrl ||
-      (c.imageKey && va[c.imageKey] ? va[c.imageKey] : c.imageUrl),
-  }));
 });
 
 const partnerHead = computed(
@@ -256,12 +251,12 @@ const partnerHead = computed(
 );
 
 const partnerTitle = computed(
-  () => partnerHead.value.title || "Ecoles partenaires",
+  () => partnerHead.value.title || "Écoles éligibles aux bourses",
 );
 const partnerSubtitle = computed(
   () =>
     partnerHead.value.subtitle ||
-    "Formations couvertes avec un bailleur mairie ou agence rattache.",
+    "Formations couvertes par une bourse partenaire.",
 );
 const partnerCtaLabel = computed(
   () => partnerHead.value.ctaLabel || "Toutes les ecoles",
@@ -417,8 +412,8 @@ useSeoMeta({
                         <span class="material-symbols-outlined text-xl">school</span>
                       </div>
                       <div class="min-w-0 flex-1">
-                        <p class="truncate font-bold text-primary text-sm">{{ p.titre }}</p>
-                        <p class="truncate text-xs text-slate-500">{{ p.etablissement }} · {{ p.ville }}</p>
+                        <p class="truncate font-bold text-primary text-sm">{{ p.searchLabel ?? p.titre }}</p>
+                        <p class="truncate text-xs text-slate-500">{{ p.etablissement }} · {{ p.kind === 'bourse' ? 'Bourse' : 'Formation' }}</p>
                       </div>
                     </button>
                   </div>
@@ -461,7 +456,7 @@ useSeoMeta({
                 </div>
               </div>
 
-              <!-- Bouton CTA -->
+              <!-- Bouton CTA primaire -->
               <button
                 type="submit"
                 class="min-h-[52px] shrink-0 rounded-xl bg-primary px-7 py-3 text-center text-sm font-semibold text-white whitespace-nowrap shadow-xl transition-all duration-300 hover:scale-[1.02] hover:bg-primary-hover active:scale-95 md:text-base"
@@ -469,6 +464,30 @@ useSeoMeta({
                 {{ ctaLabel }}
               </button>
             </form>
+
+            <div class="home-hero-stagger-item flex flex-wrap gap-3">
+              <NuxtLink
+                :to="ctaHref"
+                class="rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:opacity-95"
+              >
+                {{ ctaLabel }}
+              </NuxtLink>
+              <NuxtLink
+                :to="ctaSecondaryHref"
+                class="rounded-xl border border-primary px-6 py-3 text-sm font-semibold text-primary transition hover:bg-primary/5"
+              >
+                {{ ctaSecondaryLabel }}
+              </NuxtLink>
+            </div>
+
+            <div class="home-hero-stagger-item grid grid-cols-2 gap-4 rounded-2xl border border-slate-100/80 bg-white/90 p-4 shadow-premium md:grid-cols-4">
+              <StatCard
+                v-for="(s, i) in stats"
+                :key="i"
+                :value="s.value"
+                :label="s.label"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -497,95 +516,9 @@ useSeoMeta({
       </div>
     </section>
 
-    <LandingWhyChoose />
+    <LandingBoursesDisponibles />
 
-    <section class="bg-primary py-16 text-white">
-      <div
-        class="mx-auto grid max-w-7xl grid-cols-2 gap-12 px-8 text-center md:grid-cols-4"
-      >
-        <div v-for="(s, i) in stats" :key="i">
-          <div class="text-3xl font-extrabold text-secondary-fixed">
-            {{ s.value }}
-          </div>
-          <div
-            class="text-xs uppercase tracking-widest text-on-primary-container"
-          >
-            {{ s.label }}
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="mx-auto max-w-7xl px-8 py-20">
-      <h2
-        class="mb-4 text-center font-headline text-4xl font-extrabold text-primary"
-      >
-        {{ processTitle }}
-      </h2>
-      <p class="mx-auto mb-12 max-w-xl text-center text-on-surface-variant">
-        {{ processSubtitle }}
-      </p>
-      <div class="grid grid-cols-1 gap-8 md:grid-cols-3">
-        <template v-for="(card, idx) in processCards" :key="idx">
-          <article
-            v-if="card.variant === 'primary'"
-            class="relative overflow-hidden rounded-2xl bg-primary text-white shadow-xl"
-          >
-            <img
-              v-if="card.imageUrl"
-              :src="card.imageUrl"
-              alt=""
-              class="absolute inset-0 h-full w-full object-cover opacity-25"
-              width="900"
-              height="352"
-              loading="lazy"
-            />
-            <div class="relative p-8">
-              <div
-                class="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-secondary-fixed/20 text-secondary-fixed"
-              >
-                <span class="material-symbols-outlined">{{ card.icon }}</span>
-              </div>
-              <p class="mb-2 text-lg font-bold">
-                {{ card.step }} - {{ card.title }}
-              </p>
-              <p class="text-on-primary-container">{{ card.body }}</p>
-            </div>
-          </article>
-          <article
-            v-else
-            class="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-premium"
-          >
-            <img
-              v-if="card.imageUrl"
-              :src="card.imageUrl"
-              alt=""
-              class="h-44 w-full object-cover"
-              width="900"
-              height="352"
-              loading="lazy"
-            />
-            <div class="p-8">
-              <div
-                class="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-secondary/10 text-secondary"
-              >
-                <span class="material-symbols-outlined">{{ card.icon }}</span>
-              </div>
-              <p class="mb-2 text-lg font-bold text-primary">
-                {{ card.step }} - {{ card.title }}
-              </p>
-              <p class="text-on-surface-variant">{{ card.body }}</p>
-            </div>
-          </article>
-        </template>
-      </div>
-    </section>
-
-    <LandingMetiersSection />
-
-    <LandingFinancement />
-
-    <LandingEspaceEtudiant />
+    <LandingFormationsDisponibles />
 
     <section class="bg-surface-container-low py-20">
       <div class="mx-auto max-w-7xl px-8">
@@ -612,10 +545,8 @@ useSeoMeta({
       </div>
     </section>
 
-    <LandingPartnersLogos />
+    <LandingCommentObtenirBourse />
 
     <LandingFaq />
-
-    <LandingTestimonials />
   </main>
 </template>

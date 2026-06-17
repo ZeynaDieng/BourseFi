@@ -13,10 +13,20 @@ type ProgrammeDto = {
   devise: string
   niveau?: string
   eligibilite?: string | null
+  fraisScolarite?: number
 }
+
+type BourseContext = {
+  id: string
+  titre: string
+  coveragePercent: number
+  montantBourse: number
+  partnerName: string
+} | null
 
 const props = defineProps<{
   programme: ProgrammeDto | null
+  bourse?: BourseContext
   open: boolean
 }>()
 
@@ -234,6 +244,7 @@ async function submit() {
         method: 'POST',
         body: {
           programmeId: props.programme.id,
+          bourseId: props.bourse?.id,
           firstName: form.firstName.trim(),
           lastName: form.lastName.trim(),
           email: form.email.trim(),
@@ -282,7 +293,7 @@ const stepTitles = ['Coordonnées', 'Parcours scolaire', 'Pièce d’identité',
         <header class="sticky top-0 z-10 flex items-start justify-between border-b border-slate-100 bg-white px-6 py-4">
           <div>
             <h2 id="candidature-modal-title" class="font-headline text-xl font-extrabold text-primary">
-              Ma candidature
+              Demande de bourse
             </h2>
             <p class="text-xs font-bold text-primary uppercase tracking-widest mt-1">
               Étape {{ step + 1 }}/4 — {{ stepTitles[step] }}
@@ -297,6 +308,22 @@ const stepTitles = ['Coordonnées', 'Parcours scolaire', 'Pièce d’identité',
             <span class="material-symbols-outlined">close</span>
           </button>
         </header>
+
+        <div
+          v-if="programme"
+          class="border-b border-slate-100 bg-primary-container/40 px-6 py-4 text-xs"
+        >
+          <p class="font-bold text-primary">Formation : {{ programme.titre }}</p>
+          <p class="text-slate-600">École : {{ programme.etablissement }}</p>
+          <p class="text-slate-600">Partenaire : {{ bourse?.partnerName ?? programme.partnerName }}</p>
+          <p v-if="bourse" class="mt-1 font-semibold text-secondary">
+            Montant bourse : {{ bourse.montantBourse.toLocaleString('fr-FR') }} {{ programme.devise }}
+            ({{ bourse.coveragePercent }} %)
+          </p>
+          <p v-if="programme.fraisDossier > 0" class="text-slate-600">
+            Frais dossier : {{ programme.fraisDossier.toLocaleString('fr-FR') }} {{ programme.devise }}
+          </p>
+        </div>
 
         <div class="space-y-4 px-6 py-4">
           <div v-if="programme.eligibilite" class="rounded-xl bg-primary/5 p-4 text-xs italic text-primary">

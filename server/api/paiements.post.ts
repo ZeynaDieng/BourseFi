@@ -2,6 +2,7 @@ import { requireRole } from '../utils/auth'
 import { prisma } from '../utils/prisma'
 import { z } from 'zod'
 import { writeAuditLog } from '../utils/audit'
+import { createNotification } from '../utils/notifications'
 
 const paiementSchema = z.object({
   candidatureId: z.string().min(1),
@@ -93,6 +94,14 @@ export default defineEventHandler(async (event) => {
       amountPlatform: paiement.amountPlatform,
       candidatureId: candidature.id
     }
+  })
+
+  await createNotification({
+    userId: candidature.userId,
+    type: 'payment_validated',
+    title: 'Paiement validé',
+    body: 'Votre paiement a été validé. Votre dossier est transmis au bailleur.',
+    candidatureId: candidature.id,
   })
 
   return {

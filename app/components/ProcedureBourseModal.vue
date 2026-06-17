@@ -9,9 +9,17 @@ type ProgrammeForProcedure = {
   devise: string
 }
 
+type BourseInfo = {
+  titre: string
+  coveragePercent: number
+  montantBourse: number
+  placesRestantes: number
+} | null
+
 defineProps<{
   open: boolean
   programme: ProgrammeForProcedure | null
+  bourse?: BourseInfo
 }>()
 
 const emit = defineEmits<{
@@ -49,6 +57,10 @@ function goApply() {
               {{ programme.titre }}
             </h2>
             <p class="mt-1 text-sm text-slate-500">{{ programme.etablissement }} · {{ programme.ville }}</p>
+            <p v-if="bourse" class="mt-2 text-sm font-semibold text-secondary">
+              Bourse : {{ bourse.titre }} — couverture {{ bourse.coveragePercent }} %
+              ({{ bourse.montantBourse.toLocaleString('fr-FR') }} {{ programme.devise }})
+            </p>
           </div>
           <button
             type="button"

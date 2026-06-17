@@ -34,7 +34,12 @@
               <p class="text-xs text-on-surface-variant">{{ t.role }}</p>
             </div>
           </div>
-          <p class="flex-1 text-sm leading-relaxed text-on-surface-variant">{{ t.quote }} </p>
+          <p class="flex-1 text-sm leading-relaxed text-on-surface-variant">{{ t.quote }}</p>
+          <p v-if="t.ecoleNom || t.partenaireNom" class="mt-4 text-xs font-semibold text-slate-500">
+            <span v-if="t.ecoleNom">{{ t.ecoleNom }}</span>
+            <span v-if="t.ecoleNom && t.partenaireNom"> · </span>
+            <span v-if="t.partenaireNom">{{ t.partenaireNom }}</span>
+          </p>
         </blockquote>
       </div>
     </div>
