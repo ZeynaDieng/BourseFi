@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import {
+  buildCandidatureTimeline,
   candidatureBadge,
   computeDossierProgress,
+  estimatedResponse,
   userInitials,
 } from '~/utils/student-dossier'
 import { buildStudentDocuments } from '~/composables/useStudentDossier'
@@ -17,6 +19,18 @@ const firstName = computed(
 )
 const initials = computed(() => userInitials(me.value?.user?.name))
 const dossier = computed(() => computeDossierProgress(candidatures.value))
+
+const latest = computed(() => candidatures.value?.[0] ?? null)
+const timeline = computed(() => buildCandidatureTimeline(latest.value?.status))
+const responseHint = computed(() => estimatedResponse(latest.value?.status))
+const statusInfo = computed(() => candidatureBadge(latest.value?.status ?? ''))
+
+const statusPercent = ref(0)
+onMounted(() => {
+  requestAnimationFrame(() => {
+    statusPercent.value = dossier.value.percent
+  })
+})
 
 const documents = computed(() => buildStudentDocuments(candidatures.value, paiements.value))
 
@@ -135,6 +149,76 @@ async function logout() {
           {{ action.label }}
         </NuxtLink>
       </div>
+
+      <!-- État de ma candidature -->
+      <section
+        v-if="latest"
+        v-reveal
+        class="mt-5 overflow-hidden rounded-[1.35rem] border border-slate-100 bg-white shadow-premium"
+      >
+        <div class="border-b border-slate-100 bg-slate-50/80 px-4 py-3">
+          <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">
+            État de ma candidature
+          </p>
+        </div>
+        <div class="space-y-4 p-4">
+          <div class="flex items-center justify-between gap-2">
+            <span
+              class="inline-flex rounded-full px-2.5 py-1 text-xs font-semibold"
+              :class="statusInfo.className"
+            >
+              {{ statusInfo.label }}
+            </span>
+            <span class="font-headline text-lg font-extrabold text-primary">{{ dossier.percent }}%</span>
+          </div>
+
+          <div class="h-2.5 overflow-hidden rounded-full bg-slate-200">
+            <div
+              class="h-full rounded-full bg-gradient-to-r from-secondary to-secondary-fixed transition-all duration-1000 ease-out"
+              :style="{ width: `${statusPercent}%` }"
+            />
+          </div>
+
+          <p v-if="responseHint" class="flex items-center gap-2 text-sm text-slate-600">
+            <span class="material-symbols-outlined text-[18px] text-secondary">schedule</span>
+            {{ responseHint }}
+          </p>
+
+          <!-- Timeline verticale -->
+          <ol class="mt-1">
+            <li v-for="(s, i) in timeline" :key="s.label" class="flex gap-3">
+              <div class="flex flex-col items-center">
+                <span
+                  class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full transition"
+                  :class="{
+                    'bg-secondary text-on-secondary-container': s.state === 'done',
+                    'bg-primary text-white ring-4 ring-primary/15': s.state === 'active',
+                    'bg-slate-100 text-slate-400': s.state === 'todo',
+                  }"
+                >
+                  <span v-if="s.state === 'done'" class="material-symbols-outlined text-[16px]">check</span>
+                  <span v-else-if="s.state === 'active'" class="material-symbols-outlined text-[16px]">hourglass_top</span>
+                  <span v-else class="h-2 w-2 rounded-full bg-current" />
+                </span>
+                <span
+                  v-if="i < timeline.length - 1"
+                  class="my-1 w-0.5 flex-1"
+                  :class="s.state === 'done' ? 'bg-secondary' : 'bg-slate-200'"
+                  aria-hidden="true"
+                />
+              </div>
+              <div class="pb-4">
+                <p
+                  class="text-sm font-semibold"
+                  :class="s.state === 'todo' ? 'text-slate-400' : 'text-primary'"
+                >
+                  {{ s.label }}
+                </p>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </section>
 
       <!-- Carte dossier -->
       <div class="mt-5 lg:grid lg:grid-cols-2 lg:gap-5">

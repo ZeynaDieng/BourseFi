@@ -104,6 +104,61 @@ export function candidatureBadge(status: string): {
   return map[status] ?? { label: 'En cours', className: 'bg-amber-50 text-amber-900' }
 }
 
+export type TimelineState = 'done' | 'active' | 'todo'
+
+export type CandidatureTimelineStep = {
+  label: string
+  icon: string
+  state: TimelineState
+}
+
+const TIMELINE_LABELS: { label: string; icon: string }[] = [
+  { label: 'Candidature envoyée', icon: 'send' },
+  { label: 'Paiement reçu', icon: 'payments' },
+  { label: 'Analyse en cours', icon: 'fact_check' },
+  { label: 'Décision du bailleur', icon: 'gavel' },
+  { label: 'Attestation disponible', icon: 'workspace_premium' },
+]
+
+const STATUS_STAGE: Record<string, number> = {
+  BROUILLON: 0,
+  SOUMIS: 1,
+  EN_ATTENTE_PAIEMENT: 1,
+  EN_REVUE_PARTENAIRE: 2,
+  COMPLEMENT_DEMANDE: 2,
+  ACCEPTE: 3,
+  REFUSE: 3,
+  DOCUMENT_EMIS: 5,
+  TERMINE: 5,
+}
+
+export function buildCandidatureTimeline(
+  status: string | null | undefined,
+): CandidatureTimelineStep[] {
+  const stage = STATUS_STAGE[status ?? ''] ?? 0
+  return TIMELINE_LABELS.map((step, index) => ({
+    ...step,
+    state: index < stage ? 'done' : index === stage ? 'active' : 'todo',
+  }))
+}
+
+export function estimatedResponse(status: string | null | undefined): string | null {
+  switch (status) {
+    case 'EN_ATTENTE_PAIEMENT':
+      return 'En attente de votre paiement'
+    case 'EN_REVUE_PARTENAIRE':
+    case 'COMPLEMENT_DEMANDE':
+      return 'Réponse estimée : 5 jours ouvrés'
+    case 'ACCEPTE':
+      return 'Attestation en préparation'
+    case 'DOCUMENT_EMIS':
+    case 'TERMINE':
+      return 'Dossier finalisé'
+    default:
+      return null
+  }
+}
+
 export function userInitials(name: string | undefined | null): string {
   if (!name?.trim()) return 'BF'
   const parts = name.trim().split(/\s+/).filter(Boolean)
