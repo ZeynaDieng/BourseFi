@@ -1,9 +1,9 @@
 <template>
-  <footer class="mt-20 border-t border-white/10 bg-primary px-8 py-12 font-headline text-xs uppercase tracking-widest text-white">
-    <div class="mx-auto grid max-w-7xl grid-cols-1 gap-8 md:grid-cols-4">
-      <div class="space-y-4">
-        <AppBrandLogo :to="false" img-class="h-16 w-auto max-h-[5.25rem] object-contain object-left opacity-95" />
-        <p class="normal-case tracking-normal text-slate-300">
+  <footer class="mt-12 border-t border-white/10 bg-primary px-4 py-8 font-headline text-xs uppercase tracking-widest text-white md:mt-20 md:px-8 md:py-12">
+    <div class="mx-auto grid max-w-7xl grid-cols-2 gap-6 md:grid-cols-4 md:gap-8">
+      <div class="col-span-2 space-y-3 md:col-span-1 md:space-y-4">
+        <AppBrandLogo :to="false" img-class="h-12 w-auto max-h-12 object-contain object-left opacity-95 md:h-16 md:max-h-[5.25rem]" />
+        <p class="hidden normal-case tracking-normal text-slate-300 md:block">
           Guichet numerique pour les bourses d etudes dans les ecoles senegalaises avec les mairies et agences partenaires.
         </p>
         <div class="flex gap-3 text-slate-300">
@@ -18,10 +18,10 @@
         >
           Obtenir une bourse
         </NuxtLink>
-        <NuxtLink class="block text-slate-300 underline-offset-4 transition hover:text-white hover:underline" to="/bourses">Bourses disponibles</NuxtLink>
-        <NuxtLink class="block text-slate-300 underline-offset-4 transition hover:text-white hover:underline" to="/ecoles">Écoles partenaires</NuxtLink>
-        <NuxtLink class="block text-slate-300 underline-offset-4 transition hover:text-white hover:underline" to="/programmes">Catalogue des formations</NuxtLink>
-        <NuxtLink class="block normal-case tracking-normal text-slate-300 underline-offset-4 transition hover:text-white hover:underline" to="/candidature">Comment ça marche</NuxtLink>
+        <NuxtLink class="block text-slate-300 underline-offset-4 transition hover:text-white hover:underline" to="/bourses">Bourses</NuxtLink>
+        <NuxtLink class="block text-slate-300 underline-offset-4 transition hover:text-white hover:underline" to="/ecoles">Écoles</NuxtLink>
+        <NuxtLink class="block text-slate-300 underline-offset-4 transition hover:text-white hover:underline" to="/programmes">Formations</NuxtLink>
+        <NuxtLink class="hidden normal-case tracking-normal text-slate-300 underline-offset-4 transition hover:text-white hover:underline md:block" to="/candidature">Comment ça marche</NuxtLink>
       </div>
       <div class="space-y-4">
         <h4 class="font-bold text-yellow-500">Juridique</h4>

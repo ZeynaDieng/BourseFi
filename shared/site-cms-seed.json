@@ -38,28 +38,23 @@
       ]
     },
     "home_process": {
-      "sectionTitle": "Comment obtenir une bourse",
-      "sectionSubtitle": "Quatre étapes simples, de la bourse à l'attestation téléchargeable.",
+      "sectionTitle": "Comment obtenir une bourse ?",
+      "sectionSubtitle": "Obtenez votre bourse en 3 étapes simples.",
       "cards": [
         {
-          "step": "01",
+          "step": "1",
           "title": "Choisissez une formation",
-          "body": "Parcourez les bourses et sélectionnez la formation couverte par un partenaire financeur."
+          "body": "Explorez les formations et écoles éligibles."
         },
         {
-          "step": "02",
-          "title": "Soumettez votre demande",
-          "body": "Complétez votre dossier en ligne en quelques minutes depuis votre espace candidat."
+          "step": "2",
+          "title": "Déposez votre demande",
+          "body": "Complétez votre dossier et effectuez le paiement des frais de dossier."
         },
         {
-          "step": "03",
-          "title": "Payez les frais de dossier",
-          "body": "Réglez les frais de dossier par Wave ou Orange Money pour transmettre votre candidature."
-        },
-        {
-          "step": "04",
+          "step": "3",
           "title": "Recevez votre attestation",
-          "body": "Suivez votre dossier et téléchargez l'attestation dès validation par le partenaire."
+          "body": "Téléchargez votre document depuis votre espace personnel."
         }
       ]
     },

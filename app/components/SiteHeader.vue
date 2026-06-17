@@ -6,10 +6,10 @@ const { data } = await useFetch('/api/auth/me')
 const { profileHref, profileLabel } = useProfileDestination()
 
 const links = [
-  { to: '/bourses', label: 'Bourses disponibles' },
-  { to: '/programmes', label: 'Formations' },
-  { to: '/ecoles', label: 'Écoles partenaires' },
-  { to: '/candidature', label: 'Comment ça marche' },
+  { to: '/bourses', label: 'Bourses disponibles', mobileLabel: 'Bourses' },
+  { to: '/programmes', label: 'Formations', mobileLabel: 'Formations' },
+  { to: '/ecoles', label: 'Écoles partenaires', mobileLabel: 'Écoles' },
+  { to: '/candidature', label: 'Comment ça marche', mobileLabel: 'Aide' },
 ]
 
 const isActive = (to: string | { path?: string }) => {
@@ -139,21 +139,15 @@ const headerBarClass = computed(() =>
             <span class="material-symbols-outlined">menu</span>
           </summary>
           <div
-            class="absolute right-0 top-12 w-60 max-w-[calc(100vw-2rem)] rounded-xl border border-slate-200 bg-white p-3 shadow-xl"
+            class="absolute right-0 top-12 w-52 max-w-[calc(100vw-2rem)] rounded-xl border border-slate-200 bg-white p-2 shadow-xl"
           >
-            <NuxtLink
-              to="/bourses"
-              class="mb-2 block rounded-lg bg-primary px-3 py-2.5 text-center text-sm font-semibold text-white"
-            >
-              Obtenir une bourse
-            </NuxtLink>
             <NuxtLink
               v-for="link in links"
               :key="`m-${typeof link.to === 'string' ? link.to : link.to.path}`"
               :to="link.to"
-              class="block rounded-md px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              class="block rounded-md px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
             >
-              {{ link.label }}
+              {{ link.mobileLabel }}
             </NuxtLink>
             <NuxtLink
               v-if="!currentUser"

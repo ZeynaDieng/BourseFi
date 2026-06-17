@@ -4,8 +4,12 @@ import { badgeCoverage, cardBase, btnPrimary } from '~/utils/design-tokens'
 
 defineProps<{
   bourse: BourseDto
-  compact?: boolean
 }>()
+
+function formatDeadline(iso: string) {
+  const date = formatDate(iso)
+  return date ? `Jusqu'au ${date}` : ''
+}
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('fr-FR', {
@@ -14,67 +18,44 @@ function formatDate(iso: string) {
     year: 'numeric',
   })
 }
+
+function formatPlaces(count: number) {
+  return `${count} place${count !== 1 ? 's' : ''} restante${count !== 1 ? 's' : ''}`
+}
 </script>
 
 <template>
   <article :class="[cardBase, 'flex flex-col p-6']">
-    <div class="mb-4 flex items-start justify-between gap-3">
-      <div class="min-w-0 flex-1">
-        <span :class="badgeCoverage">Couverture {{ bourse.coveragePercent }} %</span>
-        <h3 class="mt-2 font-headline text-lg font-extrabold text-primary">
-          {{ bourse.titre }}
-        </h3>
-      </div>
-      <img
-        v-if="bourse.partnerLogoUrl"
-        :src="bourse.partnerLogoUrl"
-        :alt="bourse.partnerName"
-        class="h-10 w-10 shrink-0 rounded-lg object-contain"
-      />
-    </div>
+    <h3 class="line-clamp-2 font-headline text-lg font-extrabold leading-snug text-primary">
+      {{ bourse.titre }}
+    </h3>
 
-    <dl class="space-y-2 text-sm text-slate-600">
-      <div class="flex justify-between gap-2">
-        <dt class="text-slate-400">Formation</dt>
-        <dd class="font-medium text-primary">{{ bourse.programmeTitre }}</dd>
-      </div>
-      <div class="flex justify-between gap-2">
-        <dt class="text-slate-400">École</dt>
-        <dd class="font-semibold text-primary">{{ bourse.etablissement }}</dd>
-      </div>
-      <div class="flex justify-between gap-2">
-        <dt class="text-slate-400">Partenaire</dt>
-        <dd class="font-medium">{{ bourse.partnerName }}</dd>
-      </div>
-      <div class="flex justify-between gap-2">
-        <dt class="text-slate-400">Montant couvert</dt>
-        <dd class="font-semibold text-secondary">
-          {{ bourse.montantBourse.toLocaleString('fr-FR') }} {{ bourse.devise }}
-        </dd>
-      </div>
-      <div class="flex justify-between gap-2">
-        <dt class="text-slate-400">Places restantes</dt>
-        <dd class="font-medium">{{ bourse.placesRestantes }}</dd>
-      </div>
-      <div class="flex justify-between gap-2">
-        <dt class="text-slate-400">Date limite</dt>
-        <dd class="font-medium">{{ formatDate(bourse.dateLimite) }}</dd>
-      </div>
-    </dl>
+    <p class="mt-1 truncate text-sm font-medium text-slate-500">
+      {{ bourse.etablissement }}
+    </p>
 
-    <div class="mt-6 flex gap-2">
-      <NuxtLink
-        :to="`/bourses/${bourse.slug}`"
-        :class="[btnPrimary, 'flex-1 text-center']"
-      >
-        Postuler
-      </NuxtLink>
-      <NuxtLink
-        :to="{ path: '/comparaison', query: { compare: bourse.programmeSlug } }"
-        class="rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-      >
-        Comparer
-      </NuxtLink>
-    </div>
+    <span :class="[badgeCoverage, 'mt-4 w-fit']">
+      {{ bourse.coveragePercent }} % financé
+    </span>
+
+    <p class="mt-3 font-headline text-2xl font-extrabold text-secondary">
+      {{ bourse.montantBourse.toLocaleString('fr-FR') }}
+      <span class="text-base font-semibold">{{ bourse.devise }}</span>
+    </p>
+
+    <p class="mt-2 text-sm font-medium text-primary">
+      {{ formatPlaces(bourse.placesRestantes) }}
+    </p>
+
+    <p class="mt-1 text-xs text-slate-400">
+      {{ formatDeadline(bourse.dateLimite) }}
+    </p>
+
+    <NuxtLink
+      :to="`/bourses/${bourse.slug}`"
+      :class="[btnPrimary, 'mt-6 block w-full text-center']"
+    >
+      Postuler
+    </NuxtLink>
   </article>
 </template>

@@ -14,7 +14,7 @@ const allProgrammes = computed(() => allProgrammesRaw.value ?? []);
 
 const ecolesPartenairesLanding = computed(
   () =>
-    (ecoles.value ?? []).slice(0, 12) as unknown as PartnerSchoolCardEcole[],
+    (ecoles.value ?? []).slice(0, 8) as unknown as PartnerSchoolCardEcole[],
 );
 
 type StatItem = { value: string; label: string };
@@ -92,6 +92,14 @@ const heroHeadlineAccent = computed(() => {
     typeof hero.value.headlineAccent === "string"
       ? hero.value.headlineAccent.trim()
       : "";
+  return raw || "au Sénégal.";
+});
+
+const heroHeadlineAccentLong = computed(() => {
+  const raw =
+    typeof hero.value.headlineAccent === "string"
+      ? hero.value.headlineAccent.trim()
+      : "";
   return raw || "pour financer votre formation au Sénégal.";
 });
 
@@ -105,7 +113,7 @@ const heroSubtitleCms = computed(() => {
 const searchPlaceholder = computed(
   () =>
     (hero.value.searchPlaceholder as string) ||
-    "Rechercher une école, un domaine...",
+    "Rechercher une bourse…",
 );
 
 const sectorOptions = computed(() => {
@@ -270,12 +278,12 @@ const partnerHead = computed(
 );
 
 const partnerTitle = computed(
-  () => partnerHead.value.title || "Écoles éligibles aux bourses",
+  () => partnerHead.value.title || "Écoles partenaires",
 );
 const partnerSubtitle = computed(
   () =>
     partnerHead.value.subtitle ||
-    "Formations couvertes par une bourse partenaire.",
+    "Formations couvertes par une bourse.",
 );
 const partnerCtaLabel = computed(
   () => partnerHead.value.ctaLabel || "Toutes les ecoles",
@@ -312,7 +320,7 @@ useSeoMeta({
 <template>
   <main class="bg-background text-on-background">
     <section
-      class="relative isolate flex min-h-[min(90vh,800px)] items-center overflow-hidden pb-36 pt-[max(4.25rem,env(safe-area-inset-top))] md:min-h-[min(92vh,860px)] md:pb-48 md:pt-28"
+      class="relative isolate flex min-h-[min(72vh,640px)] items-center overflow-hidden pb-28 pt-[max(4rem,env(safe-area-inset-top))] md:min-h-[min(92vh,860px)] md:pb-48 md:pt-28"
       @mouseenter="heroCarouselPaused = true"
       @mouseleave="heroCarouselPaused = false"
     >
@@ -355,27 +363,28 @@ useSeoMeta({
         aria-hidden="true"
       />
 
-      <div class="relative z-10 mx-auto w-full max-w-7xl px-6 lg:px-12">
+      <div class="relative z-10 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-12">
         <div
           class="w-full max-w-2xl md:max-w-3xl"
           aria-labelledby="home-hero-title"
         >
-          <div class="flex flex-col gap-7 md:gap-9">
+          <div class="flex flex-col gap-4 md:gap-9">
             <div class="home-hero-stagger-item">
               <h1
                 id="home-hero-title"
-                class="mt-3 font-headline text-4xl font-extrabold leading-[1.12] md:text-5xl md:leading-[1.1]"
+                class="mt-2 font-headline text-[1.75rem] font-extrabold leading-[1.15] sm:text-4xl md:mt-3 md:text-5xl md:leading-[1.1]"
               >
                 <span class="text-primary">{{ heroHeadlinePrimary }}</span>
-                <br class="sm:hidden" />
-                {{ " "
-                }}<span class="text-secondary-fixed">{{
-                  heroHeadlineAccent
-                }}</span>
+                <span class="text-secondary-fixed md:hidden">
+                  {{ " " }}{{ heroHeadlineAccent }}
+                </span>
+                <span class="hidden text-secondary-fixed md:inline">
+                  {{ " " }}{{ heroHeadlineAccentLong }}
+                </span>
               </h1>
             </div>
 
-            <div class="home-hero-stagger-item">
+            <div class="home-hero-stagger-item hidden md:block">
               <p
                 v-if="heroSubtitleCms"
                 class="max-w-none text-lg leading-relaxed text-on-surface-variant md:text-xl md:leading-relaxed"
@@ -394,7 +403,7 @@ useSeoMeta({
             </div>
 
             <form
-              class="home-hero-stagger-item group relative grid w-full max-w-none grid-cols-1 gap-3 rounded-2xl border border-slate-100/95 bg-white/95 p-3 shadow-premium transition-all duration-300 focus-within:border-primary/30 focus-within:ring-4 focus-within:ring-primary/5 sm:gap-3 md:p-4 md:grid-cols-[minmax(11rem,1.35fr)_minmax(10rem,.95fr)_auto]"
+              class="home-hero-stagger-item group relative grid w-full max-w-none grid-cols-1 gap-2 rounded-2xl border border-slate-100/95 bg-white/95 p-2.5 shadow-premium transition-all duration-300 focus-within:border-primary/30 focus-within:ring-4 focus-within:ring-primary/5 sm:gap-3 sm:p-3 md:p-4 md:grid-cols-[minmax(11rem,1.35fr)_minmax(10rem,.95fr)_auto]"
               @submit.prevent="submitHeroSearch"
             >
               <!-- Input Recherche avec Dropdown -->
@@ -463,9 +472,9 @@ useSeoMeta({
                 </div>
               </div>
 
-              <!-- Sélecteur de Secteur sur mesure (Premium) -->
+              <!-- Sélecteur de Secteur — desktop uniquement -->
               <div
-                class="relative flex min-h-[52px] min-w-0 items-center px-4 md:py-1"
+                class="relative hidden min-h-[52px] min-w-0 items-center px-4 md:flex md:py-1"
               >
                 <button
                   type="button"
@@ -523,7 +532,7 @@ useSeoMeta({
               <!-- Bouton CTA primaire -->
               <button
                 type="submit"
-                class="min-h-[52px] shrink-0 rounded-xl bg-primary px-7 py-3 text-center text-sm font-semibold text-white whitespace-nowrap shadow-xl transition-all duration-300 hover:scale-[1.02] hover:bg-primary-hover active:scale-95 md:text-base"
+                class="min-h-[48px] shrink-0 rounded-xl bg-primary px-5 py-3 text-center text-sm font-semibold text-white whitespace-nowrap shadow-xl transition-all duration-300 hover:scale-[1.02] hover:bg-primary-hover active:scale-95 md:min-h-[52px] md:px-7 md:text-base"
               >
                 {{ ctaLabel }}
               </button>
@@ -560,25 +569,26 @@ useSeoMeta({
 
     <LandingFormationsDisponibles />
 
-    <section class="bg-surface-container-low py-20">
-      <div class="mx-auto max-w-7xl px-8">
-        <div class="mb-12 flex flex-wrap items-end justify-between gap-4">
+    <section class="bg-surface-container-low py-12 md:py-20">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 md:px-8">
+        <div class="mb-8 flex flex-wrap items-end justify-between gap-3 md:mb-12 md:gap-4">
           <div>
-            <h2 class="mb-2 font-headline text-4xl font-extrabold text-primary">
+            <h2 class="mb-1 font-headline text-2xl font-extrabold text-primary md:mb-2 md:text-4xl">
               {{ partnerTitle }}
             </h2>
-            <p class="text-on-surface-variant">{{ partnerSubtitle }}</p>
+            <p class="hidden text-sm text-on-surface-variant sm:block md:text-base">{{ partnerSubtitle }}</p>
           </div>
-          <NuxtLink :to="partnerCtaHref" class="font-semibold text-primary">{{
+          <NuxtLink :to="partnerCtaHref" class="text-sm font-semibold text-primary md:text-base">{{
             partnerCtaLabel
           }}</NuxtLink>
         </div>
         <div
-          class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+          class="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4"
         >
           <PartnerSchoolCard
-            v-for="e in ecolesPartenairesLanding"
+            v-for="(e, i) in ecolesPartenairesLanding"
             :key="e.slug"
+            :class="i >= 4 ? 'hidden md:block' : ''"
             :ecole="e"
           />
         </div>
