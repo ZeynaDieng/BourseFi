@@ -4,7 +4,6 @@ import {
   candidatureBadge,
   computeDossierProgress,
   estimatedResponse,
-  userInitials,
 } from '~/utils/student-dossier'
 import { buildStudentDocuments } from '~/composables/useStudentDossier'
 
@@ -14,16 +13,31 @@ const { data: me, refresh: refreshMe } = await useFetch('/api/auth/me')
 const { data: candidatures } = await useFetch('/api/candidatures')
 const { data: paiements } = await useFetch('/api/paiements')
 
-const firstName = computed(
-  () => me.value?.user?.name?.split(/\s+/)[0] || 'Étudiant',
-)
-const initials = computed(() => userInitials(me.value?.user?.name))
+const firstName = computed(() => me.value?.user?.name?.split(/\s+/)[0] || 'Étudiant')
 const dossier = computed(() => computeDossierProgress(candidatures.value))
 
 const latest = computed(() => candidatures.value?.[0] ?? null)
 const timeline = computed(() => buildCandidatureTimeline(latest.value?.status))
 const responseHint = computed(() => estimatedResponse(latest.value?.status))
 const statusInfo = computed(() => candidatureBadge(latest.value?.status ?? ''))
+const reference = computed(() => latest.value?.id?.slice(0, 8).toUpperCase() ?? '')
+const nextStep = computed(
+  () => timeline.value.find((s) => s.state === 'active')?.label ?? 'Dossier finalisé',
+)
+
+function formatShort(value?: string | Date | null) {
+  if (!value) return ''
+  return new Date(value).toLocaleDateString('fr-FR', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  })
+}
+
+const timelineDates = computed(() => {
+  const l = latest.value
+  return [formatShort(l?.createdAt), '', '', '', formatShort(l?.documentIssuedAt)]
+})
 
 const statusPercent = ref(0)
 onMounted(() => {
@@ -34,23 +48,20 @@ onMounted(() => {
 
 const documents = computed(() => buildStudentDocuments(candidatures.value, paiements.value))
 
-const stats = computed(() => ({
-  candidatures: candidatures.value?.length ?? 0,
-  documents: documents.value.length,
-  paiements: paiements.value?.length ?? 0,
-}))
+const stats = computed(() => [
+  { label: 'Candidatures', value: candidatures.value?.length ?? 0 },
+  { label: 'Documents', value: documents.value.length },
+  { label: 'Paiements', value: paiements.value?.length ?? 0 },
+])
 
 const quickActions = [
-  { to: '/bourses', icon: 'add_circle', label: 'Nouvelle bourse', tint: 'bg-primary text-white' },
-  { to: '/etudiant/candidatures', icon: 'description', label: 'Candidatures', tint: 'bg-white text-primary ring-1 ring-slate-100' },
-  { to: '/etudiant/documents', icon: 'folder', label: 'Documents', tint: 'bg-white text-primary ring-1 ring-slate-100' },
-  { to: '/etudiant/notifications', icon: 'notifications', label: 'Alertes', tint: 'bg-white text-primary ring-1 ring-slate-100' },
-  { to: '/comparateur', icon: 'compare', label: 'Comparer', tint: 'bg-white text-primary ring-1 ring-slate-100' },
-  { to: '/etudiant/support', icon: 'help', label: 'Support', tint: 'bg-white text-primary ring-1 ring-slate-100' },
+  { to: '/bourses', icon: 'add_circle', label: 'Nouvelle demande' },
+  { to: '/etudiant/documents', icon: 'folder', label: 'Mes documents' },
+  { to: '/etudiant/candidatures', icon: 'description', label: 'Mes candidatures' },
+  { to: '/etudiant/paiements', icon: 'payments', label: 'Paiements' },
+  { to: '/etudiant/notifications', icon: 'notifications', label: 'Notifications' },
+  { to: '/etudiant/support', icon: 'help', label: 'Support' },
 ]
-
-const ringCircumference = 2 * Math.PI * 34
-const ringOffset = computed(() => ringCircumference * (1 - dossier.value.percent / 100))
 
 async function logout() {
   await $fetch('/api/auth/logout', { method: 'POST' })
@@ -60,319 +71,176 @@ async function logout() {
 </script>
 
 <template>
-  <main
-    class="min-h-[calc(100dvh-4rem)] bg-gradient-to-b from-primary/[0.06] via-background to-background md:pb-12"
-  >
-    <div class="mx-auto max-w-lg px-4 pt-5 md:max-w-3xl md:px-6">
-      <!-- En-tête -->
-      <header class="flex items-center gap-4">
-        <div class="relative flex h-[4.75rem] w-[4.75rem] shrink-0 items-center justify-center">
-          <svg class="absolute inset-0 -rotate-90" viewBox="0 0 80 80" aria-hidden="true">
-            <circle cx="40" cy="40" r="34" fill="none" stroke="rgb(226 232 240)" stroke-width="5" />
-            <circle
-              cx="40"
-              cy="40"
-              r="34"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="5"
-              stroke-linecap="round"
-              class="text-secondary transition-all duration-700"
-              :stroke-dasharray="ringCircumference"
-              :stroke-dashoffset="ringOffset"
-            />
-          </svg>
-          <div
-            class="relative flex h-[3.75rem] w-[3.75rem] items-center justify-center rounded-[1.2rem] bg-primary text-base font-bold text-white shadow-lg shadow-primary/25"
-          >
-            {{ initials }}
+  <main class="min-h-[calc(100dvh-4rem)] bg-slate-50 pb-8 md:pb-12">
+    <div class="mx-auto w-full max-w-lg space-y-4 px-4 pt-5 md:max-w-3xl md:px-6">
+      <!-- Section 1 : Hero principal -->
+      <section v-reveal class="rounded-[20px] bg-white p-5 shadow-sm ring-1 ring-slate-100 md:p-6">
+        <div class="flex items-start justify-between gap-3">
+          <div class="min-w-0">
+            <h1 class="font-headline text-xl font-extrabold text-primary">Bonjour, {{ firstName }} 👋</h1>
+            <p class="truncate text-xs text-slate-400">{{ me?.user?.email }}</p>
           </div>
-        </div>
-        <div class="min-w-0 flex-1">
-          <p
-            class="text-xs font-semibold uppercase tracking-[0.18em] text-secondary"
+          <button
+            type="button"
+            class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-slate-400 transition hover:bg-slate-50 hover:text-red-500"
+            aria-label="Déconnexion"
+            title="Déconnexion"
+            @click="logout"
           >
-            Espace étudiant
-          </p>
-          <h1 class="font-headline text-2xl font-extrabold text-primary">
-            Bonjour, {{ firstName }}
-          </h1>
-          <p class="truncate text-sm text-on-surface-variant">
-            {{ me?.user?.email }}
-          </p>
+            <span class="material-symbols-outlined text-[20px]">logout</span>
+          </button>
         </div>
-        <button
-          type="button"
-          class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-slate-400 transition hover:bg-white hover:text-red-500"
-          aria-label="Déconnexion"
-          title="Déconnexion"
-          @click="logout"
-        >
-          <span class="material-symbols-outlined text-[22px]">logout</span>
-        </button>
-      </header>
 
-      <!-- Stats rapides -->
-      <div class="mt-5 grid grid-cols-3 gap-2">
-        <div
-          v-for="(value, key) in {
-            Candidatures: stats.candidatures,
-            Documents: stats.documents,
-            Paiements: stats.paiements,
-          }"
-          :key="key"
-          class="rounded-2xl bg-white/90 px-3 py-3 text-center shadow-premium ring-1 ring-white"
-        >
-          <p class="font-headline text-xl font-extrabold text-primary">
-            {{ value }}
-          </p>
-          <p
-            class="text-[10px] font-semibold uppercase tracking-wide text-slate-400"
-          >
-            {{ key }}
-          </p>
-        </div>
-      </div>
-
-      <!-- Actions — grille 2×3 mobile -->
-      <div class="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
-        <NuxtLink
-          v-for="action in quickActions"
-          :key="action.label"
-          :to="action.to"
-          class="flex items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold shadow-sm transition active:scale-[0.98]"
-          :class="action.tint"
-        >
-          <span class="material-symbols-outlined text-[20px]">{{
-            action.icon
-          }}</span>
-          {{ action.label }}
-        </NuxtLink>
-      </div>
-
-      <!-- État de ma candidature -->
-      <section
-        v-if="latest"
-        v-reveal
-        class="mt-5 overflow-hidden rounded-[1.35rem] border border-slate-100 bg-white shadow-premium"
-      >
-        <div class="border-b border-slate-100 bg-slate-50/80 px-4 py-3">
-          <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">
-            État de ma candidature
-          </p>
-        </div>
-        <div class="space-y-4 p-4">
-          <div class="flex items-center justify-between gap-2">
-            <span
-              class="inline-flex rounded-full px-2.5 py-1 text-xs font-semibold"
-              :class="statusInfo.className"
-            >
+        <!-- Avec candidature -->
+        <div v-if="latest" class="mt-5">
+          <div class="flex items-center justify-between gap-3">
+            <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-bold" :class="statusInfo.className">
               {{ statusInfo.label }}
             </span>
             <span class="font-headline text-lg font-extrabold text-primary">{{ dossier.percent }}%</span>
           </div>
 
-          <div class="h-2.5 overflow-hidden rounded-full bg-slate-200">
+          <div class="mt-2.5 h-2 overflow-hidden rounded-full bg-slate-100">
             <div
-              class="h-full rounded-full bg-gradient-to-r from-secondary to-secondary-fixed transition-all duration-1000 ease-out"
+              class="h-full rounded-full bg-primary transition-all duration-1000 ease-out"
               :style="{ width: `${statusPercent}%` }"
             />
           </div>
 
-          <p v-if="responseHint" class="flex items-center gap-2 text-sm text-slate-600">
-            <span class="material-symbols-outlined text-[18px] text-secondary">schedule</span>
-            {{ responseHint }}
-          </p>
+          <div class="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-xs text-slate-500">
+            <span v-if="responseHint" class="flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-[16px] text-slate-400">schedule</span>
+              {{ responseHint }}
+            </span>
+            <span class="flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-[16px] text-slate-400">arrow_forward</span>
+              {{ nextStep }}
+            </span>
+            <span class="flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-[16px] text-slate-400">tag</span>
+              Réf. {{ reference }}
+            </span>
+          </div>
+        </div>
 
-          <!-- Timeline verticale -->
-          <ol class="mt-1">
-            <li v-for="(s, i) in timeline" :key="s.label" class="flex gap-3">
-              <div class="flex flex-col items-center">
-                <span
-                  class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full transition"
-                  :class="{
-                    'bg-secondary text-on-secondary-container': s.state === 'done',
-                    'bg-primary text-white ring-4 ring-primary/15': s.state === 'active',
-                    'bg-slate-100 text-slate-400': s.state === 'todo',
-                  }"
-                >
-                  <span v-if="s.state === 'done'" class="material-symbols-outlined text-[16px]">check</span>
-                  <span v-else-if="s.state === 'active'" class="material-symbols-outlined text-[16px]">hourglass_top</span>
-                  <span v-else class="h-2 w-2 rounded-full bg-current" />
-                </span>
-                <span
-                  v-if="i < timeline.length - 1"
-                  class="my-1 w-0.5 flex-1"
-                  :class="s.state === 'done' ? 'bg-secondary' : 'bg-slate-200'"
-                  aria-hidden="true"
-                />
-              </div>
-              <div class="pb-4">
-                <p
-                  class="text-sm font-semibold"
-                  :class="s.state === 'todo' ? 'text-slate-400' : 'text-primary'"
-                >
-                  {{ s.label }}
-                </p>
-              </div>
-            </li>
-          </ol>
+        <!-- Sans candidature -->
+        <div v-else class="mt-4">
+          <p class="text-sm text-slate-600">
+            Vous n’avez pas encore de demande de bourse. Lancez-vous, cela prend moins de 2 minutes.
+          </p>
+          <NuxtLink
+            to="/bourses"
+            class="mt-4 inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-white transition hover:opacity-95"
+          >
+            <span class="material-symbols-outlined text-[20px]">search</span>
+            Trouver une bourse
+          </NuxtLink>
         </div>
       </section>
 
-      <!-- Carte dossier -->
-      <div class="mt-5 lg:grid lg:grid-cols-2 lg:gap-5">
-      <section
-        class="overflow-hidden rounded-[1.35rem] border border-slate-100 bg-white shadow-premium"
-      >
-        <div
-          class="flex items-center justify-between border-b border-slate-100 bg-slate-50/80 px-4 py-3"
-        >
-          <div class="flex items-center gap-2">
-            <span class="flex gap-1.5" aria-hidden="true">
-              <span class="h-2 w-2 rounded-full bg-slate-300" />
-              <span class="h-2 w-2 rounded-full bg-slate-300" />
-              <span class="h-2 w-2 rounded-full bg-slate-300" />
-            </span>
-            <span class="text-xs font-medium text-slate-500">Mon dossier</span>
-          </div>
-          <span class="font-headline text-sm font-extrabold text-primary"
-            >{{ dossier.percent }}%</span
-          >
-        </div>
-
-        <div class="space-y-4 p-4">
-          <div class="rounded-xl bg-slate-50/80 p-3">
-            <p
-              class="text-xs font-semibold uppercase tracking-wide text-slate-500"
-            >
-              Progression
-            </p>
-            <div class="mt-2 h-2 overflow-hidden rounded-full bg-slate-200">
-              <div
-                class="h-full rounded-full bg-gradient-to-r from-secondary to-secondary-fixed transition-all duration-700"
-                :style="{ width: `${dossier.percent}%` }"
+      <!-- Section 2 : Timeline du dossier -->
+      <section v-if="latest" v-reveal class="rounded-[20px] bg-white p-5 shadow-sm ring-1 ring-slate-100 md:p-6">
+        <h2 class="font-headline text-base font-bold text-primary">Suivi de mon dossier</h2>
+        <ol class="mt-4">
+          <li v-for="(s, i) in timeline" :key="s.label" class="flex gap-3">
+            <div class="flex flex-col items-center">
+              <span
+                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition"
+                :class="{
+                  'bg-emerald-500 text-white': s.state === 'done',
+                  'bg-blue-500 text-white ring-4 ring-blue-100': s.state === 'active',
+                  'bg-slate-100 text-slate-400': s.state === 'todo',
+                }"
+              >
+                <span v-if="s.state === 'done'" class="material-symbols-outlined text-[18px]">check</span>
+                <span v-else class="material-symbols-outlined text-[18px]">{{ s.icon }}</span>
+              </span>
+              <span
+                v-if="i < timeline.length - 1"
+                class="my-1 w-0.5 flex-1"
+                :class="s.state === 'done' ? 'bg-emerald-300' : 'bg-slate-200'"
+                aria-hidden="true"
               />
             </div>
-            <p class="mt-2 text-xs text-slate-600">{{ dossier.missingHint }}</p>
-          </div>
-
-          <div
-            v-if="dossier.notification"
-            class="flex gap-3 rounded-xl border border-secondary/20 bg-secondary/5 px-3 py-3"
-          >
-            <span
-              class="material-symbols-outlined shrink-0 text-[20px] text-secondary"
-              >campaign</span
-            >
-            <p class="text-xs leading-relaxed text-slate-700">
-              {{ dossier.notification }}
-            </p>
-          </div>
-
-          <!-- Candidatures avec actions (ex-dashboard) -->
-          <div>
-            <p class="mb-2 text-xs font-semibold text-primary">Candidatures</p>
-            <ul v-if="candidatures?.length" class="space-y-3">
-              <li
-                v-for="c in candidatures"
-                :key="c.id"
-                class="rounded-xl border border-slate-100 p-3"
+            <div class="flex-1 pb-5">
+              <p
+                class="text-sm font-semibold"
+                :class="{
+                  'text-emerald-700': s.state === 'done',
+                  'text-blue-700': s.state === 'active',
+                  'text-slate-400': s.state === 'todo',
+                }"
               >
-                <div class="flex flex-wrap items-start justify-between gap-2">
-                  <div class="min-w-0 flex-1">
-                    <p class="font-medium text-primary">{{ c.programmeTitre }}</p>
-                    <p class="text-xs text-slate-600">
-                      {{ c.etablissementNom }} · {{ c.partnerName }}
-                    </p>
-                    <span
-                      class="mt-2 inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold"
-                      :class="candidatureBadge(c.status).className"
-                    >
-                      {{ candidatureBadge(c.status).label }}
-                    </span>
-                    <p class="mt-1 text-[11px] text-slate-500">
-                      {{ c.statusLabel }}
-                    </p>
-                  </div>
-                </div>
-                <div class="mt-3 flex flex-wrap gap-2">
-                  <NuxtLink
-                    v-if="c.status === 'EN_ATTENTE_PAIEMENT' && c.fraisDossier > 0"
-                    :to="`/paiement?candidatureId=${c.id}`"
-                    class="rounded-lg bg-secondary-container px-3 py-1.5 text-xs font-bold text-on-secondary-container"
-                  >
-                    Payer {{ c.fraisDossier.toLocaleString('fr-FR') }}
-                    {{ c.devise }}
-                  </NuxtLink>
-                  <a
-                    v-if="c.documentUrl"
-                    :href="c.documentUrl"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="rounded-lg border border-primary px-3 py-1.5 text-xs font-semibold text-primary"
-                  >
-                    Attestation
-                  </a>
-                  <NuxtLink
-                    :to="c.bourseSlug ? `/bourses/${c.bourseSlug}` : '/bourses'"
-                    class="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600"
-                  >
-                    Voir la bourse
-                  </NuxtLink>
-                </div>
-              </li>
-            </ul>
-            <NuxtLink
-              v-else
-              to="/bourses"
-              class="flex items-center justify-center gap-2 rounded-xl border border-dashed border-slate-200 py-6 text-sm font-semibold text-primary transition hover:border-primary/30 hover:bg-primary/5"
-            >
-              <span class="material-symbols-outlined text-[20px]">school</span>
-              Trouver une bourse
-            </NuxtLink>
-          </div>
-
-          <div v-if="documents.length">
-            <div class="mb-2 flex items-center justify-between">
-              <p class="text-xs font-semibold text-primary">Documents</p>
-              <span class="text-[11px] font-semibold text-secondary"
-                >{{ documents.length }} fichier(s)</span
-              >
+                {{ s.label }}
+              </p>
+              <p v-if="timelineDates[i]" class="text-xs text-slate-400">{{ timelineDates[i] }}</p>
+              <p v-else-if="s.state === 'active'" class="text-xs text-blue-500">En cours…</p>
             </div>
-            <ul class="space-y-1.5">
-              <li
-                v-for="doc in documents"
-                :key="doc.id"
-                class="flex items-center justify-between gap-2 rounded-lg border border-slate-100 bg-slate-50/50 px-3 py-2"
-              >
-                <span
-                  class="flex min-w-0 items-center gap-2 text-xs text-slate-700"
-                >
-                  <span
-                    class="material-symbols-outlined shrink-0 text-[16px] text-slate-400"
-                    >description</span
-                  >
-                  <span class="truncate">{{ doc.label }}</span>
-                </span>
-                <a
-                  v-if="doc.url"
-                  :href="doc.url"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="shrink-0 text-slate-400 transition hover:text-primary"
-                  :aria-label="`Télécharger ${doc.label}`"
-                >
-                  <span class="material-symbols-outlined text-[18px]"
-                    >download</span
-                  >
-                </a>
-              </li>
-            </ul>
-          </div>
+          </li>
+        </ol>
+      </section>
+
+      <!-- Section 3 : Statistiques compactes -->
+      <div class="grid grid-cols-3 gap-3">
+        <div
+          v-for="s in stats"
+          :key="s.label"
+          class="rounded-[20px] bg-white px-2 py-4 text-center shadow-sm ring-1 ring-slate-100"
+        >
+          <p class="font-headline text-2xl font-extrabold text-primary">{{ s.value }}</p>
+          <p class="mt-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-400">{{ s.label }}</p>
+        </div>
+      </div>
+
+      <!-- Section 4 : Actions rapides -->
+      <section v-reveal>
+        <h2 class="mb-3 px-1 font-headline text-base font-bold text-primary">Actions rapides</h2>
+        <div class="grid grid-cols-3 gap-3">
+          <NuxtLink
+            v-for="action in quickActions"
+            :key="action.label"
+            :to="action.to"
+            class="flex flex-col items-center gap-2 rounded-[20px] bg-white px-2 py-4 text-center shadow-sm ring-1 ring-slate-100 transition hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98]"
+          >
+            <span class="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/5 text-primary">
+              <span class="material-symbols-outlined text-[22px]">{{ action.icon }}</span>
+            </span>
+            <span class="text-[11px] font-semibold leading-tight text-slate-600">{{ action.label }}</span>
+          </NuxtLink>
         </div>
       </section>
-      </div>
+
+      <!-- Documents récents -->
+      <section v-if="documents.length" v-reveal class="rounded-[20px] bg-white p-5 shadow-sm ring-1 ring-slate-100 md:p-6">
+        <div class="mb-3 flex items-center justify-between">
+          <h2 class="font-headline text-base font-bold text-primary">Documents récents</h2>
+          <NuxtLink to="/etudiant/documents" class="text-xs font-semibold text-primary hover:underline">
+            Tout voir
+          </NuxtLink>
+        </div>
+        <ul class="space-y-2">
+          <li
+            v-for="doc in documents"
+            :key="doc.id"
+            class="flex items-center justify-between gap-2 rounded-2xl bg-slate-50 px-3 py-2.5"
+          >
+            <span class="flex min-w-0 items-center gap-2 text-sm text-slate-700">
+              <span class="material-symbols-outlined shrink-0 text-[18px] text-slate-400">description</span>
+              <span class="truncate">{{ doc.label }}</span>
+            </span>
+            <a
+              v-if="doc.url"
+              :href="doc.url"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="shrink-0 text-slate-400 transition hover:text-primary"
+              :aria-label="`Télécharger ${doc.label}`"
+            >
+              <span class="material-symbols-outlined text-[20px]">download</span>
+            </a>
+          </li>
+        </ul>
+      </section>
     </div>
   </main>
 </template>

@@ -17,7 +17,7 @@ function isActive(path: string) {
 </script>
 
 <template>
-  <aside class="hidden w-56 shrink-0 border-r border-slate-100 bg-white p-4 md:block">
+  <aside class="sticky top-16 hidden h-[calc(100dvh-4rem)] w-56 shrink-0 self-start overflow-y-auto border-r border-slate-100 bg-white p-4 md:block">
     <p class="mb-4 text-[10px] font-bold uppercase tracking-widest text-slate-400">Espace étudiant</p>
     <nav class="space-y-1">
       <NuxtLink
@@ -35,13 +35,6 @@ function isActive(path: string) {
         >
           {{ notifData.unreadCount }}
         </span>
-      </NuxtLink>
-      <NuxtLink
-        to="/bourses"
-        class="mt-4 flex items-center gap-2 rounded-lg bg-primary/5 px-3 py-2.5 text-sm font-semibold text-primary transition hover:bg-primary/10 active:scale-[0.98]"
-      >
-        <span class="material-symbols-outlined text-[20px]">add_circle</span>
-        Trouver une bourse
       </NuxtLink>
     </nav>
   </aside>

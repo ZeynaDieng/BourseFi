@@ -8,7 +8,7 @@ const { data: bourse, error } = await useFetch<BourseDto>(
 )
 
 function openApply() {
-  navigateTo(`/bourses/${route.params.slug}/postuler`)
+  navigateTo(`/postuler/${route.params.slug}`)
 }
 
 function formatDate(iso: string) {
