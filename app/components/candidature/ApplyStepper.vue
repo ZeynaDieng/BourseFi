@@ -22,12 +22,12 @@ function stateFor(index: number) {
         <span
           class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold transition"
           :class="{
-            'bg-secondary text-on-secondary-container': stateFor(index) === 'done',
-            'bg-primary text-white ring-4 ring-primary/15': stateFor(index) === 'active',
+            'bg-primary text-white': stateFor(index) === 'done',
+            'bg-primary text-white ring-4 ring-primary/20': stateFor(index) === 'active',
             'bg-slate-100 text-slate-400': stateFor(index) === 'todo',
           }"
         >
-          <span v-if="stateFor(index) === 'done'" class="material-symbols-outlined text-[18px]">check</span>
+          <span v-if="stateFor(index) === 'done'" class="material-symbols-outlined text-[20px] leading-none">check</span>
           <span v-else>{{ index + 1 }}</span>
         </span>
         <span
@@ -40,7 +40,7 @@ function stateFor(index: number) {
       <span
         v-if="index < steps.length - 1"
         class="mx-2 hidden h-0.5 flex-1 rounded-full transition sm:block"
-        :class="index < current ? 'bg-secondary' : 'bg-slate-200'"
+        :class="index < current ? 'bg-primary' : 'bg-slate-200'"
         aria-hidden="true"
       />
     </li>

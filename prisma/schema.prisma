@@ -204,6 +204,9 @@ model Paiement {
   amountPlatform Int          @default(0)
   currency       String
   status         String       @default("Valide")
+  provider       String?      @default("paytech")
+  refCommand     String?      @unique
+  token          String?
   createdAt      DateTime     @default(now())
 
   @@index([userId])

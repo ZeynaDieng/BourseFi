@@ -1,7 +1,14 @@
 export default defineNuxtPlugin((nuxtApp) => {
-  const prefersReduced =
-    typeof window !== 'undefined' &&
-    window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+  // Côté serveur : on enregistre une directive no-op (avec getSSRProps) pour que
+  // le SSR puisse résoudre `v-reveal` sans planter. L'animation se fait au client.
+  if (import.meta.server) {
+    nuxtApp.vueApp.directive('reveal', {
+      getSSRProps: () => ({}),
+    })
+    return
+  }
+
+  const prefersReduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
 
   const observer =
     typeof IntersectionObserver !== 'undefined'
@@ -19,6 +26,7 @@ export default defineNuxtPlugin((nuxtApp) => {
       : null
 
   nuxtApp.vueApp.directive('reveal', {
+    getSSRProps: () => ({}),
     mounted(el: HTMLElement) {
       if (prefersReduced || !observer) {
         el.classList.add('is-visible')

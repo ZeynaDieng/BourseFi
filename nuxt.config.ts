@@ -3,6 +3,14 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
   modules: ['@nuxtjs/tailwindcss', '@nuxtjs/sitemap'],
+  runtimeConfig: {
+    paytechApiKey: process.env.PAYTECH_API_KEY || '',
+    paytechApiSecret: process.env.PAYTECH_API_SECRET || '',
+    paytechEnv: process.env.PAYTECH_ENV || 'test',
+    public: {
+      siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'https://boursefi.sn'
+    }
+  },
   site: {
     url: 'https://boursefi.sn',
     name: 'BourseFi Senegal'
