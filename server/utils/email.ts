@@ -7,7 +7,10 @@ type SendEmailInput = {
   text?: string
 }
 
+const BREVO_API_URL = 'https://api.brevo.com/v3/smtp/email'
+
 function getEmailConfig() {
+  const apiKey = process.env.BREVO_API_KEY || ''
   const host = process.env.SMTP_HOST || ''
   const port = Number(process.env.SMTP_PORT || 587)
   const user = process.env.SMTP_USER || ''
@@ -18,12 +21,12 @@ function getEmailConfig() {
     /\/+$/,
     ''
   )
-  return { host, port, user, pass, fromEmail, fromName, siteUrl }
+  return { apiKey, host, port, user, pass, fromEmail, fromName, siteUrl }
 }
 
 export function isEmailConfigured(): boolean {
-  const { host, user, pass } = getEmailConfig()
-  return Boolean(host && user && pass)
+  const { apiKey, host, user, pass } = getEmailConfig()
+  return Boolean(apiKey || (host && user && pass))
 }
 
 let transporter: Transporter | null = null
@@ -78,26 +81,41 @@ export function renderEmail(opts: { title: string; bodyHtml: string; ctaLabel?: 
 }
 
 /**
- * Envoie un email transactionnel via le SMTP Brevo (nodemailer).
+ * Envoie un email transactionnel via Brevo.
+ * Utilise l'API HTTP si BREVO_API_KEY est défini, sinon le SMTP (nodemailer).
  * Ne lève jamais : un échec d'email ne doit pas casser le flux métier (inscription, candidature…).
  */
 export async function sendEmail(input: SendEmailInput): Promise<boolean> {
-  const { fromEmail, fromName } = getEmailConfig()
+  const { apiKey, fromEmail, fromName } = getEmailConfig()
   if (!isEmailConfigured()) {
-    console.warn('[email] SMTP non configuré (SMTP_HOST/SMTP_USER/SMTP_PASS) -> email ignoré', {
+    console.warn('[email] non configuré (BREVO_API_KEY ou SMTP_*) -> email ignoré', {
       to: input.to.email,
       subject: input.subject
     })
     return false
   }
   try {
-    await getTransporter().sendMail({
-      from: { address: fromEmail, name: fromName },
-      to: input.to.name ? `"${input.to.name}" <${input.to.email}>` : input.to.email,
-      subject: input.subject,
-      html: input.html,
-      ...(input.text ? { text: input.text } : {})
-    })
+    if (apiKey) {
+      await $fetch(BREVO_API_URL, {
+        method: 'POST',
+        headers: { 'api-key': apiKey, 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: {
+          sender: { email: fromEmail, name: fromName },
+          to: [{ email: input.to.email, ...(input.to.name ? { name: input.to.name } : {}) }],
+          subject: input.subject,
+          htmlContent: input.html,
+          ...(input.text ? { textContent: input.text } : {})
+        }
+      })
+    } else {
+      await getTransporter().sendMail({
+        from: { address: fromEmail, name: fromName },
+        to: input.to.name ? `"${input.to.name}" <${input.to.email}>` : input.to.email,
+        subject: input.subject,
+        html: input.html,
+        ...(input.text ? { text: input.text } : {})
+      })
+    }
     console.log('[email] envoyé', { to: input.to.email, subject: input.subject })
     return true
   } catch (error) {
