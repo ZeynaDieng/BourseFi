@@ -7,10 +7,6 @@ const { data: bourse, error } = await useFetch<BourseDto>(
   () => `/api/bourses/${route.params.slug}`,
 )
 
-function openApply() {
-  navigateTo(`/postuler/${route.params.slug}`)
-}
-
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('fr-FR', {
     day: 'numeric',
@@ -77,13 +73,12 @@ useSeoMeta({
         </div>
       </div>
 
-      <button
-        type="button"
-        class="mt-6 w-full rounded-2xl bg-secondary-container px-8 py-4 font-bold text-on-secondary-container shadow-lg transition hover:opacity-95 active:scale-[0.99] sm:w-auto"
-        @click="openApply"
+      <NuxtLink
+        :to="`/postuler/${route.params.slug}`"
+        class="mt-6 inline-flex w-full items-center justify-center rounded-2xl bg-secondary-container px-8 py-4 font-bold text-on-secondary-container shadow-lg transition hover:opacity-95 active:scale-[0.99] sm:w-auto"
       >
         Postuler à cette bourse
-      </button>
+      </NuxtLink>
     </header>
 
     <!-- Indicateurs -->
@@ -149,13 +144,12 @@ useSeoMeta({
             <dd class="font-semibold">{{ bourse.programmeDuree }}</dd>
           </div>
         </dl>
-        <button
-          type="button"
-          class="mt-8 w-full rounded-2xl bg-primary px-8 py-4 font-bold text-white shadow-lg transition hover:opacity-95 active:scale-[0.99]"
-          @click="openApply"
+        <NuxtLink
+          :to="`/postuler/${route.params.slug}`"
+          class="mt-8 inline-flex w-full items-center justify-center rounded-2xl bg-primary px-8 py-4 font-bold text-white shadow-lg transition hover:opacity-95 active:scale-[0.99]"
         >
           Postuler à cette bourse
-        </button>
+        </NuxtLink>
       </div>
     </div>
 
