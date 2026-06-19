@@ -161,6 +161,78 @@ export async function requestPayment(input: RequestPaymentInput): Promise<Reques
   return { success: true, token, redirectUrl }
 }
 
+export type PaymentStatusResult = {
+  ok: boolean
+  isComplete: boolean
+  isCanceled: boolean
+  paymentMethod?: string
+  message?: string
+}
+
+/**
+ * Interroge PayTech pour le statut réel d'une transaction (repli si l'IPN tarde ou échoue).
+ */
+export async function getPaymentStatus(token: string): Promise<PaymentStatusResult> {
+  const { apiKey, apiSecret } = getPaytechConfig()
+  if (!apiKey || !apiSecret || !token) {
+    return { ok: false, isComplete: false, isCanceled: false, message: 'PayTech non configuré ou token manquant.' }
+  }
+
+  let json: Record<string, unknown>
+  try {
+    json = await $fetch<Record<string, unknown>>(
+      `${PAYTECH_BASE_URL}/payment/get-status?token_payment=${encodeURIComponent(token)}`,
+      {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          API_KEY: apiKey,
+          API_SECRET: apiSecret,
+        },
+      },
+    )
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Erreur réseau PayTech'
+    console.error('[paytech] get-status erreur', { token: token.slice(0, 8), message })
+    return { ok: false, isComplete: false, isCanceled: false, message }
+  }
+
+  if (json?.success !== 1) {
+    const message = typeof json?.message === 'string' ? json.message : 'Statut PayTech indisponible.'
+    return { ok: false, isComplete: false, isCanceled: false, message }
+  }
+
+  const payment = (json.payment ?? json) as Record<string, unknown>
+  const state = String(payment.state ?? payment.status ?? '').toLowerCase()
+  const typeEvent = String(payment.type_event ?? json.type_event ?? '').toLowerCase()
+  const paymentMethod =
+    typeof payment.payment_method === 'string'
+      ? payment.payment_method
+      : typeof json.payment_method === 'string'
+        ? json.payment_method
+        : undefined
+
+  const isComplete =
+    state === 'success' ||
+    state === 'completed' ||
+    state === 'paid' ||
+    typeEvent === 'sale_complete'
+  const isCanceled =
+    state === 'canceled' ||
+    state === 'cancelled' ||
+    state === 'failed' ||
+    typeEvent === 'sale_canceled'
+
+  console.log('[paytech] get-status', {
+    token: token.slice(0, 8),
+    state: state || typeEvent || 'unknown',
+    isComplete,
+    isCanceled,
+  })
+
+  return { ok: true, isComplete, isCanceled, paymentMethod }
+}
+
 type IpnBody = Record<string, unknown>
 
 /**

@@ -7,7 +7,26 @@ import { finalizePaiement } from '../../utils/paiement-finalize'
  * Aucune authentification cookie : la légitimité est vérifiée via HMAC/SHA256.
  */
 export default defineEventHandler(async (event) => {
-  const body = (await readBody(event)) as Record<string, unknown>
+  let body: Record<string, unknown> = {}
+  try {
+    body = ((await readBody(event)) ?? {}) as Record<string, unknown>
+  } catch {
+    body = {}
+  }
+
+  // PayTech envoie souvent du x-www-form-urlencoded ; readBody le parse, sinon repli formulaire.
+  if (!body.ref_command && !body.type_event) {
+    try {
+      const form = await readFormData(event)
+      if (form) {
+        for (const [key, value] of form.entries()) {
+          if (typeof value === 'string') body[key] = value
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }
 
   const refCommand = typeof body.ref_command === 'string' ? body.ref_command : ''
   const typeEvent = typeof body.type_event === 'string' ? body.type_event : ''

@@ -79,6 +79,12 @@ useSeoMeta({
       >
         Postuler à cette bourse
       </NuxtLink>
+      <p class="mt-3 text-center text-xs text-white/75 sm:text-left">
+        <template v-if="bourse.fraisDossier > 0">
+          Frais de dossier : {{ bourse.fraisDossier.toLocaleString('fr-FR') }} {{ bourse.devise }} ·
+        </template>
+        Compte requis pour postuler · Environ 2 minutes
+      </p>
     </header>
 
     <!-- Indicateurs -->
@@ -150,6 +156,12 @@ useSeoMeta({
         >
           Postuler à cette bourse
         </NuxtLink>
+        <p class="mt-3 text-center text-xs text-slate-500">
+          <template v-if="bourse.fraisDossier > 0">
+            Frais de dossier : {{ bourse.fraisDossier.toLocaleString('fr-FR') }} {{ bourse.devise }} ·
+          </template>
+          Compte requis · Environ 2 minutes
+        </p>
       </div>
     </div>
 

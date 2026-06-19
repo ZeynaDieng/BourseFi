@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { prisma } from '../utils/prisma'
+import { rateLimit } from '../utils/rate-limit'
 
 const contactSchema = z.object({
   senderName: z.string().min(2, 'Le nom est trop court'),
@@ -9,6 +10,7 @@ const contactSchema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
+  rateLimit(event, 'contact', 5, 60 * 60 * 1000)
   const body = await readBody(event)
   const parsed = contactSchema.safeParse(body)
 

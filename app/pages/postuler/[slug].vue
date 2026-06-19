@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import { computed, reactive, ref } from 'vue'
+import { computed, nextTick, onMounted, reactive, ref, watch, watchEffect } from 'vue'
 import { STUDENT_HOME } from '~/utils/routes'
 import type { BourseDto } from '~/types/bourse'
-
-definePageMeta({ middleware: 'student-auth' })
 
 const route = useRoute()
 const router = useRouter()
@@ -12,20 +10,46 @@ const { data: bourse, error } = await useFetch<BourseDto>(
   () => `/api/bourses/${route.params.slug}`,
 )
 
-const { data: me } = await useFetch('/api/auth/me')
+const { data: me, refresh: refreshMe } = await useFetch('/api/auth/me')
+
+const isLoggedIn = computed(() => Boolean(me.value?.user))
 
 const step = ref(0)
 const isSubmitting = ref(false)
 const errorMessage = ref('')
+const authMode = ref<'register' | 'login'>('register')
+const authLoading = ref(false)
+const authJustCompleted = ref(false)
 
-// La CNI est déjà sur le compte ? Alors on saute l'étape Documents et on la réutilise.
+const registerForm = reactive({
+  firstName: '',
+  lastName: '',
+  email: '',
+  password: '',
+})
+
+const loginForm = reactive({
+  email: '',
+  password: '',
+})
+
 const hasIdentityDocs = computed(() =>
   Boolean(me.value?.user?.identityCardRectoUrl && me.value?.user?.identityCardVersoUrl),
 )
-const STEPS = computed(() =>
+
+const applicationSteps = computed(() =>
   hasIdentityDocs.value ? ['Informations', 'Validation'] : ['Informations', 'Documents', 'Validation'],
 )
-const currentStepName = computed(() => STEPS.value[step.value])
+
+const STEPS = computed(() =>
+  isLoggedIn.value ? applicationSteps.value : ['Compte', ...applicationSteps.value],
+)
+
+const currentStepName = computed(() => STEPS.value[step.value] ?? '')
+
+watch(STEPS, (steps) => {
+  if (step.value >= steps.length) step.value = Math.max(0, steps.length - 1)
+})
 
 const form = reactive({
   firstName: '',
@@ -43,6 +67,75 @@ const form = reactive({
   identityCardRecto: '',
   identityCardVerso: '',
 })
+
+const draftKey = computed(() => `boursefi:postuler:${String(route.params.slug)}`)
+
+function saveDraft() {
+  if (import.meta.server) return
+  try {
+    const { identityCardRecto, identityCardVerso, ...rest } = form
+    sessionStorage.setItem(
+      draftKey.value,
+      JSON.stringify({
+        ...rest,
+        hasRecto: Boolean(identityCardRecto),
+        hasVerso: Boolean(identityCardVerso),
+      }),
+    )
+  } catch {
+    // quota ou mode privé
+  }
+}
+
+function restoreDraft() {
+  if (import.meta.server) return
+  try {
+    const raw = sessionStorage.getItem(draftKey.value)
+    if (!raw) return
+    const d = JSON.parse(raw) as Partial<typeof form>
+    for (const key of Object.keys(form) as (keyof typeof form)[]) {
+      if (key === 'identityCardRecto' || key === 'identityCardVerso') continue
+      const value = d[key]
+      if (typeof value === 'string' && value && !form[key]) form[key] = value
+    }
+  } catch {
+    // ignore
+  }
+}
+
+function clearDraft() {
+  if (import.meta.server) return
+  try {
+    sessionStorage.removeItem(draftKey.value)
+  } catch {
+    // ignore
+  }
+}
+
+watch(
+  () => ({ ...form }),
+  () => saveDraft(),
+  { deep: true },
+)
+
+onMounted(() => {
+  restoreDraft()
+  if (isLoggedIn.value) {
+    step.value = 0
+    if (sessionStorage.getItem(draftKey.value)) {
+      authJustCompleted.value = true
+    }
+  }
+})
+
+async function afterAuthSuccess() {
+  await refreshMe()
+  await nextTick()
+  step.value = 0
+  authJustCompleted.value = true
+  errorMessage.value = ''
+  restoreDraft()
+}
 
 function niveauToSelect(niveau?: string) {
   const n = (niveau || '').toLowerCase()
@@ -83,6 +176,10 @@ watchEffect(() => {
 function validateStep(s: number): boolean {
   errorMessage.value = ''
   const name = STEPS.value[s]
+  if (name === 'Compte') {
+    errorMessage.value = 'Créez un compte ou connectez-vous pour continuer.'
+    return false
+  }
   if (name === 'Informations') {
     if (!form.firstName.trim() || !form.lastName.trim()) {
       errorMessage.value = 'Votre identité est manquante. Complétez votre profil dans « Mon compte ».'
@@ -123,16 +220,78 @@ function validateStep(s: number): boolean {
 }
 
 function goNext() {
+  if (currentStepName.value === 'Compte') return
+  authJustCompleted.value = false
   if (!validateStep(step.value)) return
   if (step.value < STEPS.value.length - 1) step.value++
 }
 
 function goBack() {
   errorMessage.value = ''
-  if (step.value > 0) step.value--
+  if (step.value > 0) {
+    step.value--
+    return
+  }
+  if (!isLoggedIn.value && currentStepName.value === 'Compte') {
+    router.push(`/bourses/${route.params.slug}`)
+  }
+}
+
+async function submitRegister() {
+  errorMessage.value = ''
+  authLoading.value = true
+  try {
+    await $fetch('/api/auth/register', {
+      method: 'POST',
+      body: {
+        firstName: registerForm.firstName.trim(),
+        lastName: registerForm.lastName.trim(),
+        email: registerForm.email.trim(),
+        password: registerForm.password,
+      },
+    })
+    await afterAuthSuccess()
+  } catch (e: unknown) {
+    const msg =
+      e && typeof e === 'object' && 'data' in e
+        ? (e as { data?: { statusMessage?: string } }).data?.statusMessage
+        : null
+    errorMessage.value = msg || 'Inscription impossible. Vérifiez vos informations.'
+  } finally {
+    authLoading.value = false
+  }
+}
+
+async function submitLogin() {
+  errorMessage.value = ''
+  authLoading.value = true
+  try {
+    const res = await $fetch<{ user: { role: string } }>('/api/auth/login', {
+      method: 'POST',
+      body: {
+        email: loginForm.email.trim(),
+        password: loginForm.password,
+      },
+    })
+    if (res.user.role !== 'STUDENT') {
+      errorMessage.value = 'Ce compte ne peut pas déposer de candidature étudiante.'
+      await $fetch('/api/auth/logout', { method: 'POST' })
+      return
+    }
+    await afterAuthSuccess()
+  } catch {
+    errorMessage.value = 'Email ou mot de passe incorrect.'
+  } finally {
+    authLoading.value = false
+  }
 }
 
 async function submit() {
+  if (!isLoggedIn.value) {
+    errorMessage.value = 'Connectez-vous pour envoyer votre candidature.'
+    step.value = 0
+    return
+  }
   const infoIdx = STEPS.value.indexOf('Informations')
   if (!validateStep(infoIdx)) {
     step.value = infoIdx
@@ -173,6 +332,7 @@ async function submit() {
     })
     const requiresPayment =
       res.candidature.status === 'EN_ATTENTE_PAIEMENT' && res.candidature.fraisDossier > 0
+    clearDraft()
     if (requiresPayment) {
       router.push(`/paiement?candidatureId=${encodeURIComponent(res.candidature.id)}`)
     } else {
@@ -216,6 +376,17 @@ useSeoMeta({
       <CandidatureApplyStepper :current="step" :steps="[...STEPS]" />
     </div>
 
+    <div
+      v-if="authJustCompleted && isLoggedIn"
+      class="mt-4 flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900"
+    >
+      <span class="material-symbols-outlined mt-0.5 text-[20px] text-emerald-600">check_circle</span>
+      <div>
+        <p class="font-semibold">Compte prêt — vous pouvez continuer votre candidature.</p>
+        <p class="mt-0.5 text-emerald-800/80">Vos informations sont conservées sur cette page.</p>
+      </div>
+    </div>
+
     <div class="mt-6 grid gap-6 lg:grid-cols-12">
       <!-- Colonne formulaire -->
       <section class="lg:col-span-7">
@@ -242,8 +413,84 @@ useSeoMeta({
         </details>
 
         <div class="rounded-2xl border border-slate-100 bg-white p-5 shadow-premium sm:p-6">
-          <!-- Etape 1 : Informations -->
-          <div v-if="currentStepName === 'Informations'" class="space-y-5">
+          <!-- Étape 0 : Compte (visiteurs non connectés) -->
+          <div v-if="currentStepName === 'Compte'" class="space-y-5">
+            <div>
+              <h2 class="font-headline text-lg font-bold text-primary">Votre espace candidat</h2>
+              <p class="mt-1 text-sm text-slate-500">
+                Créez votre espace pour enregistrer votre dossier et recevoir votre attestation par email.
+                Environ 30 secondes — vos données sont sécurisées.
+              </p>
+            </div>
+
+            <div class="flex gap-2 rounded-xl bg-slate-100 p-1">
+              <button
+                type="button"
+                class="flex-1 rounded-lg py-2.5 text-sm font-semibold transition"
+                :class="authMode === 'register' ? 'bg-white text-primary shadow-sm' : 'text-slate-500'"
+                @click="authMode = 'register'"
+              >
+                Créer un compte
+              </button>
+              <button
+                type="button"
+                class="flex-1 rounded-lg py-2.5 text-sm font-semibold transition"
+                :class="authMode === 'login' ? 'bg-white text-primary shadow-sm' : 'text-slate-500'"
+                @click="authMode = 'login'"
+              >
+                J'ai déjà un compte
+              </button>
+            </div>
+
+            <form v-if="authMode === 'register'" class="space-y-4" @submit.prevent="submitRegister">
+              <div class="grid gap-4 sm:grid-cols-2">
+                <label class="block">
+                  <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Prénom</span>
+                  <input v-model="registerForm.firstName" required class="mt-1 w-full rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-sm" />
+                </label>
+                <label class="block">
+                  <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Nom</span>
+                  <input v-model="registerForm.lastName" required class="mt-1 w-full rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-sm" />
+                </label>
+              </div>
+              <label class="block">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Email</span>
+                <input v-model="registerForm.email" type="email" required class="mt-1 w-full rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-sm" />
+              </label>
+              <label class="block">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Mot de passe</span>
+                <input v-model="registerForm.password" type="password" minlength="8" required class="mt-1 w-full rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-sm" placeholder="8 caractères minimum" />
+              </label>
+              <button
+                type="submit"
+                class="w-full rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:opacity-95 disabled:opacity-50"
+                :disabled="authLoading"
+              >
+                {{ authLoading ? 'Création…' : 'Créer mon espace et continuer' }}
+              </button>
+            </form>
+
+            <form v-else class="space-y-4" @submit.prevent="submitLogin">
+              <label class="block">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Email</span>
+                <input v-model="loginForm.email" type="email" required class="mt-1 w-full rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-sm" />
+              </label>
+              <label class="block">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Mot de passe</span>
+                <input v-model="loginForm.password" type="password" required class="mt-1 w-full rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-sm" />
+              </label>
+              <button
+                type="submit"
+                class="w-full rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:opacity-95 disabled:opacity-50"
+                :disabled="authLoading"
+              >
+                {{ authLoading ? 'Connexion…' : 'Se connecter et continuer' }}
+              </button>
+            </form>
+          </div>
+
+          <!-- Etape Informations -->
+          <div v-else-if="currentStepName === 'Informations'" class="space-y-5">
             <div>
               <div class="flex items-center justify-between gap-2">
                 <h2 class="font-headline text-lg font-bold text-primary">Informations personnelles</h2>
@@ -352,7 +599,7 @@ useSeoMeta({
           <p v-if="errorMessage" class="mt-4 text-sm font-medium text-red-600">{{ errorMessage }}</p>
 
           <!-- Navigation -->
-          <div class="mt-6 flex flex-wrap gap-3">
+          <div v-if="currentStepName !== 'Compte'" class="mt-6 flex flex-wrap gap-3">
             <button
               v-if="step > 0"
               type="button"
@@ -377,6 +624,15 @@ useSeoMeta({
               @click="submit"
             >
               {{ isSubmitting ? 'Envoi…' : 'Envoyer ma candidature' }}
+            </button>
+          </div>
+          <div v-else class="mt-6">
+            <button
+              type="button"
+              class="rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold text-primary transition hover:bg-slate-50"
+              @click="goBack"
+            >
+              Retour à la bourse
             </button>
           </div>
         </div>

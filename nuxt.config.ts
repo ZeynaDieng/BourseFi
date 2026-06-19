@@ -19,6 +19,18 @@ export default defineNuxtConfig({
     name: 'BourseFi Senegal'
   },
   css: ['~/assets/css/main.css'],
+  nitro: {
+    routeRules: {
+      '/**': {
+        headers: {
+          'X-Frame-Options': 'SAMEORIGIN',
+          'X-Content-Type-Options': 'nosniff',
+          'Referrer-Policy': 'strict-origin-when-cross-origin',
+          'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+        },
+      },
+    },
+  },
   app: {
     head: {
       htmlAttrs: { lang: 'fr' },

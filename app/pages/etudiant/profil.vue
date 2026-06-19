@@ -9,9 +9,22 @@ import { buildStudentDocuments } from '~/composables/useStudentDossier'
 
 definePageMeta({ layout: 'student-app', middleware: 'student-auth' })
 
+const paymentSuccessBanner = ref(false)
+
 const { data: me, refresh: refreshMe } = await useFetch('/api/auth/me')
-const { data: candidatures } = await useFetch('/api/candidatures')
-const { data: paiements } = await useFetch('/api/paiements')
+const { data: candidatures, refresh: refreshCandidatures } = await useFetch('/api/candidatures')
+const { data: paiements, refresh: refreshPaiements } = await useFetch('/api/paiements')
+
+onMounted(async () => {
+  if (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('boursefi:payment-success')) {
+    sessionStorage.removeItem('boursefi:payment-success')
+    paymentSuccessBanner.value = true
+    await Promise.all([refreshCandidatures(), refreshPaiements(), refreshMe()])
+    window.setTimeout(() => {
+      paymentSuccessBanner.value = false
+    }, 10000)
+  }
+})
 
 const firstName = computed(() => me.value?.user?.name?.split(/\s+/)[0] || 'Étudiant')
 const dossier = computed(() => computeDossierProgress(candidatures.value))
@@ -81,6 +94,28 @@ async function logout() {
 <template>
   <main class="min-h-[calc(100dvh-4rem)] bg-slate-50 pb-8 md:pb-12">
     <div class="mx-auto w-full max-w-lg space-y-4 px-4 pt-5 md:max-w-3xl md:px-6">
+      <div
+        v-if="paymentSuccessBanner"
+        class="flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900"
+        role="status"
+      >
+        <span class="material-symbols-outlined mt-0.5 shrink-0 text-[22px] text-emerald-600">check_circle</span>
+        <div class="min-w-0 flex-1">
+          <p class="font-semibold">Paiement réussi !</p>
+          <p class="mt-0.5 text-emerald-800/85">
+            Votre dossier est transmis au bailleur pour analyse. Suivez l'avancement ci-dessous.
+          </p>
+        </div>
+        <button
+          type="button"
+          class="shrink-0 rounded-lg p-1 text-emerald-700/70 transition hover:bg-emerald-100 hover:text-emerald-900"
+          aria-label="Fermer"
+          @click="paymentSuccessBanner = false"
+        >
+          <span class="material-symbols-outlined text-[20px]">close</span>
+        </button>
+      </div>
+
       <!-- Section 1 : Hero principal -->
       <section v-reveal class="rounded-[20px] bg-white p-5 shadow-sm ring-1 ring-slate-100 md:p-6">
         <div class="flex items-start justify-between gap-3">

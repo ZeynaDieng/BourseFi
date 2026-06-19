@@ -1,11 +1,22 @@
 <script setup lang="ts">
-import { isSafeStudentRedirect, STUDENT_HOME } from '~/utils/routes'
+import { isSafeStudentRedirect, resolveStudentAuthRedirect, authRedirectHint } from '~/utils/routes'
 import { PARTNER_PORTAL_ENABLED } from '~/utils/product-config'
 
 const route = useRoute()
 const redirectTo = computed(() =>
   typeof route.query.redirect === 'string' ? route.query.redirect : '',
 )
+
+const redirectHint = computed(() =>
+  redirectTo.value ? authRedirectHint(redirectTo.value) : null,
+)
+
+const registerHref = computed(() => {
+  if (redirectTo.value && isSafeStudentRedirect(redirectTo.value)) {
+    return `/auth/register?redirect=${encodeURIComponent(redirectTo.value)}`
+  }
+  return '/auth/register'
+})
 
 const form = reactive({
   email: '',
@@ -23,7 +34,7 @@ function resolvePostLoginPath(role: string): string {
   if (role === 'ADMIN') return '/admin/dashboard'
   if (role === 'PARTNER' && PARTNER_PORTAL_ENABLED) return '/partenaire/dashboard'
   if (role === 'PARTNER') return '/'
-  return STUDENT_HOME
+  return resolveStudentAuthRedirect('')
 }
 
 async function submitLogin() {
@@ -51,6 +62,9 @@ async function submitLogin() {
         <AppBrandLogo to="/" img-class="h-16 w-auto max-h-[5.25rem] object-contain" />
       </div>
       <h1 class="mb-2 font-headline text-3xl font-extrabold text-primary">Connexion</h1>
+      <p v-if="redirectHint" class="mb-4 rounded-xl border border-primary/15 bg-primary/5 px-3 py-2.5 text-sm font-medium text-primary">
+        {{ redirectHint }}
+      </p>
       <p class="mb-6 text-sm text-slate-500">Accedez a votre espace BourseFi.</p>
 
       <form class="space-y-4" @submit.prevent="submitLogin">
@@ -64,7 +78,7 @@ async function submitLogin() {
 
       <p class="mt-5 text-center text-sm text-slate-600">
         Pas de compte ?
-        <NuxtLink to="/auth/register" class="font-semibold text-primary">Inscription</NuxtLink>
+        <NuxtLink :to="registerHref" class="font-semibold text-primary">Inscription</NuxtLink>
       </p>
     </div>
   </main>

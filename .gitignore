@@ -26,6 +26,8 @@ logs
 # Fichiers candidatures (CNI) — ne pas versionner les dépôts étudiants
 public/uploads/candidatures/**/*
 !public/uploads/candidatures/.gitkeep
+public/uploads/users/**/*
+!public/uploads/users/.gitkeep
 
 # Prisma local database
 prisma/*.db

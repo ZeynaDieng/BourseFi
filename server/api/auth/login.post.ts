@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { prisma } from '../../utils/prisma'
 import { createSession } from '../../utils/auth'
 import { writeAuditLog } from '../../utils/audit'
+import { rateLimit } from '../../utils/rate-limit'
 import { PARTNER_PORTAL_ENABLED } from '../../utils/product-config'
 
 const loginSchema = z.object({
@@ -11,6 +12,7 @@ const loginSchema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
+  rateLimit(event, 'auth-login', 10, 15 * 60 * 1000)
   const body = await readBody(event)
   const parsed = loginSchema.safeParse(body)
   if (!parsed.success) {

@@ -3,15 +3,23 @@ import { z } from 'zod'
 import { prisma } from '../../utils/prisma'
 import { createSession } from '../../utils/auth'
 import { writeAuditLog } from '../../utils/audit'
+import { rateLimit } from '../../utils/rate-limit'
 import { sendEmail, renderEmail } from '../../utils/email'
 
-const registerSchema = z.object({
-  name: z.string().min(2),
-  email: z.email(),
-  password: z.string().min(8)
-})
+const registerSchema = z
+  .object({
+    name: z.string().min(2).optional(),
+    firstName: z.string().min(1).max(80).optional(),
+    lastName: z.string().min(1).max(80).optional(),
+    email: z.email(),
+    password: z.string().min(8),
+  })
+  .refine((data) => data.name || (data.firstName && data.lastName), {
+    message: 'Indiquez votre prénom et nom, ou un nom complet.',
+  })
 
 export default defineEventHandler(async (event) => {
+  rateLimit(event, 'auth-register', 5, 60 * 60 * 1000)
   const body = await readBody(event)
   const parsed = registerSchema.safeParse(body)
 
@@ -19,7 +27,12 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'Informations d inscription invalides.' })
   }
 
-  const { name, email, password } = parsed.data
+  const { email, password } = parsed.data
+  const firstName = parsed.data.firstName?.trim() ?? ''
+  const lastName = parsed.data.lastName?.trim() ?? ''
+  const name =
+    parsed.data.name?.trim() ||
+    `${firstName} ${lastName}`.trim()
   const existingUser = await prisma.user.findUnique({ where: { email } })
   if (existingUser) {
     throw createError({ statusCode: 409, statusMessage: 'Cet email est deja utilise.' })
@@ -29,10 +42,12 @@ export default defineEventHandler(async (event) => {
   const user = await prisma.user.create({
     data: {
       name,
+      firstName: firstName || null,
+      lastName: lastName || null,
       email,
       passwordHash,
-      role: 'STUDENT'
-    }
+      role: 'STUDENT',
+    },
   })
 
   await createSession(event, user.id)
@@ -63,8 +78,10 @@ export default defineEventHandler(async (event) => {
     user: {
       id: user.id,
       name: user.name,
+      firstName: user.firstName,
+      lastName: user.lastName,
       email: user.email,
-      role: user.role
-    }
+      role: user.role,
+    },
   }
 })

@@ -1,11 +1,12 @@
 import { mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
+import { getUploadRoot, uploadPublicUrl } from './upload-path'
 
 const MAX_BYTES = 5 * 1024 * 1024
 
 /**
  * Décoder une data URL (image JPEG / PNG / WebP ou PDF), vérifier la taille.
- * Les fichiers sont stockés sous `public/uploads/candidatures/{id}/` (persistant en Node local).
+ * Les fichiers sont stockés sous `{UPLOAD_DIR}/candidatures/{id}/` (persistant).
  */
 export function parseDocumentDataUrl(dataUrl: string): { buffer: Buffer; ext: string } {
   const m = dataUrl.match(/^data:(image\/(?:jpeg|jpg|png|webp)|application\/pdf);base64,(.+)$/i)
@@ -39,11 +40,11 @@ export async function saveCandidatureAttestation(
   dataUrl: string
 ): Promise<{ documentUrl: string }> {
   const f = parseDocumentDataUrl(dataUrl)
-  const dir = join(process.cwd(), 'public', 'uploads', 'candidatures', candidatureId)
+  const dir = join(getUploadRoot(), 'candidatures', candidatureId)
   await mkdir(dir, { recursive: true })
   const name = `attestation.${f.ext}`
   await writeFile(join(dir, name), f.buffer)
-  return { documentUrl: `/uploads/candidatures/${candidatureId}/${name}` }
+  return { documentUrl: uploadPublicUrl(`candidatures/${candidatureId}/${name}`) }
 }
 
 /**
@@ -57,11 +58,11 @@ export async function saveUserIdentityImage(
   dataUrl: string
 ): Promise<string> {
   const f = parseDocumentDataUrl(dataUrl)
-  const dir = join(process.cwd(), 'public', 'uploads', 'users', userId)
+  const dir = join(getUploadRoot(), 'users', userId)
   await mkdir(dir, { recursive: true })
   const name = `cni-${side}.${f.ext}`
   await writeFile(join(dir, name), f.buffer)
-  return `/uploads/users/${userId}/${name}`
+  return uploadPublicUrl(`users/${userId}/${name}`)
 }
 
 export async function saveCandidatureIdentityImages(
@@ -71,14 +72,14 @@ export async function saveCandidatureIdentityImages(
 ): Promise<{ identityCardRectoUrl: string; identityCardVersoUrl: string }> {
   const r = parseDocumentDataUrl(rectoDataUrl)
   const v = parseDocumentDataUrl(versoDataUrl)
-  const dir = join(process.cwd(), 'public', 'uploads', 'candidatures', candidatureId)
+  const dir = join(getUploadRoot(), 'candidatures', candidatureId)
   await mkdir(dir, { recursive: true })
   const rectoName = `recto.${r.ext}`
   const versoName = `verso.${v.ext}`
   await writeFile(join(dir, rectoName), r.buffer)
   await writeFile(join(dir, versoName), v.buffer)
   return {
-    identityCardRectoUrl: `/uploads/candidatures/${candidatureId}/${rectoName}`,
-    identityCardVersoUrl: `/uploads/candidatures/${candidatureId}/${versoName}`
+    identityCardRectoUrl: uploadPublicUrl(`candidatures/${candidatureId}/${rectoName}`),
+    identityCardVersoUrl: uploadPublicUrl(`candidatures/${candidatureId}/${versoName}`),
   }
 }

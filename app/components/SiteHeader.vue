@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { STUDENT_HOME } from '~/utils/routes'
+import { resolveStudentAuthRedirect } from '~/utils/routes'
 
 const route = useRoute()
 const { data } = await useFetch('/api/auth/me')
@@ -46,7 +46,7 @@ const isHome = computed(() => route.path === '/')
 
 const loginHref = computed(() => ({
   path: '/auth/login',
-  query: { redirect: STUDENT_HOME },
+  query: { redirect: resolveStudentAuthRedirect(route.fullPath) },
 }))
 
 const logoImgClass = computed(() =>

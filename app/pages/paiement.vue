@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import PaytechCheckoutModal from '~/components/payment/PaytechCheckoutModal.vue'
 import { STUDENT_HOME } from '~/utils/routes'
 
 definePageMeta({ layout: false, middleware: 'student-auth' })
@@ -47,21 +48,16 @@ async function loadCandidatures() {
 }
 
 onMounted(async () => {
-  isEmbedded.value = window.self !== window.top
-  // Si cette page s'affiche DANS l'iframe PayTech (retour success/cancel),
-  // on prévient la fenêtre parente et on n'affiche qu'un écran minimal.
-  if (isEmbedded.value && returnStatus.value) {
-    window.parent.postMessage({ source: 'paytech', status: returnStatus.value }, window.location.origin)
-    return
-  }
   window.addEventListener('message', onPaytechMessage)
   await loadCandidatures()
   if (returnStatus.value === 'success') {
+    confirmingPayment.value = true
     pollStatus()
   } else if (returnStatus.value === 'cancel') {
     cancelled.value = true
   }
 })
+
 watch(
   () => authState.value?.user?.id,
   () => loadCandidatures(),
@@ -79,37 +75,28 @@ const paymentError = ref('')
 const verifying = ref(false)
 const verifyTimedOut = ref(false)
 const cancelled = ref(false)
-const isEmbedded = ref(false)
+const confirmingPayment = ref(false)
 const showPaytechModal = ref(false)
 const paytechUrl = ref('')
-const modalOpenedAt = ref(0)
-
-// Écran de vérification affiché au retour de PayTech (success_url), le temps que l'IPN confirme.
-const pendingSuccess = computed(() => returnStatus.value === 'success' && !isPaid.value)
 
 const canPay = computed(
   () => !!dossier.value && dossier.value.status === 'EN_ATTENTE_PAIEMENT',
 )
 
+const showCheckout = computed(
+  () => canPay.value && !isPaid.value && !confirmingPayment.value && !cancelled.value,
+)
+
 function openPaytechModal(url: string) {
   paytechUrl.value = url
   showPaytechModal.value = true
-  modalOpenedAt.value = Date.now()
-  if (typeof document !== 'undefined') document.body.style.overflow = 'hidden'
+  confirmingPayment.value = false
   pollStatus()
-}
-
-// Évite le "ghost click" mobile : un clic synthétique post-ouverture
-// retombe sur le fond du modal et le fermerait immédiatement.
-function onBackdropClick() {
-  if (Date.now() - modalOpenedAt.value < 600) return
-  cancelVerifying()
 }
 
 function closePaytechModal() {
   showPaytechModal.value = false
   paytechUrl.value = ''
-  if (typeof document !== 'undefined') document.body.style.overflow = ''
 }
 
 async function submitPayment() {
@@ -129,10 +116,9 @@ async function submitPayment() {
       return
     }
     if (res.redirectUrl.startsWith('http')) {
-      // PayTech : ouverture dans une popup (iframe) intégrée à la page.
       openPaytechModal(res.redirectUrl)
     } else {
-      // Repli dev (URL interne) : le paiement est déjà validé côté serveur.
+      confirmingPayment.value = true
       pollStatus()
     }
   } catch {
@@ -148,24 +134,35 @@ async function pollStatus() {
   const maxMs = 300000
   while (verifying.value && Date.now() - startedAt < maxMs) {
     try {
-      const res = await $fetch<{ status: string | null }>('/api/paiements/statut', {
-        query: { candidatureId: candidatureId.value },
-      })
-      if (res?.status === 'Valide') {
-        isPaid.value = true
-        verifying.value = false
-        closePaytechModal()
-        await loadCandidatures()
+      const res = await $fetch<{ status: string | null; candidatureStatus: string | null }>(
+        '/api/paiements/statut',
+        {
+          query: { candidatureId: candidatureId.value, sync: '1' },
+        },
+      )
+      if (
+        res?.status === 'Valide' ||
+        res?.candidatureStatus === 'EN_REVUE_PARTENAIRE' ||
+        res?.candidatureStatus === 'ACCEPTE' ||
+        res?.candidatureStatus === 'DOCUMENT_EMIS'
+      ) {
+        await onPaymentValidated()
         return
       }
       if (res?.status === 'Annule' || res?.status === 'Echec') {
         verifying.value = false
+        confirmingPayment.value = false
         cancelled.value = true
         closePaytechModal()
         return
       }
-    } catch {
-      // on retente
+    } catch (error: unknown) {
+      const status = (error as { statusCode?: number })?.statusCode
+      if (status === 401 || status === 403) {
+        verifying.value = false
+        paymentError.value = 'Session expirée. Reconnectez-vous pour finaliser votre dossier.'
+        return
+      }
     }
     await new Promise((resolve) => setTimeout(resolve, 2500))
   }
@@ -181,23 +178,60 @@ function cancelVerifying() {
   verifyTimedOut.value = false
 }
 
+async function onPaymentValidated() {
+  isPaid.value = true
+  verifying.value = false
+  confirmingPayment.value = false
+  closePaytechModal()
+  await loadCandidatures()
+
+  if (typeof sessionStorage !== 'undefined') {
+    sessionStorage.setItem('boursefi:payment-success', '1')
+  }
+
+  // Toujours en pleine page : jamais le profil dans l'iframe PayTech.
+  if (typeof window !== 'undefined' && window.self !== window.top) {
+    window.top!.location.replace(STUDENT_HOME)
+    return
+  }
+  await navigateTo(STUDENT_HOME, { replace: true })
+}
+
 function retryPayment() {
   closePaytechModal()
   cancelled.value = false
+  confirmingPayment.value = false
   verifyTimedOut.value = false
-  navigateTo(`/paiement?candidatureId=${candidatureId.value}`)
+  paymentError.value = ''
+  navigateTo(`/paiement?candidatureId=${candidatureId.value}`, { replace: true })
 }
 
-// Reçoit le résultat depuis l'iframe PayTech (page de retour success/cancel).
+function onPaytechReturn(status: string, returnedCandidatureId: string) {
+  if (returnedCandidatureId && returnedCandidatureId !== candidatureId.value) return
+
+  const normalized = status.toLowerCase()
+  const isCancel = normalized === 'cancel' || normalized === 'cancelled' || normalized === 'canceled'
+  const isSuccess = normalized === 'success'
+
+  closePaytechModal()
+
+  if (isCancel) {
+    verifying.value = false
+    confirmingPayment.value = false
+    cancelled.value = true
+    return
+  }
+
+  if (isSuccess) {
+    confirmingPayment.value = true
+    if (!verifying.value) pollStatus()
+  }
+}
+
 function onPaytechMessage(e: MessageEvent) {
   if (e.origin !== window.location.origin) return
   if (e.data?.source !== 'paytech') return
-  if (e.data.status === 'cancel') {
-    closePaytechModal()
-    verifying.value = false
-    cancelled.value = true
-  }
-  // 'success' : la confirmation réelle vient du polling (IPN serveur).
+  onPaytechReturn(String(e.data.status ?? ''), String(e.data.candidatureId ?? ''))
 }
 
 onUnmounted(() => {
@@ -214,7 +248,6 @@ useSeoMeta({ title: 'Paiement — BourseFi' })
 
 <template>
   <div class="min-h-dvh bg-slate-50 font-body">
-    <!-- En-tête minimal -->
     <header class="sticky top-0 z-20 border-b border-slate-100 bg-white/90 backdrop-blur">
       <div class="mx-auto flex max-w-5xl items-center justify-between px-4 py-3 sm:px-6">
         <NuxtLink to="/" class="flex items-center gap-2">
@@ -228,17 +261,8 @@ useSeoMeta({ title: 'Paiement — BourseFi' })
       </div>
     </header>
 
-    <!-- Page affichée dans l'iframe PayTech au retour : écran minimal -->
-    <div v-if="isEmbedded && returnStatus" class="mx-auto flex max-w-sm flex-col items-center px-4 py-16 text-center sm:px-6">
-      <div class="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
-        <span class="material-symbols-outlined text-[36px]">check</span>
-      </div>
-      <h1 class="font-headline text-xl font-extrabold text-primary">Paiement traité</h1>
-      <p class="mt-2 text-sm text-slate-600">Cette fenêtre va se fermer automatiquement…</p>
-    </div>
-
     <!-- Succès -->
-    <div v-else-if="isPaid" class="mx-auto flex max-w-lg flex-col items-center px-4 py-16 text-center sm:px-6">
+    <div v-if="isPaid" class="mx-auto flex max-w-lg flex-col items-center px-4 py-16 text-center sm:px-6">
       <div class="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 shadow-lg">
         <span class="material-symbols-outlined text-[44px]">check</span>
       </div>
@@ -258,8 +282,8 @@ useSeoMeta({ title: 'Paiement — BourseFi' })
       </div>
     </div>
 
-    <!-- Vérification du paiement (retour PayTech) -->
-    <div v-else-if="pendingSuccess" class="mx-auto flex max-w-lg flex-col items-center px-4 py-16 text-center sm:px-6">
+    <!-- Vérification (retour PayTech — page parente, pas dans l'iframe) -->
+    <div v-else-if="confirmingPayment" class="mx-auto flex max-w-lg flex-col items-center px-4 py-16 text-center sm:px-6">
       <template v-if="!verifyTimedOut">
         <div class="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 text-primary">
           <span class="material-symbols-outlined animate-spin text-[44px]">progress_activity</span>
@@ -274,7 +298,8 @@ useSeoMeta({ title: 'Paiement — BourseFi' })
           <span class="material-symbols-outlined text-[44px]">schedule</span>
         </div>
         <h1 class="font-headline text-2xl font-extrabold text-primary">Confirmation en cours</h1>
-        <p class="mt-3 text-slate-600">
+        <p v-if="paymentError" class="mt-3 text-sm font-semibold text-red-600">{{ paymentError }}</p>
+        <p v-else class="mt-3 text-slate-600">
           Si vous avez bien réglé, la confirmation peut prendre un court instant. Vous pouvez actualiser ou consulter votre espace.
         </p>
         <div class="mt-8 flex w-full flex-col gap-3 sm:flex-row sm:justify-center">
@@ -288,7 +313,7 @@ useSeoMeta({ title: 'Paiement — BourseFi' })
       </template>
     </div>
 
-    <!-- Paiement annulé / échoué -->
+    <!-- Paiement annulé -->
     <div v-else-if="cancelled" class="mx-auto flex max-w-lg flex-col items-center px-4 py-16 text-center sm:px-6">
       <div class="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-red-100 text-red-600">
         <span class="material-symbols-outlined text-[44px]">close</span>
@@ -312,7 +337,7 @@ useSeoMeta({ title: 'Paiement — BourseFi' })
       v-else-if="!dossier || dossier.status !== 'EN_ATTENTE_PAIEMENT'"
       class="mx-auto max-w-lg px-4 py-16 text-center sm:px-6"
     >
-      <div class="mb-5 flex h-16 w-16 mx-auto items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
+      <div class="mb-5 mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
         <span class="material-symbols-outlined text-[32px]">receipt_long</span>
       </div>
       <h1 class="font-headline text-2xl font-extrabold text-primary">Aucun paiement en attente</h1>
@@ -326,7 +351,7 @@ useSeoMeta({ title: 'Paiement — BourseFi' })
     </div>
 
     <!-- Checkout -->
-    <main v-else class="mx-auto max-w-xl px-4 py-6 pb-32 sm:px-6 lg:pb-12">
+    <main v-else-if="showCheckout" class="mx-auto max-w-xl px-4 py-6 pb-32 sm:px-6 lg:pb-12">
       <div class="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm sm:p-5">
         <CandidatureApplyStepper :current="2" :steps="PAYMENT_STEPS" />
       </div>
@@ -378,7 +403,7 @@ useSeoMeta({ title: 'Paiement — BourseFi' })
 
     <!-- CTA sticky mobile -->
     <div
-      v-if="!isPaid && !pendingSuccess && !cancelled && dossier && dossier.status === 'EN_ATTENTE_PAIEMENT'"
+      v-if="showCheckout"
       class="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur lg:hidden"
     >
       <p v-if="paymentError" class="mb-2 text-center text-xs font-semibold text-red-600">{{ paymentError }}</p>
@@ -392,74 +417,11 @@ useSeoMeta({ title: 'Paiement — BourseFi' })
       </button>
     </div>
 
-    <!-- Popup PayTech intégrée (iframe), sans quitter la page -->
-    <div
-      v-if="showPaytechModal"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm sm:p-4"
-      @click.self="onBackdropClick"
-    >
-      <div class="relative h-full w-full max-w-md overflow-hidden bg-white shadow-2xl sm:h-[760px] sm:max-h-[92vh] sm:rounded-2xl">
-        <button
-          class="absolute right-2 top-2 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur transition hover:bg-black/60"
-          aria-label="Fermer"
-          @click="cancelVerifying"
-        >
-          <span class="material-symbols-outlined text-[20px]">close</span>
-        </button>
-        <iframe
-          :src="paytechUrl"
-          title="Paiement PayTech"
-          class="h-full w-full border-0"
-          allow="payment *; clipboard-write"
-        ></iframe>
-      </div>
-    </div>
-
-    <!-- Overlay : vérification (repli sans iframe / attente IPN) -->
-    <div
-      v-if="verifying && !showPaytechModal && !pendingSuccess && !isPaid"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm"
-    >
-      <div class="w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-2xl">
-        <template v-if="!verifyTimedOut">
-          <div class="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
-            <span class="material-symbols-outlined animate-spin text-[36px]">progress_activity</span>
-          </div>
-          <h2 class="font-headline text-xl font-extrabold text-primary">Paiement en cours…</h2>
-          <p class="mt-2 text-sm text-slate-600">
-            Finalisez le paiement dans la fenêtre PayTech. Cette page se met à jour automatiquement.
-          </p>
-          <button
-            class="mt-5 w-full rounded-xl border border-slate-200 bg-white py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
-            @click="cancelVerifying"
-          >
-            Annuler
-          </button>
-        </template>
-        <template v-else>
-          <div class="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-amber-100 text-amber-600">
-            <span class="material-symbols-outlined text-[36px]">schedule</span>
-          </div>
-          <h2 class="font-headline text-xl font-extrabold text-primary">En attente de confirmation</h2>
-          <p class="mt-2 text-sm text-slate-600">
-            Si vous avez réglé, la confirmation peut prendre un court instant.
-          </p>
-          <div class="mt-5 flex flex-col gap-2">
-            <button
-              class="w-full rounded-xl bg-primary py-3 text-sm font-bold text-white transition hover:opacity-95"
-              @click="pollStatus"
-            >
-              Vérifier à nouveau
-            </button>
-            <button
-              class="w-full rounded-xl border border-slate-200 bg-white py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
-              @click="cancelVerifying"
-            >
-              Fermer
-            </button>
-          </div>
-        </template>
-      </div>
-    </div>
+    <PaytechCheckoutModal
+      :open="showPaytechModal"
+      :url="paytechUrl"
+      @close="cancelVerifying"
+      @return="(p) => onPaytechReturn(p.status, p.candidatureId)"
+    />
   </div>
 </template>
