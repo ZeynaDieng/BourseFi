@@ -49,6 +49,7 @@ export async function finalizePaiement(
   }
 
   if (existing.status === 'Valide') {
+    console.log('[paytech] finalize: déjà validé (idempotent)', { paiementId: existing.id })
     return { alreadyValid: true, paiement: baseResult }
   }
 
@@ -100,6 +101,12 @@ export async function finalizePaiement(
       candidatureId: candidature.id
     })
   }
+
+  console.log('[paytech] finalize: paiement validé', {
+    paiementId: updated.id,
+    candidatureId: candidature?.id ?? null,
+    amount: updated.amount
+  })
 
   return {
     alreadyValid: false,

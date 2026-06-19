@@ -56,6 +56,14 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'Aucun frais de dossier a regler.' })
   }
 
+  console.log('[paytech] initier', {
+    candidatureId: candidature.id,
+    userId: user.id,
+    amount: total,
+    devise: candidature.programme.devise,
+    configured: isPaytechConfigured()
+  })
+
   const pct = Math.min(100, Math.max(0, candidature.programme.partner.partnerSharePercent))
   const amountPartner = Math.round((total * pct) / 100)
   const amountPlatform = total - amountPartner
@@ -90,6 +98,10 @@ export default defineEventHandler(async (event) => {
 
   // Repli dev : sans clés PayTech, on valide directement (comportement historique).
   if (!isPaytechConfigured()) {
+    console.warn('[paytech] clés non configurées -> repli dev (validation directe)', {
+      candidatureId: candidature.id,
+      paiementId: paiement.id
+    })
     await finalizePaiement(paiement.id, {
       actorId: user.id,
       actorRole: user.role,
@@ -122,6 +134,12 @@ export default defineEventHandler(async (event) => {
   })
 
   if (!result.success || !result.redirectUrl) {
+    console.error('[paytech] échec initiation -> paiement marqué Echec', {
+      candidatureId: candidature.id,
+      paiementId: paiement.id,
+      refCommand,
+      message: result.message
+    })
     await prisma.paiement.update({ where: { id: paiement.id }, data: { status: 'Echec' } })
     throw createError({
       statusCode: 502,
@@ -133,5 +151,10 @@ export default defineEventHandler(async (event) => {
     await prisma.paiement.update({ where: { id: paiement.id }, data: { token: result.token } })
   }
 
+  console.log('[paytech] initiation OK -> redirection', {
+    candidatureId: candidature.id,
+    paiementId: paiement.id,
+    refCommand
+  })
   return { ok: true, provider: 'paytech', redirectUrl: result.redirectUrl }
 })

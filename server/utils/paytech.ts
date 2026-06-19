@@ -96,6 +96,13 @@ export async function requestPayment(input: RequestPaymentInput): Promise<Reques
     body.target_payment = input.targetPayment
   }
 
+  console.log('[paytech] POST request-payment', {
+    ref_command: input.refCommand,
+    item_price: input.itemPrice,
+    env,
+    target_payment: input.targetPayment || 'all'
+  })
+
   let json: Record<string, unknown>
   try {
     json = await $fetch<Record<string, unknown>>(`${PAYTECH_BASE_URL}/payment/request-payment`, {
@@ -109,21 +116,24 @@ export async function requestPayment(input: RequestPaymentInput): Promise<Reques
       body
     })
   } catch (error) {
-    return {
-      success: false,
-      message: error instanceof Error ? error.message : 'Erreur réseau PayTech'
-    }
+    const message = error instanceof Error ? error.message : 'Erreur réseau PayTech'
+    console.error('[paytech] request-payment erreur réseau', { ref_command: input.refCommand, message })
+    return { success: false, message }
   }
 
   if (json?.success !== 1) {
-    return {
-      success: false,
-      message: typeof json?.message === 'string' ? json.message : 'PayTech a refusé la demande de paiement.'
-    }
+    const message = typeof json?.message === 'string' ? json.message : 'PayTech a refusé la demande de paiement.'
+    console.warn('[paytech] request-payment refusé', { ref_command: input.refCommand, message })
+    return { success: false, message }
   }
 
   let redirectUrl = String(json.redirect_url || json.redirectUrl || '')
   const token = String(json.token || '')
+  console.log('[paytech] request-payment OK', {
+    ref_command: input.refCommand,
+    has_token: Boolean(token),
+    has_redirect: Boolean(redirectUrl)
+  })
 
   // Autofill uniquement pour une méthode unique (sans virgule)
   const target = input.targetPayment
