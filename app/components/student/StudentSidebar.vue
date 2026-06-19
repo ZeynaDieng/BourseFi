@@ -1,6 +1,7 @@
 <script setup lang="ts">
 const links = [
   { to: '/etudiant/profil', label: 'Accueil', icon: 'home' },
+  { to: '/etudiant/compte', label: 'Mon compte', icon: 'badge' },
   { to: '/etudiant/candidatures', label: 'Mes candidatures', icon: 'description' },
   { to: '/etudiant/documents', label: 'Mes documents', icon: 'folder' },
   { to: '/etudiant/paiements', label: 'Mes paiements', icon: 'payments' },

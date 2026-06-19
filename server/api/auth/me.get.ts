@@ -16,6 +16,15 @@ export default defineEventHandler(async (event) => {
     partnerName = p?.name ?? null
   }
 
+  const profileComplete = Boolean(
+    user.firstName &&
+      user.lastName &&
+      user.phone &&
+      user.address &&
+      user.identityCardRectoUrl &&
+      user.identityCardVersoUrl
+  )
+
   return {
     user: {
       id: user.id,
@@ -23,7 +32,14 @@ export default defineEventHandler(async (event) => {
       email: user.email,
       role: user.role,
       partnerId: user.partnerId,
-      partnerName
+      partnerName,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      phone: user.phone,
+      address: user.address,
+      identityCardRectoUrl: user.identityCardRectoUrl,
+      identityCardVersoUrl: user.identityCardVersoUrl,
+      profileComplete
     }
   }
 })

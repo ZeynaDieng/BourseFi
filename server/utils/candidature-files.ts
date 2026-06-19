@@ -46,6 +46,24 @@ export async function saveCandidatureAttestation(
   return { documentUrl: `/uploads/candidatures/${candidatureId}/${name}` }
 }
 
+/**
+ * Enregistre une face de la CNI au niveau du COMPTE candidat
+ * sous public/uploads/users/{userId}/cni-{side}.{ext} et renvoie son URL publique.
+ * Réutilisable pour toutes les candidatures du même utilisateur.
+ */
+export async function saveUserIdentityImage(
+  userId: string,
+  side: 'recto' | 'verso',
+  dataUrl: string
+): Promise<string> {
+  const f = parseDocumentDataUrl(dataUrl)
+  const dir = join(process.cwd(), 'public', 'uploads', 'users', userId)
+  await mkdir(dir, { recursive: true })
+  const name = `cni-${side}.${f.ext}`
+  await writeFile(join(dir, name), f.buffer)
+  return `/uploads/users/${userId}/${name}`
+}
+
 export async function saveCandidatureIdentityImages(
   candidatureId: string,
   rectoDataUrl: string,

@@ -14,10 +14,18 @@ const { data: bourse, error } = await useFetch<BourseDto>(
 
 const { data: me } = await useFetch('/api/auth/me')
 
-const STEPS = ['Informations', 'Documents', 'Validation'] as const
 const step = ref(0)
 const isSubmitting = ref(false)
 const errorMessage = ref('')
+
+// La CNI est déjà sur le compte ? Alors on saute l'étape Documents et on la réutilise.
+const hasIdentityDocs = computed(() =>
+  Boolean(me.value?.user?.identityCardRectoUrl && me.value?.user?.identityCardVersoUrl),
+)
+const STEPS = computed(() =>
+  hasIdentityDocs.value ? ['Informations', 'Validation'] : ['Informations', 'Documents', 'Validation'],
+)
+const currentStepName = computed(() => STEPS.value[step.value])
 
 const form = reactive({
   firstName: '',
@@ -60,25 +68,24 @@ watchEffect(() => {
     form.field ||= bourse.value.programmeTitre
     form.level = niveauToSelect(bourse.value.programmeNiveau)
   }
-  if (me.value?.user) {
-    if (!form.firstName) splitNameFromUser(me.value.user.name ?? '')
-    form.email ||= me.value.user.email ?? ''
+  const u = me.value?.user
+  if (u) {
+    // Identité issue du compte (non modifiable ici : on ne postule que pour soi).
+    if (!form.firstName) form.firstName = u.firstName || ''
+    if (!form.lastName) form.lastName = u.lastName || ''
+    if (!form.firstName && !form.lastName) splitNameFromUser(u.name ?? '')
+    form.email ||= u.email ?? ''
+    form.phone ||= u.phone ?? ''
+    form.address ||= u.address ?? ''
   }
 })
 
 function validateStep(s: number): boolean {
   errorMessage.value = ''
-  if (s === 0) {
-    if (!form.firstName.trim()) {
-      errorMessage.value = 'Indiquez votre prénom.'
-      return false
-    }
-    if (!form.lastName.trim()) {
-      errorMessage.value = 'Indiquez votre nom.'
-      return false
-    }
-    if (!form.email.trim()) {
-      errorMessage.value = 'Indiquez votre adresse e-mail.'
+  const name = STEPS.value[s]
+  if (name === 'Informations') {
+    if (!form.firstName.trim() || !form.lastName.trim()) {
+      errorMessage.value = 'Votre identité est manquante. Complétez votre profil dans « Mon compte ».'
       return false
     }
     if (!form.phone.trim() || form.phone.replace(/\s/g, '').length < 8) {
@@ -102,7 +109,7 @@ function validateStep(s: number): boolean {
       return false
     }
   }
-  if (s === 1) {
+  if (name === 'Documents') {
     if (!form.identityCardRecto) {
       errorMessage.value = 'Ajoutez la photo recto de votre carte d’identité.'
       return false
@@ -117,7 +124,7 @@ function validateStep(s: number): boolean {
 
 function goNext() {
   if (!validateStep(step.value)) return
-  if (step.value < STEPS.length - 1) step.value++
+  if (step.value < STEPS.value.length - 1) step.value++
 }
 
 function goBack() {
@@ -126,13 +133,17 @@ function goBack() {
 }
 
 async function submit() {
-  if (!validateStep(0)) {
-    step.value = 0
+  const infoIdx = STEPS.value.indexOf('Informations')
+  if (!validateStep(infoIdx)) {
+    step.value = infoIdx
     return
   }
-  if (!validateStep(1)) {
-    step.value = 1
-    return
+  if (!hasIdentityDocs.value) {
+    const docIdx = STEPS.value.indexOf('Documents')
+    if (!validateStep(docIdx)) {
+      step.value = docIdx
+      return
+    }
   }
   if (!bourse.value) return
   errorMessage.value = ''
@@ -146,9 +157,6 @@ async function submit() {
       body: {
         programmeId: bourse.value.programmeId,
         bourseId: bourse.value.id,
-        firstName: form.firstName.trim(),
-        lastName: form.lastName.trim(),
-        email: form.email.trim(),
         phone: form.phone.trim(),
         address: form.address.trim(),
         institution: form.institution.trim(),
@@ -158,8 +166,9 @@ async function submit() {
         lastDiploma: form.lastDiploma.trim(),
         graduationDate: form.graduationDate.trim(),
         gpa: form.gpa.trim(),
-        identityCardRecto: form.identityCardRecto,
-        identityCardVerso: form.identityCardVerso,
+        ...(hasIdentityDocs.value
+          ? {}
+          : { identityCardRecto: form.identityCardRecto, identityCardVerso: form.identityCardVerso }),
       },
     })
     const requiresPayment =
@@ -234,21 +243,29 @@ useSeoMeta({
 
         <div class="rounded-2xl border border-slate-100 bg-white p-5 shadow-premium sm:p-6">
           <!-- Etape 1 : Informations -->
-          <div v-if="step === 0" class="space-y-5">
+          <div v-if="currentStepName === 'Informations'" class="space-y-5">
             <div>
-              <h2 class="font-headline text-lg font-bold text-primary">Informations personnelles</h2>
+              <div class="flex items-center justify-between gap-2">
+                <h2 class="font-headline text-lg font-bold text-primary">Informations personnelles</h2>
+                <NuxtLink to="/etudiant/compte" class="text-xs font-semibold text-primary underline-offset-2 hover:underline">
+                  Modifier mon profil
+                </NuxtLink>
+              </div>
+              <p class="mt-1 text-xs text-slate-400">
+                Votre identité provient de votre compte : vous ne pouvez postuler que pour vous-même.
+              </p>
               <div class="mt-3 grid gap-4 sm:grid-cols-2">
                 <label class="block">
                   <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Prénom</span>
-                  <input v-model="form.firstName" class="mt-1 w-full rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-sm" />
+                  <input v-model="form.firstName" disabled class="mt-1 w-full rounded-xl border border-slate-100 bg-slate-100 px-3 py-2.5 text-sm text-slate-500" />
                 </label>
                 <label class="block">
                   <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Nom</span>
-                  <input v-model="form.lastName" class="mt-1 w-full rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-sm" />
+                  <input v-model="form.lastName" disabled class="mt-1 w-full rounded-xl border border-slate-100 bg-slate-100 px-3 py-2.5 text-sm text-slate-500" />
                 </label>
                 <label class="block">
                   <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Email</span>
-                  <input v-model="form.email" type="email" class="mt-1 w-full rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-sm" />
+                  <input v-model="form.email" type="email" disabled class="mt-1 w-full rounded-xl border border-slate-100 bg-slate-100 px-3 py-2.5 text-sm text-slate-500" />
                 </label>
                 <label class="block">
                   <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Téléphone</span>
@@ -280,12 +297,13 @@ useSeoMeta({
             </div>
           </div>
 
-          <!-- Etape 2 : Documents -->
-          <div v-else-if="step === 1" class="space-y-5">
+          <!-- Etape 2 : Documents (seulement si la CNI n'est pas déjà sur le compte) -->
+          <div v-else-if="currentStepName === 'Documents'" class="space-y-5">
             <div>
               <h2 class="font-headline text-lg font-bold text-primary">Pièce d’identité</h2>
               <p class="mt-1 text-sm text-slate-500">
                 Ajoutez des photos lisibles de votre carte d’identité (JPG, PNG, WebP ou PDF, max 5 Mo).
+                Elle sera enregistrée sur votre compte et réutilisée pour vos prochaines candidatures.
               </p>
             </div>
             <div class="grid gap-4 sm:grid-cols-2">
@@ -320,8 +338,11 @@ useSeoMeta({
             </div>
 
             <div class="rounded-2xl border border-slate-100 bg-slate-50/60 p-4">
-              <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Documents</p>
-              <ul class="mt-2 space-y-1.5 text-sm text-slate-700">
+              <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Carte d’identité</p>
+              <ul v-if="hasIdentityDocs" class="mt-2 space-y-1.5 text-sm text-slate-700">
+                <li class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-emerald-600">check</span>Réutilisée depuis votre compte</li>
+              </ul>
+              <ul v-else class="mt-2 space-y-1.5 text-sm text-slate-700">
                 <li class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-emerald-600">check</span>Recto téléchargé</li>
                 <li class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-emerald-600">check</span>Verso téléchargé</li>
               </ul>

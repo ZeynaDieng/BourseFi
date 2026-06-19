@@ -117,6 +117,13 @@ model User {
   role         Role          @default(STUDENT)
   partnerId    String?
   partner      Partner?      @relation(fields: [partnerId], references: [id], onDelete: SetNull)
+  // Profil candidat réutilisable (saisi une seule fois, réutilisé à chaque candidature)
+  firstName            String?
+  lastName             String?
+  phone                String?
+  address              String?
+  identityCardRectoUrl String?
+  identityCardVersoUrl String?
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
   sessions     Session[]

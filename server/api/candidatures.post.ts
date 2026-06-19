@@ -3,7 +3,7 @@ import { prisma } from '../utils/prisma'
 import { z } from 'zod'
 import { writeAuditLog } from '../utils/audit'
 import type { CandidatureStatus } from '../utils/candidature-types'
-import { saveCandidatureIdentityImages } from '../utils/candidature-files'
+import { saveUserIdentityImage } from '../utils/candidature-files'
 import { createNotification } from '../utils/notifications'
 import { sendEmail, renderEmail } from '../utils/email'
 
@@ -15,11 +15,7 @@ const documentDataUrl = z
 const candidatureSchema = z.object({
   programmeId: z.string().min(1),
   bourseId: z.string().min(1).optional(),
-  firstName: z.string().min(1).max(80).trim(),
-  lastName: z.string().min(1).max(80).trim(),
-  email: z.email(),
-  phone: z.string().min(8).max(32).trim(),
-  address: z.string().min(5).max(600).trim(),
+  // Champs spécifiques au dossier
   institution: z.string().max(200).optional().default(''),
   field: z.string().max(300).optional().default(''),
   level: z.string().max(80).optional().default('Non precise'),
@@ -27,8 +23,11 @@ const candidatureSchema = z.object({
   lastDiploma: z.string().min(2).max(200).trim(),
   graduationDate: z.string().max(40).optional().default(''),
   gpa: z.string().min(1).max(30).trim(),
-  identityCardRecto: documentDataUrl,
-  identityCardVerso: documentDataUrl
+  // Profil (utilisé en repli si le compte n'est pas encore complété)
+  phone: z.string().min(8).max(32).trim().optional(),
+  address: z.string().min(5).max(600).trim().optional(),
+  identityCardRecto: documentDataUrl.optional(),
+  identityCardVerso: documentDataUrl.optional()
 })
 
 export default defineEventHandler(async (event) => {
@@ -75,7 +74,59 @@ export default defineEventHandler(async (event) => {
     initialStatus = 'EN_REVUE_PARTENAIRE'
   }
 
-  const fullName = `${parsed.data.firstName} ${parsed.data.lastName}`.trim()
+  // Identité issue du COMPTE candidat (empêche de postuler pour autrui : on
+  // n'utilise jamais un nom/email saisi librement, mais celui du compte connecté).
+  const nameParts = (user.name || '').trim().split(/\s+/).filter(Boolean)
+  const firstName = (user.firstName || nameParts[0] || '').trim()
+  const lastName = (user.lastName || nameParts.slice(1).join(' ') || nameParts[0] || '').trim()
+  const email = user.email
+  const phone = (user.phone || parsed.data.phone || '').trim()
+  const address = (user.address || parsed.data.address || '').trim()
+  let rectoUrl = user.identityCardRectoUrl
+  let versoUrl = user.identityCardVersoUrl
+
+  // Si la CNI n'est pas encore enregistrée sur le compte mais fournie ici,
+  // on l'enregistre une fois pour toutes au niveau du compte (réutilisable).
+  const profilePatch: {
+    firstName?: string
+    lastName?: string
+    phone?: string
+    address?: string
+    identityCardRectoUrl?: string
+    identityCardVersoUrl?: string
+  } = {}
+  try {
+    if (!rectoUrl && parsed.data.identityCardRecto) {
+      rectoUrl = await saveUserIdentityImage(user.id, 'recto', parsed.data.identityCardRecto)
+      profilePatch.identityCardRectoUrl = rectoUrl
+    }
+    if (!versoUrl && parsed.data.identityCardVerso) {
+      versoUrl = await saveUserIdentityImage(user.id, 'verso', parsed.data.identityCardVerso)
+      profilePatch.identityCardVersoUrl = versoUrl
+    }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'Erreur enregistrement des pièces d identité.'
+    throw createError({ statusCode: 400, statusMessage: msg })
+  }
+
+  if (!firstName || !lastName || !phone || !address || !rectoUrl || !versoUrl) {
+    throw createError({
+      statusCode: 400,
+      statusMessage:
+        'Complétez votre profil (nom, téléphone, adresse et carte d’identité) avant de postuler.'
+    })
+  }
+
+  // Mémorise sur le compte les infos nouvellement fournies pour les prochaines candidatures.
+  if (!user.firstName) profilePatch.firstName = firstName
+  if (!user.lastName) profilePatch.lastName = lastName
+  if (!user.phone) profilePatch.phone = phone
+  if (!user.address) profilePatch.address = address
+  if (Object.keys(profilePatch).length > 0) {
+    await prisma.user.update({ where: { id: user.id }, data: profilePatch })
+  }
+
+  const fullName = `${firstName} ${lastName}`.trim()
 
   const candidature = await prisma.candidature.create({
     data: {
@@ -83,12 +134,12 @@ export default defineEventHandler(async (event) => {
       programmeId: programme.id,
       bourseId,
       partnerId: programme.partnerId,
-      firstName: parsed.data.firstName,
-      lastName: parsed.data.lastName,
+      firstName,
+      lastName,
       fullName,
-      email: parsed.data.email,
-      phone: parsed.data.phone,
-      address: parsed.data.address,
+      email,
+      phone,
+      address,
       institution: parsed.data.institution,
       field: parsed.data.field,
       level: parsed.data.level,
@@ -98,34 +149,17 @@ export default defineEventHandler(async (event) => {
       gpa: parsed.data.gpa,
       targetProgram: programme.titre,
       status: initialStatus,
-      identityCardRectoUrl: null,
-      identityCardVersoUrl: null
+      // CNI réutilisée depuis le compte (pas de duplication de fichiers)
+      identityCardRectoUrl: rectoUrl,
+      identityCardVersoUrl: versoUrl
     }
   })
 
-  try {
-    const urls = await saveCandidatureIdentityImages(
-      candidature.id,
-      parsed.data.identityCardRecto,
-      parsed.data.identityCardVerso
-    )
-    await prisma.candidature.update({
-      where: { id: candidature.id },
-      data: {
-        identityCardRectoUrl: urls.identityCardRectoUrl,
-        identityCardVersoUrl: urls.identityCardVersoUrl
-      }
+  if (bourseId) {
+    await prisma.bourse.update({
+      where: { id: bourseId },
+      data: { placesRestantes: { decrement: 1 } }
     })
-    if (bourseId) {
-      await prisma.bourse.update({
-        where: { id: bourseId },
-        data: { placesRestantes: { decrement: 1 } },
-      })
-    }
-  } catch (err) {
-    await prisma.candidature.delete({ where: { id: candidature.id } })
-    const msg = err instanceof Error ? err.message : 'Erreur enregistrement des pièces d identité.'
-    throw createError({ statusCode: 400, statusMessage: msg })
   }
 
   await createNotification({
@@ -140,11 +174,11 @@ export default defineEventHandler(async (event) => {
   const siteUrl = String(process.env.NUXT_PUBLIC_SITE_URL || 'https://boursefi.sn').replace(/\/+$/, '')
   const needsPayment = initialStatus === 'EN_ATTENTE_PAIEMENT'
   await sendEmail({
-    to: { email: parsed.data.email, name: fullName },
+    to: { email, name: fullName },
     subject: 'Votre candidature a bien été reçue — BourseFi',
     html: renderEmail({
       title: 'Candidature enregistrée',
-      bodyHtml: `<p>Bonjour ${parsed.data.firstName},</p>
+      bodyHtml: `<p>Bonjour ${firstName},</p>
         <p>Votre demande de bourse pour <strong>${programme.titre}</strong> a bien été enregistrée.</p>
         ${
           needsPayment
