@@ -35,6 +35,41 @@ function readFileAsDataUrl(file: File): Promise<string> {
   })
 }
 
+// Redimensionne et recompresse les images côté client pour garder une charge utile légère
+// (les requêtes JSON avec photos en base64 dépassaient la limite du proxy -> erreur 413).
+const MAX_DIMENSION = 1600
+const JPEG_QUALITY = 0.82
+
+function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => resolve(img)
+    img.onerror = () => reject(new Error('Image illisible'))
+    img.src = src
+  })
+}
+
+async function compressImage(file: File): Promise<string> {
+  const original = await readFileAsDataUrl(file)
+  try {
+    const img = await loadImage(original)
+    const scale = Math.min(1, MAX_DIMENSION / Math.max(img.width, img.height))
+    const width = Math.round(img.width * scale)
+    const height = Math.round(img.height * scale)
+    const canvas = document.createElement('canvas')
+    canvas.width = width
+    canvas.height = height
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return original
+    ctx.drawImage(img, 0, 0, width, height)
+    const compressed = canvas.toDataURL('image/jpeg', JPEG_QUALITY)
+    // On garde le résultat le plus léger
+    return compressed.length < original.length ? compressed : original
+  } catch {
+    return original
+  }
+}
+
 async function handleFile(file: File | undefined) {
   if (!file) return
   if (!ACCEPTED.test(file.type)) {
@@ -46,9 +81,10 @@ async function handleFile(file: File | undefined) {
     return
   }
   try {
-    const dataUrl = await readFileAsDataUrl(file)
+    const pdf = file.type === 'application/pdf'
+    const dataUrl = pdf ? await readFileAsDataUrl(file) : await compressImage(file)
     fileName.value = file.name
-    isPdf.value = file.type === 'application/pdf'
+    isPdf.value = pdf
     error.value = ''
     emit('update:modelValue', dataUrl)
   } catch {
