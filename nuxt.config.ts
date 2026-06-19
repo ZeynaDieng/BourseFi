@@ -3,6 +3,18 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
   modules: ['@nuxtjs/tailwindcss', '@nuxtjs/sitemap'],
+  sitemap: {
+    exclude: [
+      '/admin/**',
+      '/etudiant/**',
+      '/partenaire/**',
+      '/paiement',
+      '/paiement/**',
+      '/auth/**',
+      '/postuler/**',
+      '/documents/pre-admission',
+    ],
+  },
   runtimeConfig: {
     paytechApiKey: process.env.PAYTECH_API_KEY || '',
     paytechApiSecret: process.env.PAYTECH_API_SECRET || '',
@@ -25,6 +37,7 @@ export default defineNuxtConfig({
       '/admin/**': { robots: false },
       '/etudiant/**': { robots: false },
       '/partenaire/**': { robots: false },
+      '/paiement': { robots: false },
       '/paiement/**': { robots: false },
       '/auth/**': { robots: false },
       '/postuler/**': { robots: false },
