@@ -82,6 +82,7 @@ const cancelled = ref(false)
 const isEmbedded = ref(false)
 const showPaytechModal = ref(false)
 const paytechUrl = ref('')
+const modalOpenedAt = ref(0)
 
 // Écran de vérification affiché au retour de PayTech (success_url), le temps que l'IPN confirme.
 const pendingSuccess = computed(() => returnStatus.value === 'success' && !isPaid.value)
@@ -93,8 +94,16 @@ const canPay = computed(
 function openPaytechModal(url: string) {
   paytechUrl.value = url
   showPaytechModal.value = true
+  modalOpenedAt.value = Date.now()
   if (typeof document !== 'undefined') document.body.style.overflow = 'hidden'
   pollStatus()
+}
+
+// Évite le "ghost click" mobile : un clic synthétique post-ouverture
+// retombe sur le fond du modal et le fermerait immédiatement.
+function onBackdropClick() {
+  if (Date.now() - modalOpenedAt.value < 600) return
+  cancelVerifying()
 }
 
 function closePaytechModal() {
@@ -387,7 +396,7 @@ useSeoMeta({ title: 'Paiement — BourseFi' })
     <div
       v-if="showPaytechModal"
       class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm sm:p-4"
-      @click.self="cancelVerifying"
+      @click.self="onBackdropClick"
     >
       <div class="relative h-full w-full max-w-md overflow-hidden bg-white shadow-2xl sm:h-[760px] sm:max-h-[92vh] sm:rounded-2xl">
         <button
