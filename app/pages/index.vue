@@ -285,14 +285,22 @@ const pageMetaDescription = computed(() => {
   return "Trouvez les bourses d'études faites pour les étudiants sénégalais. Recherchez une école ou un domaine et demandez une bourse en ligne.";
 });
 
-useSeoMeta({
+const { siteUrl } = useSiteSeo({
   title: pageMetaTitle,
   description: pageMetaDescription,
-  ogTitle: pageMetaTitle,
-  ogDescription: pageMetaDescription,
-  ogType: "website",
-  twitterCard: "summary_large_image",
 });
+
+useJsonLd(
+  computed(() => {
+    const description = pageMetaDescription.value;
+    const faqItems = site.value?.faq ?? [];
+    return [
+      buildOrganizationJsonLd(siteUrl, description),
+      buildWebSiteJsonLd(siteUrl),
+      buildFaqJsonLd(faqItems),
+    ];
+  }),
+);
 </script>
 
 <template>

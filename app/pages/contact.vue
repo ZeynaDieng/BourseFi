@@ -34,11 +34,10 @@ async function submitForm() {
   }
 }
 
-useHead({
-  title: 'Contactez-nous - BourseFi',
-  meta: [
-    { name: 'description', content: 'Une question ? Un besoin d\'accompagnement ? Notre équipe est à votre écoute pour vous aider dans vos démarches de bourses.' }
-  ]
+useSiteSeo({
+  title: 'Contactez-nous — BourseFi',
+  description:
+    "Une question ? Un besoin d'accompagnement ? Notre équipe est à votre écoute pour vous aider dans vos démarches de bourses.",
 })
 </script>
 

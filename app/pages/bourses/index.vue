@@ -42,9 +42,10 @@ const filtered = computed(() => {
   return list
 })
 
-useSeoMeta({
+useSiteSeo({
   title: 'Bourses disponibles — BourseFi',
-  description: 'Parcourez les bourses d\'études disponibles au Sénégal : couverture, écoles partenaires et dates limites.',
+  description:
+    "Parcourez les bourses d'études disponibles au Sénégal : couverture, écoles partenaires et dates limites.",
 })
 </script>
 

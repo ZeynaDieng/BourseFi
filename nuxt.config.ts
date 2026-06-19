@@ -11,7 +11,8 @@ export default defineNuxtConfig({
     emailFrom: process.env.EMAIL_FROM || 'no-reply@boursefi.sn',
     emailFromName: process.env.EMAIL_FROM_NAME || 'BourseFi',
     public: {
-      siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'https://boursefi.sn'
+      siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'https://boursefi.sn',
+      googleSiteVerification: process.env.NUXT_PUBLIC_GOOGLE_SITE_VERIFICATION || '',
     }
   },
   site: {
@@ -21,6 +22,12 @@ export default defineNuxtConfig({
   css: ['~/assets/css/main.css'],
   nitro: {
     routeRules: {
+      '/admin/**': { robots: false },
+      '/etudiant/**': { robots: false },
+      '/partenaire/**': { robots: false },
+      '/paiement/**': { robots: false },
+      '/auth/**': { robots: false },
+      '/postuler/**': { robots: false },
       '/**': {
         headers: {
           'X-Frame-Options': 'SAMEORIGIN',

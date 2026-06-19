@@ -15,12 +15,13 @@ function formatDate(iso: string) {
   })
 }
 
-useSeoMeta({
+useSiteSeo({
   title: () => (bourse.value ? `${bourse.value.titre} — BourseFi` : 'Bourse — BourseFi'),
   description: () =>
     bourse.value
       ? `${bourse.value.programmeTitre} · ${bourse.value.etablissement} · couverture ${bourse.value.coveragePercent} %`
       : undefined,
+  canonical: () => (bourse.value ? `/bourses/${bourse.value.slug}` : '/bourses'),
 })
 </script>
 

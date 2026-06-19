@@ -62,8 +62,13 @@ function setTab(t: string) {
   tab.value = t
 }
 
-useSeoMeta({
+useSiteSeo({
   title: () => (q.value ? `Recherche : ${q.value} — BourseFi` : 'Recherche — BourseFi'),
+  description: () =>
+    q.value
+      ? `Résultats pour « ${q.value} » sur BourseFi.`
+      : 'Recherchez une bourse, une école ou un partenaire sur BourseFi.',
+  robots: () => (q.value ? 'noindex, nofollow' : 'index, follow'),
 })
 </script>
 

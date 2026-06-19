@@ -1,2 +1,10 @@
 User-Agent: *
-Disallow:
+Allow: /
+Disallow: /admin/
+Disallow: /etudiant/
+Disallow: /partenaire/
+Disallow: /paiement/
+Disallow: /auth/
+Disallow: /postuler/
+
+Sitemap: https://boursefi.sn/sitemap.xml

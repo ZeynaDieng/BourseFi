@@ -26,8 +26,14 @@ const { data: partner, error } = await useFetch<PartnerDetail>(
   () => `/api/partners/${route.params.slug}`,
 )
 
-useSeoMeta({
+useSiteSeo({
   title: () => (partner.value ? `${partner.value.name} — BourseFi` : 'Partenaire — BourseFi'),
+  description: () =>
+    partner.value?.description?.trim() ||
+    (partner.value
+      ? `${partner.value.name} — partenaire bourse d'études sur BourseFi Sénégal.`
+      : undefined),
+  canonical: () => (partner.value ? `/partenaires/${partner.value.slug}` : '/partenaires'),
 })
 </script>
 
