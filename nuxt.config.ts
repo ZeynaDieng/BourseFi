@@ -7,6 +7,9 @@ export default defineNuxtConfig({
     paytechApiKey: process.env.PAYTECH_API_KEY || '',
     paytechApiSecret: process.env.PAYTECH_API_SECRET || '',
     paytechEnv: process.env.PAYTECH_ENV || 'test',
+    brevoApiKey: process.env.BREVO_API_KEY || '',
+    emailFrom: process.env.EMAIL_FROM || 'no-reply@boursefi.sn',
+    emailFromName: process.env.EMAIL_FROM_NAME || 'BourseFi',
     public: {
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'https://boursefi.sn'
     }

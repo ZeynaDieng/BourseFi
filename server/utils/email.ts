@@ -10,13 +10,15 @@ type SendEmailInput = {
 const BREVO_API_URL = 'https://api.brevo.com/v3/smtp/email'
 
 function getEmailConfig() {
-  const apiKey = process.env.BREVO_API_KEY || ''
+  const config = useRuntimeConfig()
+  // Même logique que PayTech : process.env runtime > runtimeConfig (NUXT_*) > défaut
+  const apiKey = String(process.env.NUXT_BREVO_API_KEY || process.env.BREVO_API_KEY || config.brevoApiKey || '')
   const host = process.env.SMTP_HOST || ''
   const port = Number(process.env.SMTP_PORT || 587)
   const user = process.env.SMTP_USER || ''
   const pass = process.env.SMTP_PASS || ''
-  const fromEmail = process.env.EMAIL_FROM || user || 'no-reply@boursefi.sn'
-  const fromName = process.env.EMAIL_FROM_NAME || 'BourseFi'
+  const fromEmail = String(process.env.EMAIL_FROM || config.emailFrom || user || 'no-reply@boursefi.sn')
+  const fromName = String(process.env.EMAIL_FROM_NAME || config.emailFromName || 'BourseFi')
   const siteUrl = String(process.env.NUXT_PUBLIC_SITE_URL || process.env.SITE_URL || 'https://boursefi.sn').replace(
     /\/+$/,
     ''
