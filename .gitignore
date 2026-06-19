@@ -23,10 +23,12 @@ logs
 .env.*
 !.env.example
 
-# Fichiers candidatures (CNI) — ne pas versionner les dépôts étudiants
-public/uploads/candidatures/**/*
+# Fichiers uploadés (CNI, attestations) — ne pas versionner
+uploads/**/*
+!uploads/.gitkeep
+# Legacy (anciennes installations)
+public/uploads/**/*
 !public/uploads/candidatures/.gitkeep
-public/uploads/users/**/*
 !public/uploads/users/.gitkeep
 
 # Prisma local database

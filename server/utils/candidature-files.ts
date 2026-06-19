@@ -6,7 +6,7 @@ const MAX_BYTES = 5 * 1024 * 1024
 
 /**
  * Décoder une data URL (image JPEG / PNG / WebP ou PDF), vérifier la taille.
- * Les fichiers sont stockés sous `{UPLOAD_DIR}/candidatures/{id}/` (persistant).
+ * Les fichiers sont stockés sous `{UPLOAD_DIR}/candidatures/{id}/` (persistant, hors public).
  */
 export function parseDocumentDataUrl(dataUrl: string): { buffer: Buffer; ext: string } {
   const m = dataUrl.match(/^data:(image\/(?:jpeg|jpg|png|webp)|application\/pdf);base64,(.+)$/i)
