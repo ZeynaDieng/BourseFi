@@ -11,13 +11,18 @@ export type PaytechConfig = {
 
 export function getPaytechConfig(): PaytechConfig {
   const config = useRuntimeConfig()
-  const env = config.paytechEnv === 'prod' ? 'prod' : 'test'
-  return {
-    apiKey: String(config.paytechApiKey || ''),
-    apiSecret: String(config.paytechApiSecret || ''),
-    env,
-    siteUrl: String(config.public?.siteUrl || '').replace(/\/+$/, '')
-  }
+  // Priorité au runtimeConfig (override via NUXT_*), puis repli sur process.env
+  // pour tolérer le nommage sans préfixe (PAYTECH_API_KEY) chargé via .env.
+  const apiKey = String(config.paytechApiKey || process.env.NUXT_PAYTECH_API_KEY || process.env.PAYTECH_API_KEY || '')
+  const apiSecret = String(
+    config.paytechApiSecret || process.env.NUXT_PAYTECH_API_SECRET || process.env.PAYTECH_API_SECRET || ''
+  )
+  const envRaw = String(config.paytechEnv || process.env.NUXT_PAYTECH_ENV || process.env.PAYTECH_ENV || 'test')
+  const env = envRaw === 'prod' ? 'prod' : 'test'
+  const siteUrl = String(
+    config.public?.siteUrl || process.env.NUXT_PUBLIC_SITE_URL || process.env.SITE_URL || ''
+  ).replace(/\/+$/, '')
+  return { apiKey, apiSecret, env, siteUrl }
 }
 
 export function isPaytechConfigured(): boolean {
