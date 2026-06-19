@@ -6,10 +6,10 @@ import type { CandidatureStatus } from '../utils/candidature-types'
 import { saveCandidatureIdentityImages } from '../utils/candidature-files'
 import { createNotification } from '../utils/notifications'
 
-const imageDataUrl = z
+const documentDataUrl = z
   .string()
   .min(80)
-  .regex(/^data:image\/(jpeg|jpg|png|webp);base64,/i)
+  .regex(/^data:(image\/(jpeg|jpg|png|webp)|application\/pdf);base64,/i)
 
 const candidatureSchema = z.object({
   programmeId: z.string().min(1),
@@ -26,8 +26,8 @@ const candidatureSchema = z.object({
   lastDiploma: z.string().min(2).max(200).trim(),
   graduationDate: z.string().max(40).optional().default(''),
   gpa: z.string().min(1).max(30).trim(),
-  identityCardRecto: imageDataUrl,
-  identityCardVerso: imageDataUrl
+  identityCardRecto: documentDataUrl,
+  identityCardVerso: documentDataUrl
 })
 
 export default defineEventHandler(async (event) => {

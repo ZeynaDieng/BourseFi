@@ -4,22 +4,28 @@ import { join } from 'node:path'
 const MAX_BYTES = 5 * 1024 * 1024
 
 /**
- * Décoder une data URL image (JPEG / PNG / WebP), vérifier la taille.
+ * Décoder une data URL (image JPEG / PNG / WebP ou PDF), vérifier la taille.
  * Les fichiers sont stockés sous `public/uploads/candidatures/{id}/` (persistant en Node local).
  */
-export function parseImageDataUrl(dataUrl: string): { buffer: Buffer; ext: string } {
-  const m = dataUrl.match(/^data:image\/(jpeg|jpg|png|webp);base64,(.+)$/i)
+export function parseDocumentDataUrl(dataUrl: string): { buffer: Buffer; ext: string } {
+  const m = dataUrl.match(/^data:(image\/(?:jpeg|jpg|png|webp)|application\/pdf);base64,(.+)$/i)
   if (!m) {
-    throw new Error('Format d image non supporte (JPEG, PNG ou WebP uniquement).')
+    throw new Error('Format non supporte (JPEG, PNG, WebP ou PDF uniquement).')
   }
-  const extRaw = m[1].toLowerCase()
-  const ext = extRaw === 'jpeg' || extRaw === 'jpg' ? 'jpg' : extRaw
+  const mime = m[1].toLowerCase()
+  let ext: string
+  if (mime === 'application/pdf') {
+    ext = 'pdf'
+  } else {
+    const sub = mime.split('/')[1]
+    ext = sub === 'jpeg' || sub === 'jpg' ? 'jpg' : sub
+  }
   const buf = Buffer.from(m[2], 'base64')
   if (buf.length > MAX_BYTES) {
-    throw new Error('Chaque photo doit faire au plus 5 Mo.')
+    throw new Error('Chaque fichier doit faire au plus 5 Mo.')
   }
   if (buf.length < 80) {
-    throw new Error('Image invalide ou trop petite.')
+    throw new Error('Fichier invalide ou trop petit.')
   }
   return { buffer: buf, ext }
 }
@@ -29,8 +35,8 @@ export async function saveCandidatureIdentityImages(
   rectoDataUrl: string,
   versoDataUrl: string
 ): Promise<{ identityCardRectoUrl: string; identityCardVersoUrl: string }> {
-  const r = parseImageDataUrl(rectoDataUrl)
-  const v = parseImageDataUrl(versoDataUrl)
+  const r = parseDocumentDataUrl(rectoDataUrl)
+  const v = parseDocumentDataUrl(versoDataUrl)
   const dir = join(process.cwd(), 'public', 'uploads', 'candidatures', candidatureId)
   await mkdir(dir, { recursive: true })
   const rectoName = `recto.${r.ext}`
