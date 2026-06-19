@@ -81,8 +81,6 @@ const verifyTimedOut = ref(false)
 const cancelled = ref(false)
 const isEmbedded = ref(false)
 const showPaytechModal = ref(false)
-const paytechUrl = ref('')
-const modalOpenedAt = ref(0)
 
 // Écran de vérification affiché au retour de PayTech (success_url), le temps que l'IPN confirme.
 const pendingSuccess = computed(() => returnStatus.value === 'success' && !isPaid.value)
@@ -91,24 +89,8 @@ const canPay = computed(
   () => !!dossier.value && dossier.value.status === 'EN_ATTENTE_PAIEMENT',
 )
 
-function openPaytechModal(url: string) {
-  paytechUrl.value = url
-  showPaytechModal.value = true
-  modalOpenedAt.value = Date.now()
-  if (typeof document !== 'undefined') document.body.style.overflow = 'hidden'
-  pollStatus()
-}
-
-// Évite le "ghost click" mobile : un clic synthétique post-ouverture
-// retombe sur le fond du modal et le fermerait immédiatement.
-function onBackdropClick() {
-  if (Date.now() - modalOpenedAt.value < 600) return
-  cancelVerifying()
-}
-
 function closePaytechModal() {
   showPaytechModal.value = false
-  paytechUrl.value = ''
   if (typeof document !== 'undefined') document.body.style.overflow = ''
 }
 
@@ -129,12 +111,15 @@ async function submitPayment() {
       return
     }
     if (res.redirectUrl.startsWith('http')) {
-      // PayTech : ouverture dans une popup (iframe) intégrée à la page.
-      openPaytechModal(res.redirectUrl)
-    } else {
-      // Repli dev (URL interne) : le paiement est déjà validé côté serveur.
-      pollStatus()
+      // Redirection pleine page vers PayTech : approche standard et fiable,
+      // indispensable pour Wave / Orange Money mobile (redirections vers les apps,
+      // deep links) qui ne fonctionnent pas dans une iframe. PayTech ramène
+      // l'utilisateur sur success_url / cancel_url, puis le polling confirme.
+      window.location.href = res.redirectUrl
+      return
     }
+    // Repli dev (URL interne) : le paiement est déjà validé côté serveur.
+    pollStatus()
   } catch {
     paymentError.value = 'Impossible d’initier le paiement. Réessayez dans un instant.'
     isPaying.value = false
@@ -392,30 +377,7 @@ useSeoMeta({ title: 'Paiement — BourseFi' })
       </button>
     </div>
 
-    <!-- Popup PayTech intégrée (iframe), sans quitter la page -->
-    <div
-      v-if="showPaytechModal"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm sm:p-4"
-      @click.self="onBackdropClick"
-    >
-      <div class="relative h-full w-full max-w-md overflow-hidden bg-white shadow-2xl sm:h-[760px] sm:max-h-[92vh] sm:rounded-2xl">
-        <button
-          class="absolute right-2 top-2 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur transition hover:bg-black/60"
-          aria-label="Fermer"
-          @click="cancelVerifying"
-        >
-          <span class="material-symbols-outlined text-[20px]">close</span>
-        </button>
-        <iframe
-          :src="paytechUrl"
-          title="Paiement PayTech"
-          class="h-full w-full border-0"
-          allow="payment *; clipboard-write"
-        ></iframe>
-      </div>
-    </div>
-
-    <!-- Overlay : vérification (repli sans iframe / attente IPN) -->
+    <!-- Overlay : vérification (redirection PayTech / attente IPN) -->
     <div
       v-if="verifying && !showPaytechModal && !pendingSuccess && !isPaid"
       class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm"
