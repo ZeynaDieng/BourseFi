@@ -52,7 +52,9 @@ onMounted(() => {
   })
 })
 
-const documents = computed(() => buildStudentDocuments(candidatures.value, paiements.value))
+const documents = computed(() =>
+  buildStudentDocuments(candidatures.value, paiements.value, me.value?.user),
+)
 
 const stats = computed(() => [
   { label: 'Candidatures', value: candidatures.value?.length ?? 0 },

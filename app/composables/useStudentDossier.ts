@@ -5,6 +5,11 @@ export type StudentDocument = {
   group: 'attestation' | 'identity' | 'receipt'
 }
 
+type AccountIdentity = {
+  identityCardRectoUrl?: string | null
+  identityCardVersoUrl?: string | null
+}
+
 export function buildStudentDocuments(
   candidatures: Array<{
     id: string
@@ -14,8 +19,42 @@ export function buildStudentDocuments(
     identityCardVersoUrl?: string | null
   }> | null | undefined,
   paiements: Array<{ id: string; amount: number; currency: string; receiptUrl?: string | null }> | null | undefined,
+  account?: AccountIdentity | null,
 ): StudentDocument[] {
   const list: StudentDocument[] = []
+  const seenRecto = new Set<string>()
+  const seenVerso = new Set<string>()
+
+  function pushIdentity(
+    recto: string | null | undefined,
+    verso: string | null | undefined,
+    idPrefix: string,
+  ) {
+    if (recto && !seenRecto.has(recto)) {
+      seenRecto.add(recto)
+      list.push({
+        id: `recto-${idPrefix}`,
+        label: 'CNI recto',
+        url: recto,
+        group: 'identity',
+      })
+    }
+    if (verso && !seenVerso.has(verso)) {
+      seenVerso.add(verso)
+      list.push({
+        id: `verso-${idPrefix}`,
+        label: 'CNI verso',
+        url: verso,
+        group: 'identity',
+      })
+    }
+  }
+
+  // Pièce d'identité enregistrée une fois sur le compte (réutilisée pour toutes les candidatures)
+  if (account) {
+    pushIdentity(account.identityCardRectoUrl, account.identityCardVersoUrl, 'compte')
+  }
+
   for (const c of candidatures || []) {
     if (c.documentUrl) {
       list.push({
@@ -25,23 +64,10 @@ export function buildStudentDocuments(
         group: 'attestation',
       })
     }
-    if (c.identityCardRectoUrl) {
-      list.push({
-        id: `recto-${c.id}`,
-        label: 'CNI recto',
-        url: c.identityCardRectoUrl,
-        group: 'identity',
-      })
-    }
-    if (c.identityCardVersoUrl) {
-      list.push({
-        id: `verso-${c.id}`,
-        label: 'CNI verso',
-        url: c.identityCardVersoUrl,
-        group: 'identity',
-      })
-    }
+    // Anciennes candidatures sans compte unifié : dédoublonnage par URL
+    pushIdentity(c.identityCardRectoUrl, c.identityCardVersoUrl, c.id)
   }
+
   for (const p of paiements || []) {
     list.push({
       id: `pay-${p.id}`,

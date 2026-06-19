@@ -3,10 +3,13 @@ import { buildStudentDocuments, groupStudentDocuments } from '~/composables/useS
 
 definePageMeta({ layout: 'student-app', middleware: 'student-auth' })
 
+const { data: me } = await useFetch('/api/auth/me')
 const { data: candidatures } = await useFetch('/api/candidatures')
 const { data: paiements } = await useFetch('/api/paiements')
 
-const documents = computed(() => buildStudentDocuments(candidatures.value, paiements.value))
+const documents = computed(() =>
+  buildStudentDocuments(candidatures.value, paiements.value, me.value?.user),
+)
 const groups = computed(() => groupStudentDocuments(documents.value))
 
 const sections = computed(() => [
