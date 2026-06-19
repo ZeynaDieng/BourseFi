@@ -51,6 +51,7 @@ export default defineEventHandler(async (event) => {
 
 function formatCandidature(raw: {
   id: string
+  userId: string
   firstName: string
   lastName: string
   fullName: string
@@ -85,6 +86,7 @@ function formatCandidature(raw: {
 }) {
   return {
     id: raw.id,
+    userId: raw.userId,
     firstName: raw.firstName,
     lastName: raw.lastName,
     fullName: raw.fullName,
