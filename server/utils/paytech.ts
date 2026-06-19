@@ -11,16 +11,18 @@ export type PaytechConfig = {
 
 export function getPaytechConfig(): PaytechConfig {
   const config = useRuntimeConfig()
-  // Priorité au runtimeConfig (override via NUXT_*), puis repli sur process.env
-  // pour tolérer le nommage sans préfixe (PAYTECH_API_KEY) chargé via .env.
-  const apiKey = String(config.paytechApiKey || process.env.NUXT_PAYTECH_API_KEY || process.env.PAYTECH_API_KEY || '')
+  // Priorité aux variables d'environnement runtime (process.env) car les valeurs
+  // du runtimeConfig peuvent être figées au build (ex. paytechEnv='test' par défaut,
+  // ce qui masquerait un PAYTECH_ENV='prod' fourni au runtime). On retombe ensuite
+  // sur le runtimeConfig (override NUXT_*), puis sur une valeur par défaut.
+  const apiKey = String(process.env.NUXT_PAYTECH_API_KEY || process.env.PAYTECH_API_KEY || config.paytechApiKey || '')
   const apiSecret = String(
-    config.paytechApiSecret || process.env.NUXT_PAYTECH_API_SECRET || process.env.PAYTECH_API_SECRET || ''
+    process.env.NUXT_PAYTECH_API_SECRET || process.env.PAYTECH_API_SECRET || config.paytechApiSecret || ''
   )
-  const envRaw = String(config.paytechEnv || process.env.NUXT_PAYTECH_ENV || process.env.PAYTECH_ENV || 'test')
+  const envRaw = String(process.env.NUXT_PAYTECH_ENV || process.env.PAYTECH_ENV || config.paytechEnv || 'test')
   const env = envRaw === 'prod' ? 'prod' : 'test'
   const siteUrl = String(
-    config.public?.siteUrl || process.env.NUXT_PUBLIC_SITE_URL || process.env.SITE_URL || ''
+    process.env.NUXT_PUBLIC_SITE_URL || process.env.SITE_URL || config.public?.siteUrl || ''
   ).replace(/\/+$/, '')
   return { apiKey, apiSecret, env, siteUrl }
 }
