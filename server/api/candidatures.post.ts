@@ -5,6 +5,7 @@ import { writeAuditLog } from '../utils/audit'
 import type { CandidatureStatus } from '../utils/candidature-types'
 import { saveCandidatureIdentityImages } from '../utils/candidature-files'
 import { createNotification } from '../utils/notifications'
+import { sendEmail, renderEmail } from '../utils/email'
 
 const documentDataUrl = z
   .string()
@@ -134,6 +135,25 @@ export default defineEventHandler(async (event) => {
     body: `Votre demande de bourse pour ${programme.titre} a été enregistrée.`,
     candidatureId: candidature.id,
     bourseId: bourseId ?? undefined,
+  })
+
+  const siteUrl = String(process.env.NUXT_PUBLIC_SITE_URL || 'https://boursefi.sn').replace(/\/+$/, '')
+  const needsPayment = initialStatus === 'EN_ATTENTE_PAIEMENT'
+  await sendEmail({
+    to: { email: parsed.data.email, name: fullName },
+    subject: 'Votre candidature a bien été reçue — BourseFi',
+    html: renderEmail({
+      title: 'Candidature enregistrée',
+      bodyHtml: `<p>Bonjour ${parsed.data.firstName},</p>
+        <p>Votre demande de bourse pour <strong>${programme.titre}</strong> a bien été enregistrée.</p>
+        ${
+          needsPayment
+            ? `<p>Pour finaliser votre dossier, il reste à régler les frais de dossier (${programme.fraisDossier.toLocaleString('fr-FR')} ${programme.devise}) depuis votre espace.</p>`
+            : `<p>Votre dossier est transmis pour analyse. Vous serez notifié dès qu'il y a du nouveau.</p>`
+        }`,
+      ctaLabel: needsPayment ? 'Régler les frais de dossier' : 'Suivre ma candidature',
+      ctaUrl: needsPayment ? `${siteUrl}/paiement?candidatureId=${candidature.id}` : `${siteUrl}/etudiant/candidatures`
+    })
   })
 
   await writeAuditLog({

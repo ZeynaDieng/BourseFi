@@ -30,6 +30,22 @@ export function parseDocumentDataUrl(dataUrl: string): { buffer: Buffer; ext: st
   return { buffer: buf, ext }
 }
 
+/**
+ * Enregistre le fichier d'attestation envoyé par l'admin (data URL image ou PDF)
+ * sous public/uploads/candidatures/{id}/attestation.{ext} et renvoie son URL publique.
+ */
+export async function saveCandidatureAttestation(
+  candidatureId: string,
+  dataUrl: string
+): Promise<{ documentUrl: string }> {
+  const f = parseDocumentDataUrl(dataUrl)
+  const dir = join(process.cwd(), 'public', 'uploads', 'candidatures', candidatureId)
+  await mkdir(dir, { recursive: true })
+  const name = `attestation.${f.ext}`
+  await writeFile(join(dir, name), f.buffer)
+  return { documentUrl: `/uploads/candidatures/${candidatureId}/${name}` }
+}
+
 export async function saveCandidatureIdentityImages(
   candidatureId: string,
   rectoDataUrl: string,

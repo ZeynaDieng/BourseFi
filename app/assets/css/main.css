@@ -2,8 +2,29 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+html,
+body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
 body {
   @apply bg-slate-50 text-slate-900 antialiased;
+}
+
+/* Évite le zoom automatique d'iOS au focus des champs (déclenché quand la
+   taille de police est < 16px). On force 16px sur mobile pour stabiliser. */
+@media (max-width: 640px) {
+  input:not([type='checkbox']):not([type='radio']),
+  select,
+  textarea {
+    font-size: 16px;
+  }
 }
 
 .material-symbols-outlined {

@@ -47,23 +47,36 @@ const statusFilters = [
   { value: 'DOCUMENT_EMIS', label: 'Document émis' },
 ]
 
-const drafts = reactive<Record<string, { status: string; documentUrl: string }>>({})
+const drafts = reactive<Record<string, { status: string; documentDataUrl: string }>>({})
 
 function draftFor(d: Dossier) {
   if (!drafts[d.id]) {
-    drafts[d.id] = { status: d.status, documentUrl: d.documentUrl || '' }
+    drafts[d.id] = { status: d.status, documentDataUrl: '' }
   }
   return drafts[d.id]
 }
 
+const saving = reactive<Record<string, boolean>>({})
+
 async function savePatch(id: string) {
   const d = drafts[id]
   if (!d) return
-  await $fetch(`/api/candidatures/${id}`, {
-    method: 'PATCH',
-    body: { status: d.status, documentUrl: d.documentUrl || undefined },
-  })
-  await refresh()
+  saving[id] = true
+  try {
+    await $fetch(`/api/candidatures/${id}`, {
+      method: 'PATCH',
+      body: { status: d.status, documentDataUrl: d.documentDataUrl || undefined },
+    })
+    d.documentDataUrl = ''
+    await refresh()
+  } finally {
+    saving[id] = false
+  }
+}
+
+const previewDoc = ref<{ url: string; label: string } | null>(null)
+function openPreview(payload: { url: string; label: string }) {
+  previewDoc.value = payload
 }
 </script>
 
@@ -104,23 +117,31 @@ async function savePatch(id: string) {
             <p class="mt-1 text-sm text-slate-600">{{ d.programmeTitre }} · {{ d.partnerName }}</p>
             <ApplicationStatusBadge :status="d.status" class="mt-2" />
           </div>
-          <div class="flex flex-wrap gap-2 text-xs">
-            <a
+          <div class="flex flex-wrap gap-2">
+            <AdminDocumentThumb
               v-if="d.identityCardRectoUrl"
-              :href="d.identityCardRectoUrl"
-              target="_blank"
-              class="rounded-lg border border-primary px-3 py-2 font-semibold text-primary"
-            >
-              CNI recto
-            </a>
-            <a
+              :url="d.identityCardRectoUrl"
+              label="CNI recto"
+              @open="openPreview"
+            />
+            <AdminDocumentThumb
               v-if="d.identityCardVersoUrl"
-              :href="d.identityCardVersoUrl"
-              target="_blank"
-              class="rounded-lg border border-primary px-3 py-2 font-semibold text-primary"
+              :url="d.identityCardVersoUrl"
+              label="CNI verso"
+              @open="openPreview"
+            />
+            <AdminDocumentThumb
+              v-if="d.documentUrl"
+              :url="d.documentUrl"
+              label="Attestation"
+              @open="openPreview"
+            />
+            <span
+              v-if="!d.identityCardRectoUrl && !d.identityCardVersoUrl && !d.documentUrl"
+              class="text-xs text-slate-400"
             >
-              CNI verso
-            </a>
+              Aucun document
+            </span>
           </div>
           <div class="space-y-2">
             <label class="text-xs font-semibold text-slate-500">Statut</label>
@@ -129,16 +150,11 @@ async function savePatch(id: string) {
             </select>
           </div>
           <div class="space-y-2">
-            <label class="text-xs font-semibold text-slate-500">URL attestation</label>
-            <input
-              v-model="draftFor(d).documentUrl"
-              type="url"
-              placeholder="https://.../attestation.pdf"
-              class="admin-input w-full"
-            />
+            <label class="text-xs font-semibold text-slate-500">Attestation — importer un fichier (PDF ou image)</label>
+            <CandidatureDocumentDropzone v-model="draftFor(d).documentDataUrl" label="Attestation" />
           </div>
-          <button type="button" class="admin-btn-primary w-full" @click="savePatch(d.id)">
-            Enregistrer
+          <button type="button" class="admin-btn-primary w-full" :disabled="saving[d.id]" @click="savePatch(d.id)">
+            {{ saving[d.id] ? 'Enregistrement…' : 'Enregistrer' }}
           </button>
         </article>
         <p v-if="!filtered.length" class="text-sm text-slate-500">Aucun dossier.</p>
@@ -172,23 +188,36 @@ async function savePatch(id: string) {
                 </select>
               </td>
               <td class="admin-td">
-                <div class="flex flex-col gap-1 text-xs">
-                  <a v-if="d.identityCardRectoUrl" :href="d.identityCardRectoUrl" target="_blank" class="text-primary underline">Recto</a>
-                  <a v-if="d.identityCardVersoUrl" :href="d.identityCardVersoUrl" target="_blank" class="text-primary underline">Verso</a>
-                  <span v-if="!d.identityCardRectoUrl && !d.identityCardVersoUrl">—</span>
+                <div class="flex flex-col gap-1.5">
+                  <AdminDocumentThumb
+                    v-if="d.identityCardRectoUrl"
+                    :url="d.identityCardRectoUrl"
+                    label="Recto"
+                    @open="openPreview"
+                  />
+                  <AdminDocumentThumb
+                    v-if="d.identityCardVersoUrl"
+                    :url="d.identityCardVersoUrl"
+                    label="Verso"
+                    @open="openPreview"
+                  />
+                  <span v-if="!d.identityCardRectoUrl && !d.identityCardVersoUrl" class="text-xs text-slate-400">—</span>
                 </div>
               </td>
               <td class="admin-td">
-                <input
-                  v-model="draftFor(d).documentUrl"
-                  type="url"
-                  placeholder="https://.../attestation.pdf"
-                  class="admin-input min-w-[200px] text-xs"
-                />
+                <div class="min-w-[220px] space-y-2">
+                  <AdminDocumentThumb
+                    v-if="d.documentUrl"
+                    :url="d.documentUrl"
+                    label="Attestation actuelle"
+                    @open="openPreview"
+                  />
+                  <CandidatureDocumentDropzone v-model="draftFor(d).documentDataUrl" label="Importer" />
+                </div>
               </td>
               <td class="admin-td">
-                <button type="button" class="admin-btn-primary text-xs" @click="savePatch(d.id)">
-                  Enregistrer
+                <button type="button" class="admin-btn-primary text-xs" :disabled="saving[d.id]" @click="savePatch(d.id)">
+                  {{ saving[d.id] ? '…' : 'Enregistrer' }}
                 </button>
               </td>
             </tr>
@@ -197,5 +226,7 @@ async function savePatch(id: string) {
         <p v-if="!filtered.length" class="p-6 text-sm text-slate-500">Aucun dossier.</p>
       </section>
     </main>
+
+    <AdminDocumentPreviewModal :doc="previewDoc" @close="previewDoc = null" />
   </div>
 </template>
