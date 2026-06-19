@@ -77,6 +77,11 @@ export default defineEventHandler(async (event) => {
     data.status = nextStatus
   }
 
+  // Attestation déposée → le dossier passe automatiquement à « document émis »
+  if (attestationJustEmitted && data.status !== 'REFUSE' && data.status !== 'TERMINE') {
+    data.status = 'DOCUMENT_EMIS'
+  }
+
   if (data.status === 'DOCUMENT_EMIS') {
     const hasDoc = data.documentUrl !== undefined ? Boolean(data.documentUrl) : Boolean(dossier.documentUrl)
     if (!hasDoc) {
@@ -97,6 +102,8 @@ export default defineEventHandler(async (event) => {
 
   if (nextStatus && nextStatus !== dossier.status) {
     await notifyStatusChange(dossier.userId, nextStatus, id)
+  } else if (data.status === 'DOCUMENT_EMIS' && dossier.status !== 'DOCUMENT_EMIS') {
+    await notifyStatusChange(dossier.userId, 'DOCUMENT_EMIS', id)
   }
 
   // Email au candidat dès qu'une attestation est mise à disposition (sans attendre le bailleur).

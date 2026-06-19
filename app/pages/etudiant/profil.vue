@@ -17,9 +17,15 @@ const firstName = computed(() => me.value?.user?.name?.split(/\s+/)[0] || 'Étud
 const dossier = computed(() => computeDossierProgress(candidatures.value))
 
 const latest = computed(() => candidatures.value?.[0] ?? null)
-const timeline = computed(() => buildCandidatureTimeline(latest.value?.status))
-const responseHint = computed(() => estimatedResponse(latest.value?.status))
-const statusInfo = computed(() => candidatureBadge(latest.value?.status ?? ''))
+const timeline = computed(() =>
+  buildCandidatureTimeline(latest.value?.status, Boolean(latest.value?.documentUrl)),
+)
+const statusInfo = computed(() =>
+  candidatureBadge(latest.value?.status ?? '', Boolean(latest.value?.documentUrl)),
+)
+const responseHint = computed(() =>
+  estimatedResponse(latest.value?.status, Boolean(latest.value?.documentUrl)),
+)
 const reference = computed(() => latest.value?.id?.slice(0, 8).toUpperCase() ?? '')
 const nextStep = computed(
   () => timeline.value.find((s) => s.state === 'active')?.label ?? 'Dossier finalisé',

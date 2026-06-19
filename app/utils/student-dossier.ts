@@ -48,7 +48,12 @@ export function computeDossierProgress(
     missingCount += 1
   }
 
-  const statusPercent = STATUS_PERCENT[latest.status] ?? 40
+  let statusForProgress = latest.status
+  if (latest.status === 'ACCEPTE' && latest.documentUrl) {
+    statusForProgress = 'DOCUMENT_EMIS'
+  }
+
+  const statusPercent = STATUS_PERCENT[statusForProgress] ?? 40
   const docsPercent =
     (latest.identityCardRectoUrl ? 8 : 0) +
     (latest.identityCardVersoUrl ? 8 : 0) +
@@ -62,7 +67,7 @@ export function computeDossierProgress(
       ? `Dossier à ${percent} % — pièces manquantes : ${missingCount}`
       : `Dossier à ${percent} % — complet pour l’étape en cours`
 
-  const notification = notificationForStatus(latest.status)
+  const notification = notificationForStatus(statusForProgress)
 
   return { percent, missingCount, missingHint, notification }
 }
@@ -86,10 +91,12 @@ function notificationForStatus(status: string): string | null {
   }
 }
 
-export function candidatureBadge(status: string): {
+export function candidatureBadge(status: string, hasDocument = false): {
   label: string
   className: string
 } {
+  const effective =
+    status === 'ACCEPTE' && hasDocument ? 'DOCUMENT_EMIS' : status
   const map: Record<string, { label: string; className: string }> = {
     BROUILLON: { label: 'Brouillon', className: 'bg-slate-100 text-slate-700' },
     SOUMIS: { label: 'Déposé', className: 'bg-sky-50 text-sky-800' },
@@ -101,7 +108,7 @@ export function candidatureBadge(status: string): {
     DOCUMENT_EMIS: { label: 'Attestation dispo', className: 'bg-emerald-50 text-emerald-800' },
     TERMINE: { label: 'Terminé', className: 'bg-slate-100 text-slate-700' },
   }
-  return map[status] ?? { label: 'En cours', className: 'bg-amber-50 text-amber-900' }
+  return map[effective] ?? { label: 'En cours', className: 'bg-amber-50 text-amber-900' }
 }
 
 export type TimelineState = 'done' | 'active' | 'todo'
@@ -126,7 +133,7 @@ const STATUS_STAGE: Record<string, number> = {
   EN_ATTENTE_PAIEMENT: 1,
   EN_REVUE_PARTENAIRE: 2,
   COMPLEMENT_DEMANDE: 2,
-  ACCEPTE: 3,
+  ACCEPTE: 4,
   REFUSE: 3,
   DOCUMENT_EMIS: 5,
   TERMINE: 5,
@@ -134,15 +141,27 @@ const STATUS_STAGE: Record<string, number> = {
 
 export function buildCandidatureTimeline(
   status: string | null | undefined,
+  hasDocument = false,
 ): CandidatureTimelineStep[] {
-  const stage = STATUS_STAGE[status ?? ''] ?? 0
+  let effectiveStatus = status ?? ''
+  // Dossier accepté + attestation déjà déposée → étape finale atteinte
+  if (effectiveStatus === 'ACCEPTE' && hasDocument) {
+    effectiveStatus = 'DOCUMENT_EMIS'
+  }
+  const stage = STATUS_STAGE[effectiveStatus] ?? 0
   return TIMELINE_LABELS.map((step, index) => ({
     ...step,
     state: index < stage ? 'done' : index === stage ? 'active' : 'todo',
   }))
 }
 
-export function estimatedResponse(status: string | null | undefined): string | null {
+export function estimatedResponse(
+  status: string | null | undefined,
+  hasDocument = false,
+): string | null {
+  if (status === 'ACCEPTE' && hasDocument) {
+    return 'Dossier finalisé'
+  }
   switch (status) {
     case 'EN_ATTENTE_PAIEMENT':
       return 'En attente de votre paiement'
