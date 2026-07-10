@@ -26,7 +26,7 @@ type BourseRow = {
     brochureUrl: string | null
     perspectives: string | null
     fraisDossier: number
-    fraisScolarite: number
+    fraisDossierEtranger: number
     devise: string
     etablissement: { slug: string; nom: string }
   }
@@ -35,7 +35,7 @@ type BourseRow = {
 
 export function serializeBourse(b: BourseRow) {
   const economy = computeScholarshipEconomy(
-    b.programme.fraisScolarite,
+    b.programme.fraisDossier,
     b.coveragePercent,
     b.montantMax,
     b.programme.devise,
@@ -66,11 +66,10 @@ export function serializeBourse(b: BourseRow) {
     montantMax: b.montantMax,
     montantBourse: economy.montantBourse,
     resteACharge: economy.resteACharge,
-    fraisScolarite: b.programme.fraisScolarite,
     fraisDossier: b.programme.fraisDossier,
+    fraisDossierEtranger: b.programme.fraisDossierEtranger,
     devise: b.programme.devise,
     quota: b.quota,
-    placesRestantes: b.placesRestantes,
     dateLimite: b.dateLimite.toISOString(),
     conditions: b.conditions,
     documentsRequis: b.documentsRequis,

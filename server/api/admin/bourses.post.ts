@@ -22,7 +22,6 @@ export default defineEventHandler(async (event) => {
     coveragePercent?: number
     montantMax?: number | null
     quota?: number
-    placesRestantes?: number
     dateLimite?: string
     conditions?: string | null
     documentsRequis?: string | null
@@ -72,10 +71,6 @@ export default defineEventHandler(async (event) => {
   }
 
   const quota = Math.max(0, Math.round(Number(body.quota ?? 0)))
-  const placesRestantes = Math.max(
-    0,
-    Math.round(Number(body.placesRestantes ?? quota)),
-  )
 
   const row = await prisma.bourse.create({
     data: {
@@ -89,7 +84,6 @@ export default defineEventHandler(async (event) => {
           ? Math.round(body.montantMax)
           : null,
       quota,
-      placesRestantes,
       dateLimite,
       conditions: body.conditions?.trim() || null,
       documentsRequis: body.documentsRequis?.trim() || null,

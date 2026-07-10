@@ -44,7 +44,6 @@ function formatDate(iso: string) {
               <p class="text-sm text-slate-500">{{ b.etablissement }} · {{ b.programmeTitre }}</p>
             </div>
             <div class="text-right text-sm">
-              <p class="font-semibold text-primary">{{ b.placesRestantes }} places</p>
               <p class="text-slate-500">Limite {{ formatDate(b.dateLimite) }}</p>
               <p class="text-slate-400">{{ b.candidaturesCount }} candidature(s)</p>
             </div>

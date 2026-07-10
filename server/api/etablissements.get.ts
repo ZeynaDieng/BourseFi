@@ -7,8 +7,8 @@ export default defineEventHandler(async () => {
         select: {
           slug: true,
           titre: true,
-          fraisScolarite: true,
           fraisDossier: true,
+          fraisDossierEtranger: true,
           devise: true,
           duree: true,
           niveau: true,
@@ -58,8 +58,8 @@ export default defineEventHandler(async () => {
       programmes: e.programmes.map((p) => ({
         slug: p.slug,
         titre: p.titre,
-        frais: p.fraisScolarite,
         fraisDossier: p.fraisDossier,
+        fraisDossierEtranger: p.fraisDossierEtranger,
         devise: p.devise,
         duree: p.duree,
         niveau: p.niveau,

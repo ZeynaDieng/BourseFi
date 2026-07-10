@@ -12,7 +12,7 @@ function serialize<
     ville: string
     duree: string
     fraisDossier: number
-    fraisScolarite: number
+    fraisDossierEtranger: number
     devise: string
     niveau: string
     placement: string | null
@@ -34,9 +34,8 @@ function serialize<
     partnerSlug: p.partner.slug,
     ville: p.ville,
     duree: p.duree,
-    frais: p.fraisScolarite,
     fraisDossier: p.fraisDossier,
-    fraisScolarite: p.fraisScolarite,
+    fraisDossierEtranger: p.fraisDossierEtranger,
     devise: p.devise,
     niveau: p.niveau,
     placement: p.placement,

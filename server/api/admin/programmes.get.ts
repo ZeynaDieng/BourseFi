@@ -18,7 +18,7 @@ export default defineEventHandler(async (event) => {
     ville: p.ville,
     duree: p.duree,
     fraisDossier: p.fraisDossier,
-    fraisScolarite: p.fraisScolarite,
+    fraisDossierEtranger: p.fraisDossierEtranger,
     devise: p.devise,
     niveau: p.niveau,
     placement: p.placement,

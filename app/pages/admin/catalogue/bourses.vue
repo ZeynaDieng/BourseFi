@@ -12,7 +12,6 @@ type BourseRow = {
   coveragePercent: number
   montantMax: number | null
   quota: number
-  placesRestantes: number
   dateLimite: string
   conditions: string | null
   documentsRequis: string | null
@@ -40,7 +39,6 @@ const emptyForm = () => ({
   coveragePercent: 50,
   montantMax: null as number | null,
   quota: 20,
-  placesRestantes: 20,
   dateLimite: '2026-12-31',
   conditions: '',
   documentsRequis: '',
@@ -80,7 +78,6 @@ function openEdit(row: BourseRow) {
     coveragePercent: row.coveragePercent,
     montantMax: row.montantMax,
     quota: row.quota,
-    placesRestantes: row.placesRestantes,
     dateLimite: row.dateLimite.slice(0, 10),
     conditions: row.conditions ?? '',
     documentsRequis: row.documentsRequis ?? '',
@@ -150,7 +147,6 @@ async function remove(id: string) {
               <th class="admin-th">Programme</th>
               <th class="admin-th">Partenaire</th>
               <th class="admin-th">Couverture</th>
-              <th class="admin-th">Places</th>
               <th class="admin-th">Statut</th>
               <th class="admin-th text-right">Actions</th>
             </tr>
@@ -161,7 +157,6 @@ async function remove(id: string) {
               <td class="admin-td">{{ b.programmeTitre }}</td>
               <td class="admin-td">{{ b.partnerName }}</td>
               <td class="admin-td">{{ b.coveragePercent }} %</td>
-              <td class="admin-td">{{ b.placesRestantes }} / {{ b.quota }}</td>
               <td class="admin-td">
                 <button
                   type="button"
@@ -218,10 +213,6 @@ async function remove(id: string) {
             <label class="admin-label">
               Quota
               <input v-model.number="form.quota" type="number" min="0" class="admin-input" />
-            </label>
-            <label class="admin-label">
-              Places restantes
-              <input v-model.number="form.placesRestantes" type="number" min="0" class="admin-input" />
             </label>
           </div>
           <label class="admin-label">Date limite<input v-model="form.dateLimite" type="date" class="admin-input" /></label>

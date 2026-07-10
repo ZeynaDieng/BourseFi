@@ -20,7 +20,6 @@ export default defineEventHandler(async (event) => {
     coveragePercent?: number
     montantMax?: number | null
     quota?: number
-    placesRestantes?: number
     dateLimite?: string
     conditions?: string | null
     documentsRequis?: string | null
@@ -46,9 +45,6 @@ export default defineEventHandler(async (event) => {
         : null
   }
   if (body.quota !== undefined) data.quota = Math.max(0, Math.round(Number(body.quota)))
-  if (body.placesRestantes !== undefined) {
-    data.placesRestantes = Math.max(0, Math.round(Number(body.placesRestantes)))
-  }
   if (body.dateLimite) {
     const d = new Date(body.dateLimite)
     if (Number.isNaN(d.getTime())) {

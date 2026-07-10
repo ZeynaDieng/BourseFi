@@ -24,7 +24,7 @@ export default defineEventHandler(async (event) => {
     ville?: string
     duree?: string
     fraisDossier?: number
-    fraisScolarite?: number
+    fraisDossierEtranger?: number
     devise?: string
     niveau?: string
     placement?: string | null
@@ -54,16 +54,16 @@ export default defineEventHandler(async (event) => {
     if (!partner) throw createError({ statusCode: 400, statusMessage: 'Partenaire invalide.' })
   }
 
-  let fraisPatch: { fraisDossier?: number; fraisScolarite?: number } = {}
+  let fraisPatch: { fraisDossier?: number; fraisDossierEtranger?: number } = {}
   if (body.fraisDossier !== undefined) {
     const n = Number(body.fraisDossier)
     if (!Number.isFinite(n) || n < 0) throw createError({ statusCode: 400, statusMessage: 'Frais dossier invalides.' })
     fraisPatch.fraisDossier = Math.round(n)
   }
-  if (body.fraisScolarite !== undefined) {
-    const n = Number(body.fraisScolarite)
-    if (!Number.isFinite(n) || n < 0) throw createError({ statusCode: 400, statusMessage: 'Frais scolarité invalides.' })
-    fraisPatch.fraisScolarite = Math.round(n)
+  if (body.fraisDossierEtranger !== undefined) {
+    const n = Number(body.fraisDossierEtranger)
+    if (!Number.isFinite(n) || n < 0) throw createError({ statusCode: 400, statusMessage: 'Frais dossier étranger invalides.' })
+    fraisPatch.fraisDossierEtranger = Math.round(n)
   }
 
   const row = await prisma.programme.update({

@@ -15,7 +15,6 @@ type PartnerDetail = {
     slug: string
     titre: string
     coveragePercent: number
-    placesRestantes: number
     dateLimite: string
     etablissement: string
     programmeSlug: string
@@ -89,7 +88,6 @@ useSiteSeo({
             <p class="font-semibold text-primary">{{ b.titre }}</p>
             <p class="text-sm text-slate-500">{{ b.etablissement }} · {{ b.coveragePercent }} %</p>
           </div>
-          <span class="text-xs text-slate-400">{{ b.placesRestantes }} places</span>
         </NuxtLink>
       </div>
     </section>

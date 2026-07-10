@@ -22,11 +22,10 @@ export type BourseDto = {
   montantMax: number | null
   montantBourse: number
   resteACharge: number
-  fraisScolarite: number
   fraisDossier: number
+  fraisDossierEtranger: number
   devise: string
   quota: number
-  placesRestantes: number
   dateLimite: string
   conditions: string | null
   documentsRequis: string | null

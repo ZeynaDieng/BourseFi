@@ -5,22 +5,6 @@ import { hash } from 'bcryptjs'
 
 const prisma = new PrismaClient()
 
-/** Visuels écoles : Commons (UCAD, ESP Dakar) + Unsplash pour les autres démos. */
-const ETAB_IMG = {
-  ucadCover:
-    'https://upload.wikimedia.org/wikipedia/commons/e/ea/Biblioth%C3%A9que_universit%C3%A9_cheikh_anta_diop_de_dakar_2.JPG',
-  ucadLogo: 'https://upload.wikimedia.org/wikipedia/commons/c/c9/Logo_Universit%C3%A9_Cheikh-Anta-Diop.svg',
-  espCover: 'https://upload.wikimedia.org/wikipedia/commons/8/8d/ESPDakar.jpg',
-  ismCover:
-    'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&w=1200&q=80',
-  autoAcademieCover:
-    'https://images.unsplash.com/photo-1631543919368-c16e623648cc?auto=format&fit=crop&w=1200&q=80',
-  esgibCover:
-    'https://images.unsplash.com/photo-1582719471384-894fbb16e074?auto=format&fit=crop&w=1200&q=80',
-  esmtCover:
-    'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=1200&q=80'
-}
-
 async function upsertUser({ name, email, password, role, partnerId = null }) {
   const passwordHash = await hash(password, 10)
   return prisma.user.upsert({
@@ -88,463 +72,504 @@ async function seedCmsFromDisk() {
   }
 }
 
+// Données des 33 écoles réelles
+const ECOLES_DATA = [
+  {
+    slug: 'imtech-nelson-mandela',
+    nom: 'IMTECH — Institut de Management et de Technologie Nelson Mandela',
+    ville: 'Dakar',
+    adresse: 'Rond-point Castor x Avenue Bourguiba, Dakar',
+    site: 'imtech-nelsonmandela.com',
+    contact: '33 825 58 21',
+    typeLabel: 'Institut de Management et Technologie',
+    formations: [
+      { niveau: 'BTS/DT', filieres: ['Management', 'Génie Civil', 'Électromécanique', 'Informatique', 'Marketing', 'Logistique', 'Comptabilité'] },
+      { niveau: 'Licence', filieres: ['Management International', 'Banque-Assurance', 'Comptabilité-Contrôle-Audit (CCA)', 'Électronique-Électrotechnique-Automatique (EEA)', 'Marketing/Études'] },
+      { niveau: 'Master', filieres: ['Finance et Gestion d\'Entreprises', 'Technologies de l\'Information', 'Innovation et Responsabilité Sociétale (RSE)'] }
+    ]
+  },
+  {
+    slug: 'isdb-dakar',
+    nom: 'ISDB — Institut Supérieur Dakar Banlieue',
+    ville: 'Dakar',
+    adresse: 'Parcelles Assainies Unité 6 N°518, à côté du Lycée des Parcelles Assainies (LPA) et station Shell, Dakar',
+    site: 'isdb.sn',
+    contact: '77 544 52 41',
+    typeLabel: 'Institut Supérieur',
+    formations: [
+      { niveau: 'DT/DTS/BEP/BTS', filieres: ['Transit douane (2 ans)', 'Hôtellerie-restauration (2 ans)', 'Comptabilité gestion de caisse', 'Secrétariat bureautique informatique', 'Infographie'] },
+      { niveau: 'Licence Professionnelle', filieres: ['Droit des affaires', 'Transport Logistique', 'Gestion des entreprises', 'Marketing-Communication', 'Banque-Finance-Assurance', 'Hôtellerie-Tourisme', 'Comptabilité-Gestion', 'GRH', 'Journalisme-Communication', 'Informatique de gestion', 'Informatique réseaux'] },
+      { niveau: 'Master', filieres: ['Gestion de projets et Système d\'Information', 'Gestion et aménagement urbains', 'Marketing-Communication', 'Comptabilité-Contrôle-Audit', 'Gestion des services sanitaires et sociaux'] }
+    ]
+  },
+  {
+    slug: 'estg-dakar',
+    nom: 'ESTG — École Supérieure des Techniques de Gestion',
+    ville: 'Dakar',
+    adresse: 'Sicap/Liberté 4, Lot 5001, Dakar (côté camp des sapeurs-pompiers)',
+    site: 'estg.sn',
+    contact: null,
+    typeLabel: 'École Supérieure de Gestion',
+    formations: [
+      { niveau: 'BTS/Bachelor', filieres: ['Audit et Contrôle de Gestion', 'Communication et Publicité', 'Banque-Finance-Assurance'] },
+      { niveau: 'Licence Professionnelle', filieres: ['Gestion Financière et Comptable', 'Achats et Logistique', 'Transport Logistique', 'Communication et Publicité', 'Marketing Opérationnel et Action Commerciale', 'Assistanat de Gestion', 'Banque-Finance-Assurance', 'GRH', 'Commerce International'] },
+      { niveau: 'Master Professionnel', filieres: ['Marketing-Communication', 'Communication et Marketing Numérique', 'Gestion des Ressources Humaines', 'Gestion Financière et Comptable', 'Management et Stratégie d\'Entreprise', 'Qualité Hygiène Sécurité Environnement (QHSE)', 'Transport Logistique'] }
+    ]
+  },
+  {
+    slug: 'hecm-dakar',
+    nom: 'HECM — Espace HECM – Hautes Études de Coaching et de Management',
+    ville: 'Dakar',
+    adresse: 'Liberté 4, Allées Khalifa Ababacar Sy, villa 5015, Dakar (près du camp des sapeurs-pompiers)',
+    site: 'hecm-dakar.com',
+    contact: '33 843 55 39',
+    typeLabel: 'École de Coaching et Management',
+    formations: [
+      { niveau: 'BTS', filieres: ['Comptabilité et fiscalité', 'Marketing et Communication Digitale'] },
+      { niveau: 'Licence', filieres: ['Comptabilité et fiscalité', 'Finance-Banque-Assurances', 'Journalisme et information', 'Marketing et Communication Digitale', 'Ressources Humaines', 'Services de Transport/Logistique', 'Technologies de l\'Information et de la Communication (TIC)'] },
+      { niveau: 'Master', filieres: ['Gestion des Ressources Humaines', 'Marketing-Communication Digitale', 'Finance-Banque-Assurances', 'Transport-Logistique'] }
+    ]
+  },
+  {
+    slug: 'abs-school-dakar',
+    nom: 'ABS School — African Business School',
+    ville: 'Dakar',
+    adresse: 'Sicap Liberté 2, derrière le rond-point Jet d\'Eau, villa n°1589, Dakar',
+    site: 'abs-ao.com',
+    contact: '77 123 41 41',
+    typeLabel: 'Business School',
+    formations: [
+      { niveau: 'BTS', filieres: ['Filières homologuées par le ministère de la Formation professionnelle (transit-douane, gestion, etc.)'] },
+      { niveau: 'Licence', filieres: ['Banque-Assurance', 'Marketing-Communication', 'Commerce International', 'Droit et Contentieux des Affaires', 'Comptabilité-Gestion', 'Transport-Logistique'] },
+      { niveau: 'Master', filieres: ['Numérique', 'Finance', 'Commerce', 'Entrepreneuriat'] }
+    ]
+  },
+  {
+    slug: 'amdi-afrique',
+    nom: 'AMDI — African Millennium Development Institute (AMDI Afrique)',
+    ville: 'Dakar',
+    adresse: 'VDN, Liberté 6 Extension villa n°05, en face du cimetière Saint-Lazare de Béthanie, Dakar',
+    site: 'amdiafrique.com',
+    contact: '33 825 72 32',
+    typeLabel: 'Institut de Développement',
+    formations: [
+      { niveau: 'DT/Diplômes santé d\'État', filieres: ['Infirmier d\'État', 'Sage-femme d\'État', 'Vendeur en Pharmacie', 'Délégation Médicale', 'Secrétaire médicale'] },
+      { niveau: 'Licence', filieres: ['Agroalimentaire', 'Géologie-Mines-Pétrochimie', 'Géomatique-Terre-Environnement', 'Génie Électromécanique', 'Génie Électrotechnique-Électronique-Automatique', 'Génie Civil', 'Génie Informatique', 'Technologie des réseaux et télécommunications', 'Électromécanique', 'Économie et Gestion Quantitatives', 'Administration Droit et Fiscalité', 'Journalisme et Communication', 'Marketing Digital et Réseaux Sociaux', 'Transport-Logistique'] },
+      { niveau: 'Master', filieres: ['Catalyse en génie pétrochimie', 'Pétrochimie et procédés polymères', 'Automatisation en industries pétrochimiques', 'Analyses Biologiques', 'Banque Privée Internationale', 'Économie Maritime et Portuaire', 'Logistique et Transport International', 'Management de la Qualité', 'GRH', 'Management du Luxe', 'Marketing Digital et Médias Sociaux'] }
+    ]
+  },
+  {
+    slug: 'isbd-dakar',
+    nom: 'ISBD — International School of Business and Development',
+    ville: 'Dakar',
+    adresse: 'Mermoz, ancienne piste, Dakar',
+    site: 'isbd-school.com',
+    contact: null,
+    typeLabel: 'Business School',
+    formations: [
+      { niveau: 'Licence', filieres: ['Informatique de gestion', 'Marketing et Communication', 'Ressources Humaines', 'Transport Logistique'] },
+      { niveau: 'Master', filieres: ['Comptabilité financière et gestion budgétaire'] }
+    ]
+  },
+  {
+    slug: 'cefas-senegal',
+    nom: 'CEFAS — Centre de Formation Africain du Sénégal',
+    ville: 'Dakar',
+    adresse: 'Cité Keur Damel, en face de Yenguoulène, avant le rond-point 26 des Parcelles Assainies, Dakar',
+    site: 'cefas-senegal.com',
+    contact: '77 868 57 27',
+    typeLabel: 'Centre de Formation',
+    formations: [
+      { niveau: 'BT/BTS/DTS', filieres: ['Analyse Biologique (Santé)', 'Filières Techniques (électricité, mécanique, génie industriel)', 'Département Santé'] },
+      { niveau: 'Licence', filieres: ['Banque-Finance-Assurance', 'Commerce International', 'Comptabilité-Gestion', 'Gestion des entreprises', 'GRH', 'Marketing-Communication', 'Transport-Logistique', 'Journalisme et Communication', 'Génie Informatique', 'Informatique de Gestion'] },
+      { niveau: 'Master', filieres: ['Gestion des entreprises', 'Génie Informatique', 'Informatique de Gestion'] }
+    ]
+  },
+  {
+    slug: 'iat-dakar',
+    nom: 'IAT — Établissement à confirmer',
+    ville: 'Zac Mbao',
+    adresse: 'Zac Mbao, cité des impôts, Dakar',
+    site: null,
+    contact: null,
+    typeLabel: 'Établissement technique',
+    formations: []
+  },
+  {
+    slug: 'sup-immo-dakar',
+    nom: 'SUP\'IMMO — Sup\'Immo Dakar – École Supérieure de l\'Immobilier',
+    ville: 'Dakar',
+    adresse: 'Liberté 6 Extension, en face de la pharmacie Leclerc, Dakar',
+    site: 'groupesupimmo.com',
+    contact: '78 222 90 90',
+    typeLabel: 'École de l\'Immobilier',
+    formations: [
+      { niveau: 'Certificat', filieres: ['Certificat Professionnel de l\'Immobilier (CPI, 6 mois)'] },
+      { niveau: 'Diplôme d\'école', filieres: ['Diplôme d\'Agent Immobilier (DAI, 9 mois)', 'Diplôme Professionnel de l\'Immobilier (DPI)'] },
+      { niveau: 'Licence Professionnelle', filieres: ['Gestion immobilière', 'Droit immobilier et foncier', 'Bâtiment et Génie Civil', 'Fiscalité immobilière'] }
+    ]
+  },
+  {
+    slug: 'ipd-thomas-sankara',
+    nom: 'IPD Thomas Sankara — Institut Polytechnique de Dakar « Thomas Sankara »',
+    ville: 'Dakar',
+    adresse: 'N°8477, Sud Foire, Dakar (près du SAMU municipal)',
+    site: 'ipd.sn',
+    contact: '33 867 90 45',
+    typeLabel: 'Institut Polytechnique',
+    formations: [
+      { niveau: 'BTS/DTS', filieres: ['Informatique', 'Réseaux/TIC', 'Génie Civil', 'Comptabilité', 'Transport-Logistique'] },
+      { niveau: 'Licence', filieres: ['Informatique', 'Génie Logiciel', 'Réseaux/TIC', 'Électrotechnique', 'IA', 'Génie Civil', 'Comptabilité', 'RH', 'Marketing', 'Finance', 'QHSE', 'Commerce International', 'Gestion de projet', 'Audit', 'Transport', 'Transit', 'Commerce International'] },
+      { niveau: 'Master', filieres: ['Mêmes filières que la Licence, poursuivies en 2ᵉ cycle'] }
+    ]
+  },
+  {
+    slug: 'esup-dakar',
+    nom: 'ESUP Dakar — Groupe ESUP Dakar (Commerce et Gestion / Tech / Santé)',
+    ville: 'Dakar',
+    adresse: 'Sacré-Cœur III, villas N°9256/9255, VDN, Dakar',
+    site: 'esupdakar.sn',
+    contact: '33 867 07 90',
+    typeLabel: 'Groupe d\'enseignement supérieur',
+    formations: [
+      { niveau: 'BTS/DTS', filieres: ['Administration et Gestion des Entreprises', 'Informatique', 'Télécommunications', 'Réseaux et Sécurité informatique', 'Génie Électrique', 'Génie Industriel'] },
+      { niveau: 'Licence', filieres: ['Administration et Gestion des Entreprises', 'Communication d\'entreprise', 'Transport-Logistique', 'Banque-Assurance-Finance'] },
+      { niveau: 'Santé', filieres: ['Formations aux métiers paramédicaux'] }
+    ]
+  },
+  {
+    slug: 'ifaa-dakar',
+    nom: 'IFAA — Institut de Formation en Administration des Affaires',
+    ville: 'Dakar',
+    adresse: 'Cité SIPRES 2, face VDN, villa n°2, Dakar (annexe Parcelles Assainies)',
+    site: 'ifaa.sn',
+    contact: '33 867 36 35',
+    typeLabel: 'Institut de Formation',
+    formations: [
+      { niveau: 'BTS/DTS', filieres: ['Banque-Finance-Assurance', 'Comptabilité-Gestion', 'Marketing', 'Commerce International', 'Transport-Logistique'] },
+      { niveau: 'Bachelor/Licence', filieres: ['Ressources Humaines', 'Management', 'Agroalimentaire', 'Informatique de Gestion', 'Comptabilité-Gestion', 'Banque-Finance-Assurance'] },
+      { niveau: 'Master', filieres: ['Management', 'RH', 'Finance', 'Masters spécialisés santé'] }
+    ]
+  },
+  {
+    slug: 'ensup-afrique-dakar',
+    nom: 'ENSUP Afrique — Enseignement Supérieur de la Gestion, des Finances et de l\'Administration',
+    ville: 'Dakar',
+    adresse: 'Liberté 6 Extension, villa n°205, en face du Camp Leclerc, Dakar',
+    site: 'ensupafrique.com',
+    contact: null,
+    typeLabel: 'École Supérieure',
+    formations: [
+      { niveau: 'BTS', filieres: ['Comptabilité-Gestion', 'GRH', 'Marketing', 'Transport-Logistique'] },
+      { niveau: 'Licence', filieres: ['Comptabilité-Gestion', 'Communication-Journalisme', 'GRH', 'Gestion du Transport et de la Logistique', 'Banque-Finance-Assurance', 'Administration des biens et Gestion immobilière', 'Marketing', 'Gestion administrative et des collectivités'] },
+      { niveau: 'Master', filieres: ['Comptabilité-Gestion', 'Communication-Journalisme', 'Passation des marchés publics GRH', 'Transport-Logistique'] }
+    ]
+  },
+  {
+    slug: 'elite-sante',
+    nom: 'Élite Santé — Institut Élite Santé (IES)',
+    ville: 'Keur Massar',
+    adresse: 'Keur Massar (Aïnoumadi) ; campus à Pikine/Guédiawaye, Avenue Bourguiba, Thiès, Kaolack, Touba',
+    site: 'groupelitesante.com',
+    contact: null,
+    typeLabel: 'Institut de Santé',
+    formations: [
+      { niveau: 'Diplômes d\'État', filieres: ['Sage-femme d\'État', 'Infirmier d\'État', 'Assistant infirmier'] },
+      { niveau: 'Licence', filieres: ['Licence en Sciences infirmières', 'Licence en Sciences obstétricales', 'Licence en Biologie Médicale'] },
+      { niveau: 'Spécialisations', filieres: ['Infirmier de bloc opératoire', 'Délégué médical'] }
+    ]
+  },
+  {
+    slug: 'img-rufisque',
+    nom: 'IMG (Rufisque) — Institut de Management et de Gestion',
+    ville: 'Rufisque',
+    adresse: 'Rufisque, Cité Santé Yalla, près du rond-point Socabeg, Lot 9591',
+    site: 'groupe-img.com',
+    contact: '33 836 62 42',
+    typeLabel: 'Institut de Management',
+    formations: [
+      { niveau: 'DTS/BEP/DEP', filieres: ['Comptabilité de gestion', 'Transport logistique', 'Marketing et communication', 'Journalisme et Communication'] },
+      { niveau: 'Licence Professionnelle', filieres: ['Filières de gestion et management'] }
+    ]
+  },
+  {
+    slug: 'afpa-dakar',
+    nom: 'AFPA — Africaine des Formations Professionnelles en Alternance',
+    ville: 'Colobane',
+    adresse: 'Colobane, Dakar',
+    site: 'afpa.sn',
+    contact: null,
+    typeLabel: 'Formation Professionnelle',
+    formations: [
+      { niveau: 'BTS', filieres: ['Hôtellerie-Restauration', 'Tourisme', 'Santé', 'Gestion Hôtelière'] },
+      { niveau: 'Diplôme de qualification professionnelle', filieres: ['Formations courtes en alternance (agro-business, bâtiment, industrie, hôtellerie de luxe)'] }
+    ]
+  },
+  {
+    slug: 'isca-dakar',
+    nom: 'ISCA — Institut Supérieur de Commerce et d\'Administration des Affaires',
+    ville: 'Dakar',
+    adresse: 'Avenue Bourguiba, à 25m du Crédit Mutuel de Castors, face au jardin de Dieuppeul II, Dakar',
+    site: 'isca.sn',
+    contact: '33 825 02 03',
+    typeLabel: 'Institut Supérieur',
+    formations: [
+      { niveau: 'DT/DU/DTS/BTS/BT/DUT/Certificat/DEUG', filieres: ['Informatique de Gestion', 'Réseaux Informatique'] },
+      { niveau: 'Bachelor/Licence/Licence Professionnelle', filieres: ['Informatique de Gestion', 'Gestion Économique et Financière des Entreprises', 'Maintenance-Réseaux Informatique et Télécommunications', 'Multimédia Numérique'] },
+      { niveau: 'Master/Master Professionnel/Master Recherche/MBA', filieres: ['Maintenance-Réseaux Informatiques et Télécoms', 'Marketing-Communication et Action Commerciale', 'Gestion Publique', 'Gestion de Projets', 'Ingénierie Financière', 'Banque-Assurance-Assurance', 'Communication', 'Gestion des Ressources Humaines'] }
+    ]
+  },
+  {
+    slug: 'ipg-isti-dakar',
+    nom: 'IPG/ISTI — Groupe Institut Privé de Gestion / Institut Supérieur de Technologie Industrielle',
+    ville: 'Dakar',
+    adresse: 'Sicap Sacré-Cœur 2, Immeuble IPG-ISTI, BP 10155, Dakar (2ᵉ site Almadies)',
+    site: 'ipg-isti.sn',
+    contact: null,
+    typeLabel: 'Groupe d\'Instituts',
+    formations: [
+      { niveau: 'BTS', filieres: ['Électronique', 'Informatique', 'Froid-Climatisation', 'Électrotechnique', 'Électromécanique'] },
+      { niveau: 'Licence', filieres: ['Gestion', 'Finance', 'Affaires', 'Ingénierie'] },
+      { niveau: 'Master', filieres: ['Ingénierie (électrotechnique/électromécanique/froid-climatisation)', 'Gestion et Affaires'] }
+    ]
+  },
+  {
+    slug: 'kanka-institute',
+    nom: 'Kanka Institute — Établissement à vérifier',
+    ville: 'Dakar',
+    adresse: 'Avenue Cheikh Anta Diop, Dakar',
+    site: null,
+    contact: null,
+    typeLabel: 'Établissement à vérifier',
+    formations: []
+  },
+  {
+    slug: 'iaci-dakar',
+    nom: 'IACI — Établissement à vérifier',
+    ville: 'Dakar',
+    adresse: 'Liberté 2, Dakar',
+    site: null,
+    contact: null,
+    typeLabel: 'Établissement à vérifier',
+    formations: []
+  },
+  {
+    slug: 'emh-dakar',
+    nom: 'EMH — Établissement à vérifier',
+    ville: 'Dakar',
+    adresse: 'Face Delorme, Dakar',
+    site: null,
+    contact: null,
+    typeLabel: 'Établissement à vérifier',
+    formations: []
+  },
+  {
+    slug: 'smi-thies',
+    nom: 'SMI — Sup\'Management Intelligentsia',
+    ville: 'Thiès',
+    adresse: 'Cité Malick Sy, derrière la station Titan Oil, Thiès (siège aussi Dakar Point E ; campus Ziguinchor)',
+    site: 'smi.sn',
+    contact: '33 951 66 62',
+    typeLabel: 'École de Management',
+    formations: [
+      { niveau: 'BT/BTS/DEC', filieres: ['Comptabilité', 'Gestion', 'Management', 'Commerce', 'Logistique', 'Marketing', 'Informatique'] },
+      { niveau: 'Licence', filieres: ['Finance-Comptabilité', 'Commerce International', 'Informatique de Gestion', 'Administration Réseaux', 'Assistanat', 'Banque-Assurance', 'Ingénierie des Systèmes & Réseaux'] },
+      { niveau: 'Master', filieres: ['Comptabilité', 'Gestion', 'Management'] }
+    ]
+  },
+  {
+    slug: 'ispm-kaolack',
+    nom: 'ISPM — Institut Machalah (Kaolack)',
+    ville: 'Kaolack',
+    adresse: 'Route de Ndorong, immeuble Lamp Fall, Kaolack',
+    site: null,
+    contact: null,
+    typeLabel: 'Institut',
+    formations: []
+  },
+  {
+    slug: 'igpcs-mbour',
+    nom: 'IGPCS (Mbour) — Institut à vérifier',
+    ville: 'Mbour',
+    adresse: 'Route de Saly, immeuble Allo Docteur, Mbour',
+    site: null,
+    contact: null,
+    typeLabel: 'Institut à vérifier',
+    formations: []
+  },
+  {
+    slug: 'complexe-lyco-thies',
+    nom: 'Complexe Lyco (Thiès) — Établissement à vérifier',
+    ville: 'Thiès',
+    adresse: 'Thiès',
+    site: null,
+    contact: null,
+    typeLabel: 'Établissement à vérifier',
+    formations: []
+  },
+  {
+    slug: 'efpt-ms-sebikhotane',
+    nom: 'EFPT-MS — École de Formation Professionnelle et Technique - Métiers Spécialisés',
+    ville: 'Sébikhotane',
+    adresse: 'Sébikhotane',
+    site: null,
+    contact: null,
+    typeLabel: 'École de Formation Professionnelle',
+    formations: []
+  },
+  {
+    slug: 'escoa-dakar',
+    nom: 'ESCOA — École Supérieure de Commerce et d\'Administration',
+    ville: 'Dakar',
+    adresse: 'KM 4,5 Avenue Cheikh Anta Diop, en face de l\'UCAD, Dakar',
+    site: 'escoa.edu.sn',
+    contact: null,
+    typeLabel: 'École Supérieure de Commerce',
+    formations: []
+  },
+  {
+    slug: 'essem-sante-mbour',
+    nom: 'Essem / ESEM Santé (Mbour) — Institut de formation santé',
+    ville: 'Mbour',
+    adresse: 'Croisement Saly, Mbour',
+    site: null,
+    contact: null,
+    typeLabel: 'Institut de Santé',
+    formations: [
+      { niveau: 'Diplômes/certifications', filieres: ['Secrétariat médical', 'Assistant Infirmier', 'Gestionnaire de pharmacie', 'Délégué Médical', 'Orthoprothésiste'] },
+      { niveau: 'Licence', filieres: ['Sciences infirmières / paramédicales'] }
+    ]
+  },
+  {
+    slug: 'efmi-mbour',
+    nom: 'EFMI (Mbour) — École à vérifier',
+    ville: 'Mbour',
+    adresse: 'À côté du groupe scolaire Éducation Plus, Santessou, Mbour',
+    site: null,
+    contact: null,
+    typeLabel: 'École à vérifier',
+    formations: []
+  },
+  {
+    slug: 'espia-dakar',
+    nom: 'ESPIA — École d\'Ingénierie',
+    ville: 'Dakar',
+    adresse: 'Sacré-Cœur 3, VDN, Dakar',
+    site: null,
+    contact: null,
+    typeLabel: 'École d\'Ingénierie',
+    formations: []
+  },
+  {
+    slug: 'img-mbour',
+    nom: 'IM / IMG (Mbour) — Institut de Management et de Gestion — Campus Mbour',
+    ville: 'Mbour',
+    adresse: 'Après l\'agence Free de Mbour, intersection LDD (ex-IMG)',
+    site: 'imgmbour.com',
+    contact: null,
+    typeLabel: 'Institut de Management',
+    formations: [
+      { niveau: 'DTS', filieres: ['Comptabilité de gestion', 'Transport logistique', 'Marketing et communication'] },
+      { niveau: 'BEP', filieres: ['Comptabilité de gestion', 'Transport logistique', 'Marketing et communication'] },
+      { niveau: 'DEP', filieres: ['Comptabilité de gestion', 'Transport logistique', 'Marketing et communication'] },
+      { niveau: 'Complémentaires', filieres: ['Journalisme et Communication', 'Santé', 'Restauration'] }
+    ]
+  },
+  {
+    slug: 'ensup-afrique-mbour',
+    nom: 'ENSUP Afrique (Mbour) — ENSUP Afrique — antenne Mbour',
+    ville: 'Mbour',
+    adresse: 'Croisement Saly, Mbour',
+    site: 'ensupafrique.com',
+    contact: null,
+    typeLabel: 'École Supérieure',
+    formations: [
+      { niveau: 'BTS/Licence/Master', filieres: ['Comptabilité-Gestion', 'GRH', 'Transport-Logistique', 'Banque-Finance-Assurance', 'Marketing', 'Gestion immobilière', 'Marchés publics'] }
+    ]
+  }
+]
+
 async function main() {
-  const mairie = await prisma.partner.upsert({
-    where: { slug: 'mairie-dakar-bourses' },
+  // Créer un partenaire par défaut
+  const partner = await prisma.partner.upsert({
+    where: { slug: 'boursefi-partenaire' },
     update: {
-      name: 'Mairie de Dakar - Cellule bourses etudes',
+      name: 'BourseFi - Partenaire Principal',
       partnerSharePercent: 75,
-      contactEmail: 'bourses.etudes@mairie-dakar.sn'
+      contactEmail: 'contact@boursefi.sn',
+      description: 'Partenaire principal pour les bourses d\'études au Sénégal',
+      conditions: 'Résidence sénégalaise requise. Dossier complet avant date limite.'
     },
     create: {
-      name: 'Mairie de Dakar - Cellule bourses etudes',
-      slug: 'mairie-dakar-bourses',
+      name: 'BourseFi - Partenaire Principal',
+      slug: 'boursefi-partenaire',
       partnerSharePercent: 75,
-      contactEmail: 'bourses.etudes@mairie-dakar.sn',
-      logoUrl: null
-    }
-  })
-
-  const agence = await prisma.partner.upsert({
-    where: { slug: 'agence-regionale-solidarite-education' },
-    update: {
-      name: 'Agence regionale Solidarite Education SN',
-      partnerSharePercent: 70,
-      contactEmail: 'contact@ARSE.sn'
-    },
-    create: {
-      name: 'Agence regionale Solidarite Education SN',
-      slug: 'agence-regionale-solidarite-education',
-      partnerSharePercent: 70,
-      contactEmail: 'contact@ARSE.sn'
-    }
-  })
-
-  const ucad = await prisma.etablissement.upsert({
-    where: { slug: 'ucad' },
-    update: {
-      nom: 'Universite Cheikh Anta Diop',
-      ville: 'Dakar',
-      accreditation: 'CAMES',
-      site: 'https://www.ucad.sn',
-      resume:
-        'Institution de reference en Afrique de l Ouest pour les sciences economiques, sociales et le numerique applique.',
-      coverImageUrl: ETAB_IMG.ucadCover,
-      logoUrl: ETAB_IMG.ucadLogo,
-      typeLabel: 'Universite publique'
-    },
-    create: {
-      slug: 'ucad',
-      nom: 'Universite Cheikh Anta Diop',
-      ville: 'Dakar',
-      accreditation: 'CAMES',
-      site: 'https://www.ucad.sn',
-      resume:
-        'Institution de reference en Afrique de l Ouest pour les sciences economiques, sociales et le numerique applique.',
-      coverImageUrl: ETAB_IMG.ucadCover,
-      logoUrl: ETAB_IMG.ucadLogo,
-      typeLabel: 'Universite publique'
-    }
-  })
-
-  const esp = await prisma.etablissement.upsert({
-    where: { slug: 'esp' },
-    update: {
-      nom: 'Ecole Superieure Polytechnique',
-      ville: 'Dakar',
-      accreditation: 'CTI / CAMES',
-      site: 'https://esp.sn',
-      resume: 'Formation d excellence en ingenierie, data et cybersecurite pour le continent.',
-      coverImageUrl: ETAB_IMG.espCover,
+      contactEmail: 'contact@boursefi.sn',
       logoUrl: null,
-      typeLabel: 'Ecole d ingenieurs'
-    },
-    create: {
-      slug: 'esp',
-      nom: 'Ecole Superieure Polytechnique',
-      ville: 'Dakar',
-      accreditation: 'CTI / CAMES',
-      site: 'https://esp.sn',
-      resume: 'Formation d excellence en ingenierie, data et cybersecurite pour le continent.',
-      coverImageUrl: ETAB_IMG.espCover,
-      logoUrl: null,
-      typeLabel: 'Ecole d ingenieurs'
+      description: 'Partenaire principal pour les bourses d\'études au Sénégal',
+      conditions: 'Résidence sénégalaise requise. Dossier complet avant date limite.'
     }
   })
 
-  const ism = await prisma.etablissement.upsert({
-    where: { slug: 'ism' },
-    update: {
-      nom: 'Institut superieur de management',
-      ville: 'Dakar',
-      accreditation: 'CAMES',
-      site: 'https://www.grpism.com',
-      resume: 'Grande ecole de management et entrepreneurship en Afrique de l Ouest.',
-      coverImageUrl: ETAB_IMG.ismCover,
-      logoUrl: null,
-      typeLabel: 'Grande ecole de management'
-    },
-    create: {
-      slug: 'ism',
-      nom: 'Institut superieur de management',
-      ville: 'Dakar',
-      accreditation: 'CAMES',
-      site: 'https://www.grpism.com',
-      resume: 'Grande ecole de management et entrepreneurship en Afrique de l Ouest.',
-      coverImageUrl: ETAB_IMG.ismCover,
-      logoUrl: null,
-      typeLabel: 'Grande ecole de management'
-    }
-  })
+  // Créer les 33 écoles
+  for (const ecoleData of ECOLES_DATA) {
+    const ecole = await prisma.etablissement.upsert({
+      where: { slug: ecoleData.slug },
+      update: {
+        nom: ecoleData.nom,
+        ville: ecoleData.ville,
+        site: ecoleData.site,
+        resume: `${ecoleData.typeLabel} situé à ${ecoleData.adresse || ecoleData.ville}. ${ecoleData.contact ? `Contact: ${ecoleData.contact}` : ''}`,
+        typeLabel: ecoleData.typeLabel
+      },
+      create: {
+        slug: ecoleData.slug,
+        nom: ecoleData.nom,
+        ville: ecoleData.ville,
+        site: ecoleData.site,
+        resume: `${ecoleData.typeLabel} situé à ${ecoleData.adresse || ecoleData.ville}. ${ecoleData.contact ? `Contact: ${ecoleData.contact}` : ''}`,
+        typeLabel: ecoleData.typeLabel
+      }
+    })
 
-  const autoAcademie = await prisma.etablissement.upsert({
-    where: { slug: 'auto-academie-keur-massar' },
-    update: {
-      nom: 'Auto Academie – Centre de formation professionnelle (Keur Massar)',
-      ville: 'Keur Massar',
-      accreditation: 'Formation professionnelle',
-      site: 'https://example.sn/auto-academie',
-      resume:
-        'Centre de formation aux metiers de la mecanique automobile et de la maintenance pour une insertion rapide.',
-      coverImageUrl: ETAB_IMG.autoAcademieCover,
-      logoUrl: null,
-      typeLabel: 'Centre de formation professionnelle'
-    },
-    create: {
-      slug: 'auto-academie-keur-massar',
-      nom: 'Auto Academie – Centre de formation professionnelle (Keur Massar)',
-      ville: 'Keur Massar',
-      accreditation: 'Formation professionnelle',
-      site: 'https://example.sn/auto-academie',
-      resume:
-        'Centre de formation aux metiers de la mecanique automobile et de la maintenance pour une insertion rapide.',
-      coverImageUrl: ETAB_IMG.autoAcademieCover,
-      logoUrl: null,
-      typeLabel: 'Centre de formation professionnelle'
+    // Créer les programmes pour chaque école
+    for (const formation of ecoleData.formations) {
+      for (const filiere of formation.filieres) {
+        const slug = `${ecoleData.slug}-${formation.niveau.toLowerCase().replace(/\s+/g, '-')}-${filiere.toLowerCase().replace(/[^a-z0-9]/g, '-').substring(0, 30)}`
+        const titre = `${filiere} (${formation.niveau})`
+        
+        await prisma.programme.upsert({
+          where: { slug },
+          update: {
+            titre,
+            ville: ecoleData.ville,
+            duree: formation.niveau === 'BTS' || formation.niveau === 'DTS' || formation.niveau === 'DT' ? '2 ans' : formation.niveau === 'Licence' ? '3 ans' : formation.niveau === 'Master' ? '2 ans' : 'Variable',
+            niveau: formation.niveau,
+            description: `Formation en ${filiere} à ${ecoleData.nom}.`,
+            eligibilite: 'Selon les exigences de la filière. Contactez l\'établissement pour plus d\'informations.',
+            perspectives: 'Débouchés selon la filière choisie.'
+          },
+          create: {
+            slug,
+            titre,
+            ville: ecoleData.ville,
+            duree: formation.niveau === 'BTS' || formation.niveau === 'DTS' || formation.niveau === 'DT' ? '2 ans' : formation.niveau === 'Licence' ? '3 ans' : formation.niveau === 'Master' ? '2 ans' : 'Variable',
+            fraisDossier: 20000,
+            fraisDossierEtranger: 30000,
+            devise: 'FCFA',
+            niveau: formation.niveau,
+            description: `Formation en ${filiere} à ${ecoleData.nom}.`,
+            eligibilite: 'Selon les exigences de la filière. Contactez l\'établissement pour plus d\'informations.',
+            perspectives: 'Débouchés selon la filière choisie.',
+            etablissementId: ecole.id,
+            partnerId: partner.id
+          }
+        })
+      }
     }
-  })
+  }
 
-  const esgib = await prisma.etablissement.upsert({
-    where: { slug: 'esgib' },
-    update: {
-      nom: 'ESGIB - Ecole Superieure de Genie Industriel et Biologique',
-      ville: 'Dakar',
-      accreditation: 'CAMES',
-      site: 'https://example.sn/esgib',
-      resume:
-        'Formation en genie industriel et biologique : laboratoires, projets applicatifs et debouches dans l industrie.',
-      coverImageUrl: ETAB_IMG.esgibCover,
-      logoUrl: null,
-      typeLabel: 'Ecole d ingenieurs'
-    },
-    create: {
-      slug: 'esgib',
-      nom: 'ESGIB - Ecole Superieure de Genie Industriel et Biologique',
-      ville: 'Dakar',
-      accreditation: 'CAMES',
-      site: 'https://example.sn/esgib',
-      resume:
-        'Formation en genie industriel et biologique : laboratoires, projets applicatifs et debouches dans l industrie.',
-      coverImageUrl: ETAB_IMG.esgibCover,
-      logoUrl: null,
-      typeLabel: 'Ecole d ingenieurs'
-    }
-  })
-
-  const esmt = await prisma.etablissement.upsert({
-    where: { slug: 'esmt' },
-    update: {
-      nom: 'Ecole Superieure Multinationale des Telecommunications - ESMT',
-      ville: 'Dakar',
-      accreditation: 'Cooperations internationales',
-      site: 'https://www.esmt.sn',
-      resume:
-        'Cycle ingenieur et formations superieures orientees reseaux, telecommunications et transformation digitale.',
-      coverImageUrl: ETAB_IMG.esmtCover,
-      logoUrl: null,
-      typeLabel: 'Ecole d ingenieurs'
-    },
-    create: {
-      slug: 'esmt',
-      nom: 'Ecole Superieure Multinationale des Telecommunications - ESMT',
-      ville: 'Dakar',
-      accreditation: 'Cooperations internationales',
-      site: 'https://www.esmt.sn',
-      resume:
-        'Cycle ingenieur et formations superieures orientees reseaux, telecommunications et transformation digitale.',
-      coverImageUrl: ETAB_IMG.esmtCover,
-      logoUrl: null,
-      typeLabel: 'Ecole d ingenieurs'
-    }
-  })
-
-  await prisma.programme.upsert({
-    where: { slug: 'master-finance-numerique-ucad' },
-    update: {},
-    create: {
-      slug: 'master-finance-numerique-ucad',
-      titre: 'Master Finance Numerique et Inclusion Bancaire',
-      ville: 'Dakar',
-      duree: '24 mois',
-      fraisDossier: 25000,
-      fraisScolarite: 950000,
-      devise: 'FCFA',
-      niveau: 'Master',
-      placement: '92%',
-      description:
-        'Programme axe fintech, mobile money (Orange / Wave / mix) et gestion du risque dans le cadre UEMOA.',
-      eligibilite: 'Licence en economie, gestion ou mathematiques appliquees. Dossier CNI / BAC+3.',
-      brochureUrl:
-        'https://www.ucad.sn/images/docs/brochure-master-finance-numerique-placeholder.pdf',
-      perspectives:
-        'Emplois a Dakar ou region : analyste financier junior, conformite paiements, mobilite intra-UEMOA. Insertion projetee forte dans les ecoles locales et administrations.',
-      etablissementId: ucad.id,
-      partnerId: mairie.id
-    }
-  })
-
-  await prisma.programme.upsert({
-    where: { slug: 'master-data-science-esp' },
-    update: {},
-    create: {
-      slug: 'master-data-science-esp',
-      titre: 'Master Data Science pour la Finance',
-      ville: 'Dakar',
-      duree: '18 mois',
-      fraisDossier: 30000,
-      fraisScolarite: 1200000,
-      devise: 'FCFA',
-      niveau: 'Master',
-      placement: '89%',
-      description:
-        'Machine learning applique au credit scoring, lutte contre la fraude transactionnelle et visualisation temps reel.',
-      eligibilite: 'BAC+3 scientifique ou ingenierie, maitrise niveau Bac+ des statistiques de base.',
-      brochureUrl:
-        'https://www.esp.sn/images/brochure-data-finance-sn-placeholder.pdf',
-      perspectives:
-        'Postes datascience et ingenierie donnees chez assureurs banques mobiles et hubs fintech dakarois sous 24 mois du diplome.',
-      etablissementId: esp.id,
-      partnerId: mairie.id
-    }
-  })
-
-  await prisma.programme.upsert({
-    where: { slug: 'mba-fintech-ism' },
-    update: {},
-    create: {
-      slug: 'mba-fintech-ism',
-      titre: 'MBA Fintech et Innovation de Paiement',
-      ville: 'Dakar',
-      duree: '12 mois',
-      fraisDossier: 50000,
-      fraisScolarite: 2200000,
-      devise: 'FCFA',
-      niveau: 'MBA',
-      placement: '94%',
-      description:
-        'Parcours executif strategie produit, partenariats avec operateurs mobiles et infrastructures de paiement nationales.',
-      eligibilite: 'BAC+4 minimum, 2 ans experience professionnelle, entretien de motivation.',
-      brochureUrl:
-        'https://www.grpism.com/docs/mba-fintech-sn-placeholder.pdf',
-      perspectives:
-        'Leadership projet digital chez PMI senegalaises, fonctions CFO adjoint Innovation, conseil pour bailleurs publics.',
-      etablissementId: ism.id,
-      partnerId: agence.id
-    }
-  })
-
-  await prisma.programme.upsert({
-    where: { slug: 'ingenieur-developpement-logiciel-esp' },
-    update: {},
-    create: {
-      slug: 'ingenieur-developpement-logiciel-esp',
-      titre: 'Ingenieur developpement logiciel et applications web',
-      ville: 'Dakar',
-      duree: '36 mois',
-      fraisDossier: 28000,
-      fraisScolarite: 890000,
-      devise: 'FCFA',
-      niveau: 'Ingenieur',
-      placement: '88%',
-      description:
-        'Cycle ingenieur axe conception de services web et mobiles, API REST, qualite logicielle et deploiement cloud.',
-      eligibilite: 'BAC scientific ou technique, concours national ou dossier selon reglement ESP.',
-      brochureUrl: 'https://esp.sn/images/brochure-genie-logiciel-placeholder.pdf',
-      perspectives:
-        'Developpeur fullstack, ingenieur plateforme web et integrations dans les entreprises et la fintech dakaroise.',
-      etablissementId: esp.id,
-      partnerId: mairie.id
-    }
-  })
-
-  await prisma.programme.upsert({
-    where: { slug: 'master-cybersecurite-esp' },
-    update: {},
-    create: {
-      slug: 'master-cybersecurite-esp',
-      titre: 'Master Cybersecurite des systemes dinformation',
-      ville: 'Dakar',
-      duree: '24 mois',
-      fraisDossier: 35000,
-      fraisScolarite: 1150000,
-      devise: 'FCFA',
-      niveau: 'Master',
-      placement: '86%',
-      description:
-        'Securite des reseaux, detection dincidents, gouvernance SSI et conformite pour banques et administrations.',
-      eligibilite: 'BAC+3 informatique, reseaux ou equivalent; entretien technique.',
-      brochureUrl: 'https://esp.sn/images/brochure-cyber-placeholder.pdf',
-      perspectives:
-        'Analyste SOC, ingenieur securite et consultants cyber pour operateurs critiques au Senegal et en UEMOA.',
-      etablissementId: esp.id,
-      partnerId: agence.id
-    }
-  })
-
-  await prisma.programme.upsert({
-    where: { slug: 'msc-marketing-digital-ism' },
-    update: {},
-    create: {
-      slug: 'msc-marketing-digital-ism',
-      titre: 'MSC Marketing digital et strategie de marque',
-      ville: 'Dakar',
-      duree: '18 mois',
-      fraisDossier: 40000,
-      fraisScolarite: 1650000,
-      devise: 'FCFA',
-      niveau: 'Master',
-      placement: '90%',
-      description:
-        'Acquisition multicanal, contenus, CRM et pilotage de la performance media pour marques en Afrique de lOuest.',
-      eligibilite: 'BAC+3 commerce, communication ou SHS avec projet portfolio numerique.',
-      brochureUrl: 'https://www.grpism.com/docs/msc-marketing-digital-placeholder.pdf',
-      perspectives:
-        'Chef de projet acquisition, social media lead et strategie digitale en agences et grands comptes regionaux.',
-      etablissementId: ism.id,
-      partnerId: agence.id
-    }
-  })
-
-  await prisma.programme.upsert({
-    where: { slug: 'master-sante-publique-ucad' },
-    update: {},
-    create: {
-      slug: 'master-sante-publique-ucad',
-      titre: 'Master Sante publique et systemes de soins',
-      ville: 'Dakar',
-      duree: '24 mois',
-      fraisDossier: 20000,
-      fraisScolarite: 720000,
-      devise: 'FCFA',
-      niveau: 'Master',
-      placement: '82%',
-      description:
-        'Epidemiologie, sante communautaire et pilotage des programmes nationaux pour hopitaux et ONG.',
-      eligibilite: 'Licence sciences de la sante, sciences sociales appliquees ou medecine selon filiere dorigine.',
-      brochureUrl: 'https://www.ucad.sn/images/docs/brochure-sante-publique-placeholder.pdf',
-      perspectives:
-        'Coordination programmes sante, recherche appliquee et gestion de projets bailleurs dans le secteur public.',
-      etablissementId: ucad.id,
-      partnerId: mairie.id
-    }
-  })
-
-  await prisma.programme.upsert({
-    where: { slug: 'master-ia-appliquee-esp' },
-    update: {},
-    create: {
-      slug: 'master-ia-appliquee-esp',
-      titre: 'Master Intelligence artificielle appliquee',
-      ville: 'Dakar',
-      duree: '24 mois',
-      fraisDossier: 32000,
-      fraisScolarite: 1300000,
-      devise: 'FCFA',
-      niveau: 'Master',
-      placement: '87%',
-      description:
-        'Apprentissage automatique, modeles predictifs et deploiement dIA dans la finance et les services numeriques.',
-      eligibilite: 'BAC+3 mathematiques, informatique ou physique avec solides bases en programmation.',
-      brochureUrl: 'https://esp.sn/images/brochure-ia-appliquee-placeholder.pdf',
-      perspectives:
-        'Ingenieur ML, data scientist specialise IA et projets innovation au sein des banques et scale-ups.',
-      etablissementId: esp.id,
-      partnerId: mairie.id
-    }
-  })
-
-  await prisma.programme.upsert({
-    where: { slug: 'bts-maintenance-automobile-auto-academie' },
-    update: {},
-    create: {
-      slug: 'bts-maintenance-automobile-auto-academie',
-      titre: 'BTS Maintenance des vehicules automobiles',
-      ville: 'Keur Massar',
-      duree: '24 mois',
-      fraisDossier: 15000,
-      fraisScolarite: 480000,
-      devise: 'FCFA',
-      niveau: 'BTS',
-      placement: '78%',
-      description:
-        'Diagnostic, entretien courant et preparation aux certifications professionnelles du secteur automobile.',
-      eligibilite: 'BAC ou equivalent technique; motivation pour les metiers de garage et carrosserie.',
-      brochureUrl: 'https://example.sn/brochures/bts-auto-placeholder.pdf',
-      perspectives:
-        'Technicien maintenance, atelier agree et montee en responsabilite dans les reseaux de distribution.',
-      etablissementId: autoAcademie.id,
-      partnerId: mairie.id
-    }
-  })
-
-  await prisma.programme.upsert({
-    where: { slug: 'ingenieur-genie-biologique-esgib' },
-    update: {},
-    create: {
-      slug: 'ingenieur-genie-biologique-esgib',
-      titre: 'Ingenieur genie biologique et procedes industriels',
-      ville: 'Dakar',
-      duree: '60 mois',
-      fraisDossier: 35000,
-      fraisScolarite: 980000,
-      devise: 'FCFA',
-      niveau: 'Ingenieur',
-      placement: '84%',
-      description:
-        'Bioprocedes, qualite et environnement industriel avec sequences laboratoire et projets en entreprise.',
-      eligibilite: 'BAC scientifique; concours ou dossier selon reglement de l ecole.',
-      brochureUrl: 'https://example.sn/brochures/esgib-genie-bio-placeholder.pdf',
-      perspectives:
-        'Industries agroalimentaires, pharmaceutiques et controle qualite dans la zone UEMOA.',
-      etablissementId: esgib.id,
-      partnerId: mairie.id
-    }
-  })
-
-  await prisma.programme.upsert({
-    where: { slug: 'ingenieur-telecom-esmt' },
-    update: {},
-    create: {
-      slug: 'ingenieur-telecom-esmt',
-      titre: 'Ingenieur telecommunications et reseaux numeriques',
-      ville: 'Dakar',
-      duree: '60 mois',
-      fraisDossier: 40000,
-      fraisScolarite: 1050000,
-      devise: 'FCFA',
-      niveau: 'Ingenieur',
-      placement: '86%',
-      description:
-        'Reseaux mobiles et fibre, securisation des infrastructures critiques et services cloud pour operateurs.',
-      eligibilite: 'BAC scientifique ou technique; selection ecrite et entretien de motivation.',
-      brochureUrl: 'https://example.sn/brochures/esmt-telecom-placeholder.pdf',
-      perspectives:
-        'Operateurs telecom, integrateurs et grandes structures en transformation digitale.',
-      etablissementId: esmt.id,
-      partnerId: agence.id
-    }
-  })
-
+  // Créer les utilisateurs de démonstration
   await upsertUser({
     name: 'Admin BourseFi',
     email: 'admin@boursefi.sn',
@@ -553,11 +578,11 @@ async function main() {
   })
 
   await upsertUser({
-    name: 'Partenaire Mairie Dakar',
+    name: 'Partenaire BourseFi',
     email: 'partenaire@boursefi.sn',
     password: 'Partner1234!',
     role: 'PARTNER',
-    partnerId: mairie.id
+    partnerId: partner.id
   })
 
   await upsertUser({
@@ -567,93 +592,46 @@ async function main() {
     role: 'STUDENT'
   })
 
-  await seedBourses()
-  await seedCmsFromDisk()
-
-  console.log('Seed catalogue partenaires / ecoles / programmes / bourses termine.')
-}
-
-async function seedBourses() {
+  // Créer des bourses pour quelques programmes
   const programmes = await prisma.programme.findMany({
-    include: { partner: true, etablissement: true },
+    where: { niveau: { in: ['Licence', 'Master'] } },
+    take: 20,
     orderBy: { titre: 'asc' }
   })
 
-  const coverageBySlug = {
-    'ingenieur-developpement-logiciel-esp': 70,
-    'master-data-science-esp': 75,
-    'master-finance-numerique-ucad': 50,
-    'mba-fintech-ism': 100,
-    'master-cybersecurite-esp': 50,
-    'msc-marketing-digital-ism': 75,
-    'master-sante-publique-ucad': 25,
-    'master-ia-appliquee-esp': 75,
-    'bts-maintenance-automobile-auto-academie': 50,
-    'ingenieur-genie-biologique-esgib': 50,
-    'ingenieur-telecom-esmt': 75
-  }
+  const dateLimite = new Date('2026-12-31T23:59:59.000Z')
 
-  const dateLimite = new Date('2026-07-15T23:59:59.000Z')
-
-  for (const p of programmes) {
-    const slug = `bourse-${p.slug}`
-    const coveragePercent = coverageBySlug[p.slug] ?? 50
-    const quota = 20
-    const placesRestantes = p.slug === 'ingenieur-developpement-logiciel-esp' ? 12 : Math.floor(Math.random() * 15) + 5
-
-    const titre =
-      p.slug === 'ingenieur-developpement-logiciel-esp'
-        ? 'Bourse Ingénierie Logicielle'
-        : `Bourse ${p.titre.split(' ').slice(0, 3).join(' ')}`
-
+  for (const programme of programmes) {
+    const slug = `bourse-${programme.slug}`
     await prisma.bourse.upsert({
       where: { slug },
       update: {
-        titre,
-        coveragePercent,
-        quota,
-        placesRestantes,
+        titre: `Bourse ${programme.titre}`,
+        coveragePercent: 50,
+        quota: 20,
         dateLimite,
         isActive: true,
-        conditions:
-          'Étudiant sénégalais ou résident. Dossier complet avec CNI et relevés de notes.',
+        conditions: 'Étudiant sénégalais ou résident. Dossier complet avec CNI et relevés de notes.',
         documentsRequis: 'CNI recto/verso, relevé de notes, diplôme ou attestation de niveau.'
       },
       create: {
         slug,
-        titre,
-        programmeId: p.id,
-        partnerId: p.partnerId,
-        coveragePercent,
-        quota,
-        placesRestantes,
+        titre: `Bourse ${programme.titre}`,
+        programmeId: programme.id,
+        partnerId: partner.id,
+        coveragePercent: 50,
+        quota: 20,
         dateLimite,
         isActive: true,
-        conditions:
-          'Étudiant sénégalais ou résident. Dossier complet avec CNI et relevés de notes.',
+        conditions: 'Étudiant sénégalais ou résident. Dossier complet avec CNI et relevés de notes.',
         documentsRequis: 'CNI recto/verso, relevé de notes, diplôme ou attestation de niveau.'
       }
     })
   }
 
-  await prisma.partner.update({
-    where: { slug: 'mairie-dakar-bourses' },
-    data: {
-      description:
-        'La Mairie de Dakar finance des bourses d’études pour les formations partenaires à Dakar et en région.',
-      conditions:
-        'Résidence à Dakar ou banlieue. Dossier complet avant la date limite. Une bourse par étudiant et par vague.'
-    }
-  })
+  await seedCmsFromDisk()
 
-  await prisma.partner.update({
-    where: { slug: 'agence-regionale-solidarite-education' },
-    data: {
-      description:
-        'L’ARSE accompagne les étudiants sénégalais dans l’accès aux formations supérieures via des bourses régionales.',
-      conditions: 'Priorité aux filières à fort taux d’insertion. Pièces justificatives obligatoires.'
-    }
-  })
+  console.log('Seed terminé : 33 écoles, programmes, bourses et utilisateurs créés.')
 }
 
 main()

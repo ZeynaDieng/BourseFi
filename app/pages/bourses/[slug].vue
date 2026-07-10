@@ -42,12 +42,6 @@ useSiteSeo({
         <span class="inline-flex rounded-full bg-white/10 px-3 py-1 text-xs font-bold">
           {{ bourse.programmeNiveau }}
         </span>
-        <span
-          v-if="bourse.placesRestantes <= 5 && bourse.placesRestantes > 0"
-          class="inline-flex rounded-full bg-secondary-container px-3 py-1 text-xs font-semibold text-on-secondary-container"
-        >
-          Places limitées
-        </span>
       </div>
       <h1 class="mt-4 font-headline text-3xl font-extrabold leading-tight md:text-5xl">
         {{ bourse.titre }}
@@ -67,10 +61,6 @@ useSiteSeo({
             <AnimatedNumber :value="bourse.montantBourse" />
             <span class="text-sm font-semibold text-white/70">{{ bourse.devise }}</span>
           </p>
-        </div>
-        <div class="rounded-2xl bg-white/10 p-4">
-          <p class="text-xs font-semibold uppercase tracking-wider text-white/60">Places restantes</p>
-          <p class="mt-1 font-headline text-2xl font-extrabold">{{ bourse.placesRestantes }}</p>
         </div>
       </div>
 
@@ -109,19 +99,15 @@ useSiteSeo({
         <span class="material-symbols-outlined text-base">event</span>
         Limite : {{ formatDate(bourse.dateLimite) }}
       </span>
-      <span class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5 font-semibold text-slate-600">
-        <span class="material-symbols-outlined text-base">group</span>
-        {{ bourse.placesRestantes }} places
-      </span>
     </div>
 
     <div class="mb-10 mt-8 grid gap-6 lg:grid-cols-2">
       <ScholarshipEconomyCalculator
-        :frais-scolarite="bourse.fraisScolarite"
+        :frais-dossier="bourse.fraisDossier"
+        :frais-dossier-etranger="bourse.fraisDossierEtranger"
         :coverage-percent="bourse.coveragePercent"
         :montant-max="bourse.montantMax"
         :devise="bourse.devise"
-        :frais-dossier="bourse.fraisDossier"
       />
       <div class="rounded-2xl border border-slate-100 bg-white p-6 shadow-premium">
         <h2 class="font-headline text-lg font-bold text-primary">Financement</h2>
@@ -137,10 +123,6 @@ useSiteSeo({
             <dd class="font-semibold text-primary">
               {{ bourse.resteACharge.toLocaleString('fr-FR') }} {{ bourse.devise }}
             </dd>
-          </div>
-          <div class="flex justify-between gap-3">
-            <dt class="text-slate-500">Places restantes</dt>
-            <dd class="font-semibold">{{ bourse.placesRestantes }}</dd>
           </div>
           <div class="flex justify-between gap-3">
             <dt class="text-slate-500">Date limite</dt>

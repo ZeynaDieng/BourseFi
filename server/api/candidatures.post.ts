@@ -61,9 +61,6 @@ export default defineEventHandler(async (event) => {
     if (!bourse) {
       throw createError({ statusCode: 400, statusMessage: 'Bourse invalide pour ce programme.' })
     }
-    if (bourse.placesRestantes <= 0) {
-      throw createError({ statusCode: 400, statusMessage: 'Plus de places disponibles pour cette bourse.' })
-    }
     bourseId = bourse.id
   }
 
@@ -155,12 +152,6 @@ export default defineEventHandler(async (event) => {
     }
   })
 
-  if (bourseId) {
-    await prisma.bourse.update({
-      where: { id: bourseId },
-      data: { placesRestantes: { decrement: 1 } }
-    })
-  }
 
   await createNotification({
     userId: user.id,

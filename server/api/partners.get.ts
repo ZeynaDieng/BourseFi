@@ -11,7 +11,7 @@ export default defineEventHandler(async () => {
       },
       bourses: {
         where: { isActive: true },
-        select: { coveragePercent: true, montantMax: true, programme: { select: { fraisScolarite: true } } },
+        select: { coveragePercent: true, montantMax: true, programme: { select: { fraisDossier: true } } },
       },
     },
     orderBy: { name: 'asc' },

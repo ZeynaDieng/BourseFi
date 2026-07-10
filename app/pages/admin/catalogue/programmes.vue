@@ -13,7 +13,7 @@ type ProgrammeRow = {
   ville: string
   duree: string
   fraisDossier: number
-  fraisScolarite: number
+  fraisDossierEtranger: number
   devise: string
   niveau: string
   placement: string | null
@@ -41,8 +41,8 @@ const emptyForm = () => ({
   titre: '',
   ville: '',
   duree: '',
-  fraisDossier: 0,
-  fraisScolarite: 0,
+  fraisDossier: 20000,
+  fraisDossierEtranger: 30000,
   devise: 'FCFA',
   niveau: '',
   placement: '',
@@ -88,7 +88,7 @@ function openEdit(row: ProgrammeRow) {
     ville: row.ville,
     duree: row.duree,
     fraisDossier: row.fraisDossier,
-    fraisScolarite: row.fraisScolarite,
+    fraisDossierEtranger: row.fraisDossierEtranger,
     devise: row.devise,
     niveau: row.niveau,
     placement: row.placement ?? '',
@@ -113,7 +113,7 @@ async function submitDrawer() {
     ville: form.value.ville,
     duree: form.value.duree,
     fraisDossier: Number(form.value.fraisDossier),
-    fraisScolarite: Number(form.value.fraisScolarite),
+    fraisDossierEtranger: Number(form.value.fraisDossierEtranger),
     devise: form.value.devise,
     niveau: form.value.niveau,
     placement: form.value.placement || null,
@@ -229,8 +229,8 @@ const drawerTitle = computed(() => (editingId.value ? 'Modifier le programme' : 
             <input v-model.number="form.fraisDossier" type="number" min="0" class="admin-input" />
           </label>
           <label class="admin-label">
-            Frais scolarité
-            <input v-model.number="form.fraisScolarite" type="number" min="0" class="admin-input" />
+            Frais dossier étrangers
+            <input v-model.number="form.fraisDossierEtranger" type="number" min="0" class="admin-input" />
           </label>
           <label class="admin-label">
             Devise

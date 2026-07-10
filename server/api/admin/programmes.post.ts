@@ -21,7 +21,7 @@ export default defineEventHandler(async (event) => {
     ville?: string
     duree?: string
     fraisDossier?: number
-    fraisScolarite?: number
+    fraisDossierEtranger?: number
     devise?: string
     niveau?: string
     placement?: string | null
@@ -39,13 +39,12 @@ export default defineEventHandler(async (event) => {
     !body.titre?.trim() ||
     !body.ville?.trim() ||
     !body.duree?.trim() ||
-    body.fraisScolarite === undefined ||
     !body.niveau?.trim() ||
     !body.description?.trim()
   ) {
     throw createError({
       statusCode: 400,
-      statusMessage: 'Champs requis : slug, établissement, partenaire, titre, ville, durée, frais scolarité, niveau, description.'
+      statusMessage: 'Champs requis : slug, établissement, partenaire, titre, ville, durée, niveau, description.'
     })
   }
 
@@ -61,9 +60,9 @@ export default defineEventHandler(async (event) => {
   if (!etab) throw createError({ statusCode: 400, statusMessage: 'Établissement invalide.' })
   if (!partner) throw createError({ statusCode: 400, statusMessage: 'Partenaire invalide.' })
 
-  const fraisDossier = Number(body.fraisDossier ?? 0)
-  const fraisScolarite = Number(body.fraisScolarite)
-  if (!Number.isFinite(fraisDossier) || fraisDossier < 0 || !Number.isFinite(fraisScolarite) || fraisScolarite < 0) {
+  const fraisDossier = Number(body.fraisDossier ?? 20000)
+  const fraisDossierEtranger = Number(body.fraisDossierEtranger ?? 30000)
+  if (!Number.isFinite(fraisDossier) || fraisDossier < 0 || !Number.isFinite(fraisDossierEtranger) || fraisDossierEtranger < 0) {
     throw createError({ statusCode: 400, statusMessage: 'Frais invalides.' })
   }
 
@@ -76,7 +75,7 @@ export default defineEventHandler(async (event) => {
       ville: body.ville.trim(),
       duree: body.duree.trim(),
       fraisDossier: Math.round(fraisDossier),
-      fraisScolarite: Math.round(fraisScolarite),
+      fraisDossierEtranger: Math.round(fraisDossierEtranger),
       devise: (body.devise?.trim() || 'FCFA').slice(0, 12),
       niveau: body.niveau.trim(),
       placement: body.placement?.trim() || null,

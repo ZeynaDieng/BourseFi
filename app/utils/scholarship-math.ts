@@ -8,22 +8,22 @@ export type ScholarshipEconomy = {
 }
 
 export function computeScholarshipEconomy(
-  fraisScolarite: number,
+  fraisDossier: number,
   coveragePercent: number,
   montantMax?: number | null,
   devise = 'FCFA',
 ): ScholarshipEconomy {
   const pct = Math.min(100, Math.max(0, coveragePercent))
-  let montantBourse = Math.round((fraisScolarite * pct) / 100)
+  let montantBourse = Math.round((fraisDossier * pct) / 100)
   if (montantMax != null && montantMax > 0) {
     montantBourse = Math.min(montantBourse, montantMax)
   }
-  const resteACharge = Math.max(0, fraisScolarite - montantBourse)
+  const resteACharge = Math.max(0, fraisDossier - montantBourse)
   const economiePercent =
-    fraisScolarite > 0 ? Math.round((montantBourse / fraisScolarite) * 100) : 0
+    fraisDossier > 0 ? Math.round((montantBourse / fraisDossier) * 100) : 0
 
   return {
-    referentiel: fraisScolarite,
+    referentiel: fraisDossier,
     montantBourse,
     resteACharge,
     coveragePercent: pct,

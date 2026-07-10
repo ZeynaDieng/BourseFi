@@ -39,11 +39,11 @@ export default defineEventHandler(async (event) => {
   let montantDistribue = 0
   for (const b of partner.bourses) {
     const eco = computeScholarshipEconomy(
-      b.programme.fraisScolarite,
+      b.programme.fraisDossier,
       b.coveragePercent,
       b.montantMax,
     )
-    montantDistribue += eco.montantBourse * Math.max(0, b.quota - b.placesRestantes)
+    montantDistribue += eco.montantBourse * b.quota
   }
 
   const paiements = await prisma.paiement.aggregate({
@@ -66,7 +66,6 @@ export default defineEventHandler(async (event) => {
       slug: b.slug,
       titre: b.titre,
       coveragePercent: b.coveragePercent,
-      placesRestantes: b.placesRestantes,
       dateLimite: b.dateLimite.toISOString(),
       etablissement: b.programme.etablissement.nom,
       programmeSlug: b.programme.slug,

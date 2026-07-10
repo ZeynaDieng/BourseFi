@@ -71,9 +71,9 @@ model Programme {
   titre           String
   ville           String
   duree           String
-  fraisDossier    Int           @default(0)
-  fraisScolarite  Int
-  devise          String        @default("FCFA")
+  fraisDossier         Int           @default(20000)
+  fraisDossierEtranger  Int           @default(30000)
+  devise               String        @default("FCFA")
   niveau          String
   placement       String?
   description     String
@@ -95,7 +95,6 @@ model Bourse {
   coveragePercent Int
   montantMax      Int?
   quota           Int           @default(0)
-  placesRestantes Int           @default(0)
   dateLimite      DateTime
   conditions      String?       @db.Text
   documentsRequis String?       @db.Text
