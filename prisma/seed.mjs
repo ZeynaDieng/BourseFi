@@ -493,6 +493,10 @@ async function main() {
   // Vider la base de données existante
   console.log('Suppression des données existantes...')
   
+  // Supprimer les candidatures (liées aux programmes)
+  await prisma.candidature.deleteMany({})
+  console.log('Candidatures supprimées')
+  
   // Supprimer les bourses
   await prisma.bourse.deleteMany({})
   console.log('Bourses supprimées')
