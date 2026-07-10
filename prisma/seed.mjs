@@ -186,16 +186,6 @@ const ECOLES_DATA = [
     ]
   },
   {
-    slug: 'iat-dakar',
-    nom: 'IAT — Établissement à confirmer',
-    ville: 'Zac Mbao',
-    adresse: 'Zac Mbao, cité des impôts, Dakar',
-    site: null,
-    contact: null,
-    typeLabel: 'Établissement technique',
-    formations: []
-  },
-  {
     slug: 'sup-immo-dakar',
     nom: 'SUP\'IMMO — Sup\'Immo Dakar – École Supérieure de l\'Immobilier',
     ville: 'Dakar',
@@ -334,36 +324,6 @@ const ECOLES_DATA = [
     ]
   },
   {
-    slug: 'kanka-institute',
-    nom: 'Kanka Institute — Établissement à vérifier',
-    ville: 'Dakar',
-    adresse: 'Avenue Cheikh Anta Diop, Dakar',
-    site: null,
-    contact: null,
-    typeLabel: 'Établissement à vérifier',
-    formations: []
-  },
-  {
-    slug: 'iaci-dakar',
-    nom: 'IACI — Établissement à vérifier',
-    ville: 'Dakar',
-    adresse: 'Liberté 2, Dakar',
-    site: null,
-    contact: null,
-    typeLabel: 'Établissement à vérifier',
-    formations: []
-  },
-  {
-    slug: 'emh-dakar',
-    nom: 'EMH — Établissement à vérifier',
-    ville: 'Dakar',
-    adresse: 'Face Delorme, Dakar',
-    site: null,
-    contact: null,
-    typeLabel: 'Établissement à vérifier',
-    formations: []
-  },
-  {
     slug: 'smi-thies',
     nom: 'SMI — Sup\'Management Intelligentsia',
     ville: 'Thiès',
@@ -378,56 +338,6 @@ const ECOLES_DATA = [
     ]
   },
   {
-    slug: 'ispm-kaolack',
-    nom: 'ISPM — Institut Machalah (Kaolack)',
-    ville: 'Kaolack',
-    adresse: 'Route de Ndorong, immeuble Lamp Fall, Kaolack',
-    site: null,
-    contact: null,
-    typeLabel: 'Institut',
-    formations: []
-  },
-  {
-    slug: 'igpcs-mbour',
-    nom: 'IGPCS (Mbour) — Institut à vérifier',
-    ville: 'Mbour',
-    adresse: 'Route de Saly, immeuble Allo Docteur, Mbour',
-    site: null,
-    contact: null,
-    typeLabel: 'Institut à vérifier',
-    formations: []
-  },
-  {
-    slug: 'complexe-lyco-thies',
-    nom: 'Complexe Lyco (Thiès) — Établissement à vérifier',
-    ville: 'Thiès',
-    adresse: 'Thiès',
-    site: null,
-    contact: null,
-    typeLabel: 'Établissement à vérifier',
-    formations: []
-  },
-  {
-    slug: 'efpt-ms-sebikhotane',
-    nom: 'EFPT-MS — École de Formation Professionnelle et Technique - Métiers Spécialisés',
-    ville: 'Sébikhotane',
-    adresse: 'Sébikhotane',
-    site: null,
-    contact: null,
-    typeLabel: 'École de Formation Professionnelle',
-    formations: []
-  },
-  {
-    slug: 'escoa-dakar',
-    nom: 'ESCOA — École Supérieure de Commerce et d\'Administration',
-    ville: 'Dakar',
-    adresse: 'KM 4,5 Avenue Cheikh Anta Diop, en face de l\'UCAD, Dakar',
-    site: 'escoa.edu.sn',
-    contact: null,
-    typeLabel: 'École Supérieure de Commerce',
-    formations: []
-  },
-  {
     slug: 'essem-sante-mbour',
     nom: 'Essem / ESEM Santé (Mbour) — Institut de formation santé',
     ville: 'Mbour',
@@ -439,26 +349,6 @@ const ECOLES_DATA = [
       { niveau: 'Diplômes/certifications', filieres: ['Secrétariat médical', 'Assistant Infirmier', 'Gestionnaire de pharmacie', 'Délégué Médical', 'Orthoprothésiste'] },
       { niveau: 'Licence', filieres: ['Sciences infirmières / paramédicales'] }
     ]
-  },
-  {
-    slug: 'efmi-mbour',
-    nom: 'EFMI (Mbour) — École à vérifier',
-    ville: 'Mbour',
-    adresse: 'À côté du groupe scolaire Éducation Plus, Santessou, Mbour',
-    site: null,
-    contact: null,
-    typeLabel: 'École à vérifier',
-    formations: []
-  },
-  {
-    slug: 'espia-dakar',
-    nom: 'ESPIA — École d\'Ingénierie',
-    ville: 'Dakar',
-    adresse: 'Sacré-Cœur 3, VDN, Dakar',
-    site: null,
-    contact: null,
-    typeLabel: 'École d\'Ingénierie',
-    formations: []
   },
   {
     slug: 'img-mbour',
@@ -650,7 +540,7 @@ async function main() {
 
   await seedCmsFromDisk()
 
-  console.log('Seed terminé : 33 écoles, programmes, bourses et utilisateurs créés (après nettoyage de la base).')
+  console.log('Seed terminé : écoles avec formations, programmes, bourses et utilisateurs créés (après nettoyage de la base).')
 }
 
 main()
