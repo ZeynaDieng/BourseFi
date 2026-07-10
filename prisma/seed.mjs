@@ -490,6 +490,21 @@ const ECOLES_DATA = [
 ]
 
 async function main() {
+  // Vider la base de données existante
+  console.log('Suppression des données existantes...')
+  
+  // Supprimer les bourses
+  await prisma.bourse.deleteMany({})
+  console.log('Bourses supprimées')
+  
+  // Supprimer les programmes
+  await prisma.programme.deleteMany({})
+  console.log('Programmes supprimés')
+  
+  // Supprimer les établissements
+  await prisma.etablissement.deleteMany({})
+  console.log('Établissements supprimés')
+  
   // Créer un partenaire par défaut
   const partner = await prisma.partner.upsert({
     where: { slug: 'boursefi-partenaire' },
@@ -631,7 +646,7 @@ async function main() {
 
   await seedCmsFromDisk()
 
-  console.log('Seed terminé : 33 écoles, programmes, bourses et utilisateurs créés.')
+  console.log('Seed terminé : 33 écoles, programmes, bourses et utilisateurs créés (après nettoyage de la base).')
 }
 
 main()
