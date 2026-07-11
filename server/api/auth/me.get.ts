@@ -22,7 +22,9 @@ export default defineEventHandler(async (event) => {
       user.phone &&
       user.address &&
       user.identityCardRectoUrl &&
-      user.identityCardVersoUrl
+      user.identityCardVersoUrl &&
+      user.bfemAttestationUrl &&
+      user.bacTranscriptUrl
   )
 
   return {
@@ -39,6 +41,8 @@ export default defineEventHandler(async (event) => {
       address: user.address,
       identityCardRectoUrl: user.identityCardRectoUrl,
       identityCardVersoUrl: user.identityCardVersoUrl,
+      bfemAttestationUrl: user.bfemAttestationUrl,
+      bacTranscriptUrl: user.bacTranscriptUrl,
       profileComplete
     }
   }

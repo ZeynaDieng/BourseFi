@@ -29,14 +29,26 @@ ALTER TABLE "Programme" DROP COLUMN IF EXISTS "fraisScolarite";
 ALTER TABLE "Bourse" DROP COLUMN IF EXISTS "placesRestantes";
 
 -- ============================================
--- ÉTAPE 6: Vérification des contraintes
+-- ÉTAPE 6: Ajouter les colonnes de documents scolaires à User
+-- ============================================
+ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "bfemAttestationUrl" TEXT;
+ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "bacTranscriptUrl" TEXT;
+
+-- ============================================
+-- ÉTAPE 7: Ajouter les colonnes de documents scolaires à Candidature
+-- ============================================
+ALTER TABLE "Candidature" ADD COLUMN IF NOT EXISTS "bfemAttestationUrl" TEXT;
+ALTER TABLE "Candidature" ADD COLUMN IF NOT EXISTS "bacTranscriptUrl" TEXT;
+
+-- ============================================
+-- ÉTAPE 8: Vérification des contraintes
 -- ============================================
 -- S'assurer que les colonnes ont les bonnes valeurs par défaut
 ALTER TABLE "Programme" ALTER COLUMN "fraisDossier" SET NOT NULL;
 ALTER TABLE "Programme" ALTER COLUMN "fraisDossierEtranger" SET NOT NULL;
 
 -- ============================================
--- ÉTAPE 7: Nettoyage des données potentiellement corrompues
+-- ÉTAPE 9: Nettoyage des données potentiellement corrompues
 -- ============================================
 -- S'assurer que tous les programmes ont des fraisDossier valides
 UPDATE "Programme" SET "fraisDossier" = 20000 WHERE "fraisDossier" IS NULL OR "fraisDossier" < 0;

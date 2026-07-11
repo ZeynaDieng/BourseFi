@@ -123,6 +123,8 @@ model User {
   address              String?
   identityCardRectoUrl String?
   identityCardVersoUrl String?
+  bfemAttestationUrl   String?
+  bacTranscriptUrl     String?
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
   sessions     Session[]
@@ -170,6 +172,8 @@ model Candidature {
   documentIssuedAt DateTime?
   identityCardRectoUrl String?
   identityCardVersoUrl String?
+  bfemAttestationUrl   String?
+  bacTranscriptUrl     String?
   createdAt        DateTime          @default(now())
   paiement         Paiement?
 

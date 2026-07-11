@@ -37,8 +37,12 @@ const hasIdentityDocs = computed(() =>
   Boolean(me.value?.user?.identityCardRectoUrl && me.value?.user?.identityCardVersoUrl),
 )
 
+const hasEducationDocs = computed(() =>
+  Boolean(me.value?.user?.bfemAttestationUrl && me.value?.user?.bacTranscriptUrl),
+)
+
 const applicationSteps = computed(() =>
-  hasIdentityDocs.value ? ['Informations', 'Validation'] : ['Informations', 'Documents', 'Validation'],
+  hasIdentityDocs.value && hasEducationDocs.value && hasEducationDocs.value ? ['Informations', 'Validation'] : ['Informations', 'Documents', 'Validation'],
 )
 
 const STEPS = computed(() =>
@@ -66,6 +70,8 @@ const form = reactive({
   gpa: '',
   identityCardRecto: '',
   identityCardVerso: '',
+  bfemAttestation: '',
+  bacTranscript: '',
 })
 
 const draftKey = computed(() => `boursefi:postuler:${String(route.params.slug)}`)
@@ -73,13 +79,15 @@ const draftKey = computed(() => `boursefi:postuler:${String(route.params.slug)}`
 function saveDraft() {
   if (import.meta.server) return
   try {
-    const { identityCardRecto, identityCardVerso, ...rest } = form
+    const { identityCardRecto, identityCardVerso, bfemAttestation, bacTranscript, ...rest } = form
     sessionStorage.setItem(
       draftKey.value,
       JSON.stringify({
         ...rest,
         hasRecto: Boolean(identityCardRecto),
         hasVerso: Boolean(identityCardVerso),
+        hasBfem: Boolean(bfemAttestation),
+        hasBac: Boolean(bacTranscript),
       }),
     )
   } catch {
@@ -94,7 +102,7 @@ function restoreDraft() {
     if (!raw) return
     const d = JSON.parse(raw) as Partial<typeof form>
     for (const key of Object.keys(form) as (keyof typeof form)[]) {
-      if (key === 'identityCardRecto' || key === 'identityCardVerso') continue
+      if (key === 'identityCardRecto' || key === 'identityCardVerso' || key === 'bfemAttestation' || key === 'bacTranscript') continue
       const value = d[key]
       if (typeof value === 'string' && value && !form[key]) form[key] = value
     }
@@ -215,6 +223,14 @@ function validateStep(s: number): boolean {
       errorMessage.value = 'Ajoutez la photo verso de votre carte d’identité.'
       return false
     }
+    if (!form.bfemAttestation) {
+      errorMessage.value = 'Ajoutez l'attestation de diplôme BFEM.'
+      return false
+    }
+    if (!form.bacTranscript) {
+      errorMessage.value = 'Ajoutez le relevé du Bac.'
+      return false
+    }
   }
   return true
 }
@@ -297,7 +313,7 @@ async function submit() {
     step.value = infoIdx
     return
   }
-  if (!hasIdentityDocs.value) {
+  if (!hasIdentityDocs.value && hasEducationDocs.value) {
     const docIdx = STEPS.value.indexOf('Documents')
     if (!validateStep(docIdx)) {
       step.value = docIdx
@@ -325,9 +341,9 @@ async function submit() {
         lastDiploma: form.lastDiploma.trim(),
         graduationDate: form.graduationDate.trim(),
         gpa: form.gpa.trim(),
-        ...(hasIdentityDocs.value
+        ...(hasIdentityDocs.value && hasEducationDocs.value
           ? {}
-          : { identityCardRecto: form.identityCardRecto, identityCardVerso: form.identityCardVerso }),
+          : { identityCardRecto: form.identityCardRecto, identityCardVerso: form.identityCardVerso, bfemAttestation: form.bfemAttestation, bacTranscript: form.bacTranscript }),
       },
     })
     const requiresPayment =
@@ -535,10 +551,10 @@ useSeoMeta({
             </div>
           </div>
 
-          <!-- Etape 2 : Documents (seulement si la CNI n'est pas déjà sur le compte) -->
+          <!-- Etape 2 : Documents (seulement si les documents ne sont pas déjà sur le compte) -->
           <div v-else-if="currentStepName === 'Documents'" class="space-y-5">
             <div>
-              <h2 class="font-headline text-lg font-bold text-primary">Pièce d’identité</h2>
+              <h2 class="font-headline text-lg font-bold text-primary">Pièces d’identité</h2>
               <p class="mt-1 text-sm text-slate-500">
                 Ajoutez des photos lisibles de votre carte d’identité (JPG, PNG, WebP ou PDF, max 5 Mo).
                 Elle sera enregistrée sur votre compte et réutilisée pour vos prochaines candidatures.
@@ -547,6 +563,18 @@ useSeoMeta({
             <div class="grid gap-4 sm:grid-cols-2">
               <CandidatureDocumentDropzone v-model="form.identityCardRecto" label="Carte d’identité — Recto" />
               <CandidatureDocumentDropzone v-model="form.identityCardVerso" label="Carte d’identité — Verso" />
+            </div>
+
+            <div class="border-t border-slate-100 pt-5">
+              <h2 class="font-headline text-lg font-bold text-primary">Documents scolaires</h2>
+              <p class="mt-1 text-sm text-slate-500">
+                Ajoutez vos documents scolaires pour la bourse (JPG, PNG, WebP ou PDF, max 5 Mo).
+                Ils seront enregistrés sur votre compte et réutilisés pour vos prochaines candidatures.
+              </p>
+            </div>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <CandidatureDocumentDropzone v-model="form.bfemAttestation" label="Attestation de diplôme BFEM" />
+              <CandidatureDocumentDropzone v-model="form.bacTranscript" label="Relevé du Bac" />
             </div>
           </div>
 

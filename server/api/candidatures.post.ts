@@ -3,7 +3,7 @@ import { prisma } from '../utils/prisma'
 import { z } from 'zod'
 import { writeAuditLog } from '../utils/audit'
 import type { CandidatureStatus } from '../utils/candidature-types'
-import { saveUserIdentityImage } from '../utils/candidature-files'
+import { saveUserIdentityImage, saveUserEducationDocument } from '../utils/candidature-files'
 import { createNotification } from '../utils/notifications'
 import { sendEmail, renderEmail } from '../utils/email'
 
@@ -27,7 +27,9 @@ const candidatureSchema = z.object({
   phone: z.string().min(8).max(32).trim().optional(),
   address: z.string().min(5).max(600).trim().optional(),
   identityCardRecto: documentDataUrl.optional(),
-  identityCardVerso: documentDataUrl.optional()
+  identityCardVerso: documentDataUrl.optional(),
+  bfemAttestation: documentDataUrl.optional(),
+  bacTranscript: documentDataUrl.optional()
 })
 
 export default defineEventHandler(async (event) => {
@@ -81,9 +83,11 @@ export default defineEventHandler(async (event) => {
   const address = (user.address || parsed.data.address || '').trim()
   let rectoUrl = user.identityCardRectoUrl
   let versoUrl = user.identityCardVersoUrl
+  let bfemUrl = user.bfemAttestationUrl
+  let bacUrl = user.bacTranscriptUrl
 
-  // Si la CNI n'est pas encore enregistrée sur le compte mais fournie ici,
-  // on l'enregistre une fois pour toutes au niveau du compte (réutilisable).
+  // Si les documents ne sont pas encore enregistrés sur le compte mais fournis ici,
+  // on les enregistre une fois pour toutes au niveau du compte (réutilisable).
   const profilePatch: {
     firstName?: string
     lastName?: string
@@ -91,6 +95,8 @@ export default defineEventHandler(async (event) => {
     address?: string
     identityCardRectoUrl?: string
     identityCardVersoUrl?: string
+    bfemAttestationUrl?: string
+    bacTranscriptUrl?: string
   } = {}
   try {
     if (!rectoUrl && parsed.data.identityCardRecto) {
@@ -101,16 +107,24 @@ export default defineEventHandler(async (event) => {
       versoUrl = await saveUserIdentityImage(user.id, 'verso', parsed.data.identityCardVerso)
       profilePatch.identityCardVersoUrl = versoUrl
     }
+    if (!bfemUrl && parsed.data.bfemAttestation) {
+      bfemUrl = await saveUserEducationDocument(user.id, 'bfem', parsed.data.bfemAttestation)
+      profilePatch.bfemAttestationUrl = bfemUrl
+    }
+    if (!bacUrl && parsed.data.bacTranscript) {
+      bacUrl = await saveUserEducationDocument(user.id, 'bac', parsed.data.bacTranscript)
+      profilePatch.bacTranscriptUrl = bacUrl
+    }
   } catch (err) {
-    const msg = err instanceof Error ? err.message : 'Erreur enregistrement des pièces d identité.'
+    const msg = err instanceof Error ? err.message : 'Erreur enregistrement des documents.'
     throw createError({ statusCode: 400, statusMessage: msg })
   }
 
-  if (!firstName || !lastName || !phone || !address || !rectoUrl || !versoUrl) {
+  if (!firstName || !lastName || !phone || !address || !rectoUrl || !versoUrl || !bfemUrl || !bacUrl) {
     throw createError({
       statusCode: 400,
       statusMessage:
-        'Complétez votre profil (nom, téléphone, adresse et carte d’identité) avant de postuler.'
+        'Complétez votre profil (nom, téléphone, adresse, carte d\'identité, attestation BFEM et relevé Bac) avant de postuler.'
     })
   }
 
@@ -146,9 +160,11 @@ export default defineEventHandler(async (event) => {
       gpa: parsed.data.gpa,
       targetProgram: programme.titre,
       status: initialStatus,
-      // CNI réutilisée depuis le compte (pas de duplication de fichiers)
+      // Documents réutilisés depuis le compte (pas de duplication de fichiers)
       identityCardRectoUrl: rectoUrl,
-      identityCardVersoUrl: versoUrl
+      identityCardVersoUrl: versoUrl,
+      bfemAttestationUrl: bfemUrl,
+      bacTranscriptUrl: bacUrl
     }
   })
 

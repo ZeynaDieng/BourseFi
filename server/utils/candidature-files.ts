@@ -65,6 +65,24 @@ export async function saveUserIdentityImage(
   return uploadPublicUrl(`users/${userId}/${name}`)
 }
 
+/**
+ * Enregistre un document scolaire au niveau du COMPTE candidat
+ * sous public/uploads/users/{userId}/{docType}.{ext} et renvoie son URL publique.
+ * Réutilisable pour toutes les candidatures du même utilisateur.
+ */
+export async function saveUserEducationDocument(
+  userId: string,
+  docType: 'bfem' | 'bac',
+  dataUrl: string
+): Promise<string> {
+  const f = parseDocumentDataUrl(dataUrl)
+  const dir = join(getUploadRoot(), 'users', userId)
+  await mkdir(dir, { recursive: true })
+  const name = `${docType}.${f.ext}`
+  await writeFile(join(dir, name), f.buffer)
+  return uploadPublicUrl(`users/${userId}/${name}`)
+}
+
 export async function saveCandidatureIdentityImages(
   candidatureId: string,
   rectoDataUrl: string,
