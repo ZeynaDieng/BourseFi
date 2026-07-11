@@ -244,8 +244,7 @@ const stats = computed(() => {
     items ?? [
       { value: "245", label: "Bourses disponibles" },
       { value: "37", label: "Écoles partenaires" },
-      { value: "8", label: "Partenaires financeurs" },
-      { value: "1200", label: "Candidatures validées" },
+      
     ]
   );
 });

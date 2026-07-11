@@ -66,11 +66,8 @@ useSiteSeo({
         placeholder="Rechercher une bourse, école, partenaire..."
         class="rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm"
       />
-      <select v-model="partnerFilter" class="rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm">
-        <option value="">Tous les partenaires</option>
-        <option v-for="p in partners" :key="p.slug" :value="p.slug">{{ p.name }}</option>
-      </select>
-      <select v-model.number="coverageMin" class="rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm">
+     
+      <select v-model.number="coverageMin" class="rounded-xl border border-slate-100 bg-slate-50 px-6 py-3 text-sm">
         <option :value="0">Toute couverture</option>
         <option :value="25">≥ 25 %</option>
         <option :value="50">≥ 50 %</option>

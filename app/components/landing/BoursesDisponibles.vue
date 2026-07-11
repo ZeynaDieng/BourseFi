@@ -4,7 +4,7 @@ import type { BourseDto } from '~/types/bourse'
 
 const { data: bourses } = await useFetch<BourseDto[]>('/api/bourses')
 
-const featured = computed(() => (bourses.value ?? []).slice(0, 8))
+const featured = computed(() => (bourses.value ?? []).slice(0, 9))
 </script>
 
 <template>

@@ -43,7 +43,7 @@ const items = computed(() => (site.value?.testimonials ?? []).slice(0, 3))
             </div>
           </div>
           <p class="line-clamp-3 flex-1 text-sm leading-relaxed text-slate-600">
-            « {{ t.quote }} »
+            {{ t.quote }} 
           </p>
         </blockquote>
       </div>

@@ -42,9 +42,9 @@ function formatDate(iso: string) {
 
 <template>
   <article :class="[cardBase, cardInteractive, 'group flex flex-col p-6']">
-    <div v-if="showPopular" class="mb-3 flex flex-wrap gap-1.5">
+   <!-- <div v-if="showPopular" class="mb-3 flex flex-wrap gap-1.5">
       <span :class="badgePopular">Bourse disponible</span>
-    </div>
+    </div> -->
 
     <h3 class="line-clamp-2 font-headline text-lg font-extrabold leading-snug text-primary">
       {{ bourse.titre }}
@@ -62,9 +62,9 @@ function formatDate(iso: string) {
       Frais de dossier : {{ bourse.fraisDossier.toLocaleString('fr-FR') }} {{ bourse.devise }}
     </p>
 
-    <p class="mt-2 text-xs text-slate-400">
+   <!-- <p class="mt-2 text-xs text-slate-400">
       {{ formatDeadline(bourse.dateLimite) }}
-    </p>
+    </p> -->
 
     <NuxtLink
       :to="`/bourses/${bourse.slug}`"
