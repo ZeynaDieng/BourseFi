@@ -2,29 +2,9 @@ generator client {
   provider = "prisma-client-js"
 }
 
-
-
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-}
-
-enum Role {
-  STUDENT
-  ADMIN
-  PARTNER
-}
-
-enum CandidatureStatus {
-  BROUILLON
-  SOUMIS
-  EN_ATTENTE_PAIEMENT
-  EN_REVUE_PARTENAIRE
-  COMPLEMENT_DEMANDE
-  ACCEPTE
-  REFUSE
-  DOCUMENT_EMIS
-  TERMINE
 }
 
 model Partner {
@@ -33,47 +13,45 @@ model Partner {
   slug                String        @unique
   logoUrl             String?
   contactEmail        String?
-  description         String?       @db.Text
-  conditions          String?       @db.Text
   /// Part du montant total (0-100) attribuee au partenaire bailleur
   partnerSharePercent Int           @default(75)
   createdAt           DateTime      @default(now())
-  users               User[]
-  programmes          Programme[]
+  conditions          String?
+  description         String?
   bourses             Bourse[]
   candidatures        Candidature[]
+  programmes          Programme[]
+  users               User[]
 }
 
 model Etablissement {
-  id              String      @id @default(cuid())
-  slug            String      @unique
-  nom             String
-  ville           String
-  accreditation   String?
-  site            String?
-  resume          String?
+  id            String      @id @default(cuid())
+  slug          String      @unique
+  nom           String
+  ville         String
+  accreditation String?
+  site          String?
+  resume        String?
   /// Photo d’en-tête (carte + hero fiche école)
-  coverImageUrl   String?
+  coverImageUrl String?
   /// Logo affiché en pastille sur la photo
-  logoUrl         String?
+  logoUrl       String?
   /// Libellé métier du référentiel (ex. École d’ingénieur)
-  typeLabel       String?
-  programmes      Programme[]
+  typeLabel     String?
+  programmes    Programme[]
 }
 
 model Programme {
   id              String        @id @default(cuid())
   slug            String        @unique
   etablissementId String
-  etablissement   Etablissement @relation(fields: [etablissementId], references: [id], onDelete: Cascade)
   partnerId       String
-  partner         Partner       @relation(fields: [partnerId], references: [id], onDelete: Restrict)
   titre           String
   ville           String
   duree           String
-  fraisDossier         Int           @default(20000)
-  fraisDossierEtranger  Int           @default(30000)
-  devise               String        @default("FCFA")
+  fraisDossier    Int           @default(0)
+  fraisDossierEtranger   Int?
+  devise          String        @default("FCFA")
   niveau          String
   placement       String?
   description     String
@@ -82,6 +60,8 @@ model Programme {
   perspectives    String?
   bourses         Bourse[]
   candidatures    Candidature[]
+  etablissement   Etablissement @relation(fields: [etablissementId], references: [id], onDelete: Cascade)
+  partner         Partner       @relation(fields: [partnerId], references: [id])
 }
 
 model Bourse {
@@ -89,18 +69,19 @@ model Bourse {
   slug            String        @unique
   titre           String
   programmeId     String
-  programme       Programme     @relation(fields: [programmeId], references: [id], onDelete: Cascade)
   partnerId       String
-  partner         Partner       @relation(fields: [partnerId], references: [id], onDelete: Restrict)
   coveragePercent Int
   montantMax      Int?
   quota           Int           @default(0)
+  placesRestantes Int           @default(0)
   dateLimite      DateTime
-  conditions      String?       @db.Text
-  documentsRequis String?       @db.Text
+  conditions      String?
+  documentsRequis String?
   isActive        Boolean       @default(true)
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
+  partner         Partner       @relation(fields: [partnerId], references: [id])
+  programme       Programme     @relation(fields: [programmeId], references: [id], onDelete: Cascade)
   candidatures    Candidature[]
 
   @@index([programmeId])
@@ -109,73 +90,68 @@ model Bourse {
 }
 
 model User {
-  id           String        @id @default(cuid())
-  name         String
-  email        String        @unique
-  passwordHash String
-  role         Role          @default(STUDENT)
-  partnerId    String?
-  partner      Partner?      @relation(fields: [partnerId], references: [id], onDelete: SetNull)
-  // Profil candidat réutilisable (saisi une seule fois, réutilisé à chaque candidature)
-  firstName            String?
-  lastName             String?
-  phone                String?
+  id                   String         @id @default(cuid())
+  name                 String
+  email                String         @unique
+  passwordHash         String
+  role                 Role           @default(STUDENT)
+  partnerId            String?
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
   address              String?
+  firstName            String?
   identityCardRectoUrl String?
   identityCardVersoUrl String?
-  bfemAttestationUrl   String?
-  bacTranscriptUrl     String?
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  sessions     Session[]
-  candidatures  Candidature[]
-  paiements     Paiement[]
-  auditLogs     AuditLog[]
-  notifications Notification[]
+  lastName             String?
+  phone                String?
+  auditLogs            AuditLog[]
+  candidatures         Candidature[]
+  notifications        Notification[]
+  paiements            Paiement[]
+  sessions             Session[]
+  partner              Partner?       @relation(fields: [partnerId], references: [id])
 }
 
 model Session {
   id        String   @id @default(cuid())
   token     String   @unique
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   expiresAt DateTime
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Candidature {
-  id               String            @id @default(cuid())
-  userId           String
-  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  programmeId      String
-  programme        Programme         @relation(fields: [programmeId], references: [id], onDelete: Restrict)
-  bourseId         String?
-  bourse           Bourse?           @relation(fields: [bourseId], references: [id], onDelete: SetNull)
-  partnerId        String
-  partner          Partner           @relation(fields: [partnerId], references: [id], onDelete: Restrict)
-  firstName        String            @default("")
-  lastName         String            @default("")
-  fullName         String
-  email            String
-  phone            String            @default("")
-  address          String            @default("")
-  institution      String            @default("")
-  field            String            @default("")
-  level            String            @default("Non precise")
-  lastEducationLevel String          @default("")
-  lastDiploma      String            @default("")
-  graduationDate   String            @default("")
-  gpa              String            @default("")
-  targetProgram    String
-  status           CandidatureStatus @default(SOUMIS)
-  documentUrl      String?
-  documentIssuedAt DateTime?
+  id                   String            @id @default(cuid())
+  userId               String
+  programmeId          String
+  partnerId            String
+  firstName            String            @default("")
+  lastName             String            @default("")
+  fullName             String
+  email                String
+  phone                String            @default("")
+  address              String            @default("")
+  institution          String            @default("")
+  field                String            @default("")
+  level                String            @default("Non precise")
+  lastEducationLevel   String            @default("")
+  lastDiploma          String            @default("")
+  graduationDate       String            @default("")
+  gpa                  String            @default("")
+  targetProgram        String
+  status               CandidatureStatus @default(SOUMIS)
+  documentUrl          String?
+  documentIssuedAt     DateTime?
   identityCardRectoUrl String?
   identityCardVersoUrl String?
-  bfemAttestationUrl   String?
-  bacTranscriptUrl     String?
-  createdAt        DateTime          @default(now())
-  paiement         Paiement?
+  createdAt            DateTime          @default(now())
+  bourseId             String?
+  bourse               Bourse?           @relation(fields: [bourseId], references: [id])
+  partner              Partner           @relation(fields: [partnerId], references: [id])
+  programme            Programme         @relation(fields: [programmeId], references: [id])
+  user                 User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  paiement             Paiement?
 
   @@index([partnerId])
   @@index([programmeId])
@@ -186,14 +162,14 @@ model Candidature {
 model Notification {
   id            String    @id @default(cuid())
   userId        String
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   type          String
   title         String
-  body          String    @db.Text
+  body          String
   readAt        DateTime?
   candidatureId String?
   bourseId      String?
   createdAt     DateTime  @default(now())
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([readAt])
@@ -202,9 +178,7 @@ model Notification {
 model Paiement {
   id             String       @id @default(cuid())
   userId         String
-  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   candidatureId  String?      @unique
-  candidature    Candidature? @relation(fields: [candidatureId], references: [id], onDelete: SetNull)
   fullName       String
   email          String
   phone          String
@@ -214,10 +188,12 @@ model Paiement {
   amountPlatform Int          @default(0)
   currency       String
   status         String       @default("Valide")
+  createdAt      DateTime     @default(now())
   provider       String?      @default("paytech")
   refCommand     String?      @unique
   token          String?
-  createdAt      DateTime     @default(now())
+  candidature    Candidature? @relation(fields: [candidatureId], references: [id])
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
@@ -225,13 +201,13 @@ model Paiement {
 model AuditLog {
   id         String   @id @default(cuid())
   actorId    String?
-  actor      User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
   actorRole  String
   action     String
   entityType String
   entityId   String?
   metadata   String?
   createdAt  DateTime @default(now())
+  actor      User?    @relation(fields: [actorId], references: [id])
 
   @@index([createdAt])
   @@index([action])
@@ -245,20 +221,20 @@ model SiteContent {
 }
 
 model FaqItem {
-  id        String   @id @default(cuid())
-  sortOrder Int      @default(0)
-  published Boolean  @default(true)
+  id        String  @id @default(cuid())
+  sortOrder Int     @default(0)
+  published Boolean @default(true)
   question  String
   answer    String
 }
 
 model TestimonialItem {
-  id        String   @id @default(cuid())
-  sortOrder Int      @default(0)
-  published Boolean  @default(true)
-  initials  String?
-  name      String
-  role      String
+  id            String  @id @default(cuid())
+  sortOrder     Int     @default(0)
+  published     Boolean @default(true)
+  initials      String?
+  name          String
+  role          String
   quote         String
   avatarUrl     String?
   ecoleNom      String?
@@ -288,6 +264,24 @@ model ContactMessage {
   senderName String
   email      String
   subject    String
-  message    String   @db.Text
+  message    String
   createdAt  DateTime @default(now())
+}
+
+enum Role {
+  STUDENT
+  ADMIN
+  PARTNER
+}
+
+enum CandidatureStatus {
+  SOUMIS
+  EN_ATTENTE_PAIEMENT
+  EN_REVUE_PARTENAIRE
+  COMPLEMENT_DEMANDE
+  ACCEPTE
+  REFUSE
+  DOCUMENT_EMIS
+  BROUILLON
+  TERMINE
 }

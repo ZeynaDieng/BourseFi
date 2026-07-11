@@ -14,20 +14,35 @@ async function upsertUser({ name, email, password, role, partnerId = null }) {
   })
 }
 
+function normalizeUrl(value) {
+  if (!value || typeof value !== 'string') return null
+  const v = value.trim()
+  if (!v) return null
+  return v
+}
+
+function dedupeArray(arr) {
+  return [...new Set((arr || []).map((x) => String(x).trim()).filter(Boolean))]
+}
+
+function buildResume(ecoleData) {
+  return `${ecoleData.typeLabel} situé à ${ecoleData.adresse || ecoleData.ville}.${ecoleData.contact ? ` Contact: ${ecoleData.contact}` : ''}`
+}
+
 async function seedCmsFromDisk() {
   const root = join(process.cwd(), 'shared')
   const siteSeed = JSON.parse(readFileSync(join(root, 'site-cms-seed.json'), 'utf8'))
   const metiersSeed = JSON.parse(readFileSync(join(root, 'metiers-seed.json'), 'utf8'))
 
   if ((await prisma.siteContent.count()) === 0) {
-    for (const [key, payload] of Object.entries(siteSeed.siteContent)) {
+    for (const [key, payload] of Object.entries(siteSeed.siteContent || {})) {
       await prisma.siteContent.create({ data: { key, payload } })
     }
   }
 
   if ((await prisma.faqItem.count()) === 0) {
     await prisma.faqItem.createMany({
-      data: siteSeed.faq.map((item, i) => ({
+      data: (siteSeed.faq || []).map((item, i) => ({
         question: item.question,
         answer: item.answer,
         sortOrder: i,
@@ -38,7 +53,7 @@ async function seedCmsFromDisk() {
 
   if ((await prisma.testimonialItem.count()) === 0) {
     await prisma.testimonialItem.createMany({
-      data: siteSeed.testimonials.map((item, i) => ({
+      data: (siteSeed.testimonials || []).map((item, i) => ({
         sortOrder: i,
         initials: item.initials ?? null,
         name: item.name,
@@ -54,7 +69,7 @@ async function seedCmsFromDisk() {
 
   if ((await prisma.metierPage.count()) === 0) {
     await prisma.metierPage.createMany({
-      data: metiersSeed.map((m) => ({
+      data: (metiersSeed || []).map((m) => ({
         slug: m.slug,
         sortOrder: m.sortOrder,
         published: m.published,
@@ -72,7 +87,6 @@ async function seedCmsFromDisk() {
   }
 }
 
-// Données des 33 écoles réelles
 const ECOLES_DATA = [
   {
     slug: 'imtech-nelson-mandela',
@@ -81,9 +95,8 @@ const ECOLES_DATA = [
     adresse: 'Rond-point Castor x Avenue Bourguiba, Dakar',
     site: 'imtech-nelsonmandela.com',
     contact: '33 825 58 21',
-      logoUrl: null,
+    logoUrl: null,
     coverImageUrl: 'https://www.sencampus.com/api/media/file/imtech-nelson-mandela-1.jpg',
-
     typeLabel: 'Institut de Management et Technologie',
     formations: [
       { niveau: 'BTS/DT', filieres: ['Management', 'Génie Civil', 'Électromécanique', 'Informatique', 'Marketing', 'Logistique', 'Comptabilité'] },
@@ -98,9 +111,8 @@ const ECOLES_DATA = [
     adresse: 'Parcelles Assainies Unité 6 N°518, à côté du Lycée des Parcelles Assainies (LPA) et station Shell, Dakar',
     site: 'isdb.sn',
     contact: '77 544 52 41',
-     logoUrl: 'https://www.sencampus.com/api/media/file/isdb.jpg',
+    logoUrl: 'https://www.sencampus.com/api/media/file/isdb.jpg',
     coverImageUrl: 'https://www.sencampus.com/api/media/file/isdb-institut-superieur-de-formation.webp',
-
     typeLabel: 'Institut Supérieur',
     formations: [
       { niveau: 'DT/DTS/BEP/BTS', filieres: ['Transit douane (2 ans)', 'Hôtellerie-restauration (2 ans)', 'Comptabilité gestion de caisse', 'Secrétariat bureautique informatique', 'Infographie'] },
@@ -115,10 +127,8 @@ const ECOLES_DATA = [
     adresse: 'Sicap/Liberté 4, Lot 5001, Dakar (côté camp des sapeurs-pompiers)',
     site: 'estg.sn',
     contact: null,
-        logoUrl: 'https://www.sencampus.com/api/media/file/logo-estg-ecole-superieure-des-techniques-de-gestion.jpg',
+    logoUrl: 'https://www.sencampus.com/api/media/file/logo-estg-ecole-superieure-des-techniques-de-gestion.jpg',
     coverImageUrl: 'https://www.sencampus.com/api/media/file/ESTG-ecole-superieur-des-techniques-de-gestions.jpg',
-
-
     typeLabel: 'École Supérieure de Gestion',
     formations: [
       { niveau: 'BTS/Bachelor', filieres: ['Audit et Contrôle de Gestion', 'Communication et Publicité', 'Banque-Finance-Assurance'] },
@@ -133,6 +143,8 @@ const ECOLES_DATA = [
     adresse: 'Liberté 4, Allées Khalifa Ababacar Sy, villa 5015, Dakar (près du camp des sapeurs-pompiers)',
     site: 'hecm-dakar.com',
     contact: '33 843 55 39',
+    logoUrl: null,
+    coverImageUrl: null,
     typeLabel: 'École de Coaching et Management',
     formations: [
       { niveau: 'BTS', filieres: ['Comptabilité et fiscalité', 'Marketing et Communication Digitale'] },
@@ -147,6 +159,8 @@ const ECOLES_DATA = [
     adresse: 'Sicap Liberté 2, derrière le rond-point Jet d\'Eau, villa n°1589, Dakar',
     site: 'abs-ao.com',
     contact: '77 123 41 41',
+    logoUrl: null,
+    coverImageUrl: null,
     typeLabel: 'Business School',
     formations: [
       { niveau: 'BTS', filieres: ['Filières homologuées par le ministère de la Formation professionnelle (transit-douane, gestion, etc.)'] },
@@ -161,9 +175,8 @@ const ECOLES_DATA = [
     adresse: 'VDN, Liberté 6 Extension villa n°05, en face du cimetière Saint-Lazare de Béthanie, Dakar',
     site: 'amdiafrique.com',
     contact: '33 825 72 32',
-     logoUrl: null,
+    logoUrl: null,
     coverImageUrl: 'https://www.sencampus.com/api/media/file/amdi-afrique-sencampus-thumbnail.webp',
-
     typeLabel: 'Institut de Développement',
     formations: [
       { niveau: 'DT/Diplômes santé d\'État', filieres: ['Infirmier d\'État', 'Sage-femme d\'État', 'Vendeur en Pharmacie', 'Délégation Médicale', 'Secrétaire médicale'] },
@@ -180,8 +193,6 @@ const ECOLES_DATA = [
     contact: null,
     logoUrl: 'https://www.sencampus.com/api/media/file/isbd.jpg',
     coverImageUrl: 'https://www.sencampus.com/api/media/file/isbd-international-school-of-business-and-development-thumbnail.webp',
-
-
     typeLabel: 'Business School',
     formations: [
       { niveau: 'Licence', filieres: ['Informatique de gestion', 'Marketing et Communication', 'Ressources Humaines', 'Transport Logistique'] },
@@ -197,8 +208,6 @@ const ECOLES_DATA = [
     contact: '77 868 57 27',
     logoUrl: null,
     coverImageUrl: 'https://www.sencampus.com/api/media/file/cefas-sencampus-thumbnail.webp',
-
-
     typeLabel: 'Centre de Formation',
     formations: [
       { niveau: 'BT/BTS/DTS', filieres: ['Analyse Biologique (Santé)', 'Filières Techniques (électricité, mécanique, génie industriel)', 'Département Santé'] },
@@ -213,6 +222,8 @@ const ECOLES_DATA = [
     adresse: 'Liberté 6 Extension, en face de la pharmacie Leclerc, Dakar',
     site: 'groupesupimmo.com',
     contact: '78 222 90 90',
+    logoUrl: null,
+    coverImageUrl: null,
     typeLabel: 'École de l\'Immobilier',
     formations: [
       { niveau: 'Certificat', filieres: ['Certificat Professionnel de l\'Immobilier (CPI, 6 mois)'] },
@@ -227,10 +238,12 @@ const ECOLES_DATA = [
     adresse: 'N°8477, Sud Foire, Dakar (près du SAMU municipal)',
     site: 'ipd.sn',
     contact: '33 867 90 45',
+    logoUrl: null,
+    coverImageUrl: null,
     typeLabel: 'Institut Polytechnique',
     formations: [
       { niveau: 'BTS/DTS', filieres: ['Informatique', 'Réseaux/TIC', 'Génie Civil', 'Comptabilité', 'Transport-Logistique'] },
-      { niveau: 'Licence', filieres: ['Informatique', 'Génie Logiciel', 'Réseaux/TIC', 'Électrotechnique', 'IA', 'Génie Civil', 'Comptabilité', 'RH', 'Marketing', 'Finance', 'QHSE', 'Commerce International', 'Gestion de projet', 'Audit', 'Transport', 'Transit', 'Commerce International'] },
+      { niveau: 'Licence', filieres: ['Informatique', 'Génie Logiciel', 'Réseaux/TIC', 'Électrotechnique', 'IA', 'Génie Civil', 'Comptabilité', 'RH', 'Marketing', 'Finance', 'QHSE', 'Commerce International', 'Gestion de projet', 'Audit', 'Transport', 'Transit'] },
       { niveau: 'Master', filieres: ['Mêmes filières que la Licence, poursuivies en 2ᵉ cycle'] }
     ]
   },
@@ -241,6 +254,8 @@ const ECOLES_DATA = [
     adresse: 'Sacré-Cœur III, villas N°9256/9255, VDN, Dakar',
     site: 'esupdakar.sn',
     contact: '33 867 07 90',
+    logoUrl: null,
+    coverImageUrl: null,
     typeLabel: 'Groupe d\'enseignement supérieur',
     formations: [
       { niveau: 'BTS/DTS', filieres: ['Administration et Gestion des Entreprises', 'Informatique', 'Télécommunications', 'Réseaux et Sécurité informatique', 'Génie Électrique', 'Génie Industriel'] },
@@ -255,6 +270,8 @@ const ECOLES_DATA = [
     adresse: 'Cité SIPRES 2, face VDN, villa n°2, Dakar (annexe Parcelles Assainies)',
     site: 'ifaa.sn',
     contact: '33 867 36 35',
+    logoUrl: null,
+    coverImageUrl: null,
     typeLabel: 'Institut de Formation',
     formations: [
       { niveau: 'BTS/DTS', filieres: ['Banque-Finance-Assurance', 'Comptabilité-Gestion', 'Marketing', 'Commerce International', 'Transport-Logistique'] },
@@ -269,6 +286,8 @@ const ECOLES_DATA = [
     adresse: 'Liberté 6 Extension, villa n°205, en face du Camp Leclerc, Dakar',
     site: 'ensupafrique.com',
     contact: null,
+    logoUrl: null,
+    coverImageUrl: null,
     typeLabel: 'École Supérieure',
     formations: [
       { niveau: 'BTS', filieres: ['Comptabilité-Gestion', 'GRH', 'Marketing', 'Transport-Logistique'] },
@@ -283,6 +302,8 @@ const ECOLES_DATA = [
     adresse: 'Keur Massar (Aïnoumadi) ; campus à Pikine/Guédiawaye, Avenue Bourguiba, Thiès, Kaolack, Touba',
     site: 'groupelitesante.com',
     contact: null,
+    logoUrl: null,
+    coverImageUrl: null,
     typeLabel: 'Institut de Santé',
     formations: [
       { niveau: 'Diplômes d\'État', filieres: ['Sage-femme d\'État', 'Infirmier d\'État', 'Assistant infirmier'] },
@@ -297,6 +318,8 @@ const ECOLES_DATA = [
     adresse: 'Rufisque, Cité Santé Yalla, près du rond-point Socabeg, Lot 9591',
     site: 'groupe-img.com',
     contact: '33 836 62 42',
+    logoUrl: null,
+    coverImageUrl: null,
     typeLabel: 'Institut de Management',
     formations: [
       { niveau: 'DTS/BEP/DEP', filieres: ['Comptabilité de gestion', 'Transport logistique', 'Marketing et communication', 'Journalisme et Communication'] },
@@ -310,6 +333,8 @@ const ECOLES_DATA = [
     adresse: 'Colobane, Dakar',
     site: 'afpa.sn',
     contact: null,
+    logoUrl: null,
+    coverImageUrl: null,
     typeLabel: 'Formation Professionnelle',
     formations: [
       { niveau: 'BTS', filieres: ['Hôtellerie-Restauration', 'Tourisme', 'Santé', 'Gestion Hôtelière'] },
@@ -323,6 +348,8 @@ const ECOLES_DATA = [
     adresse: 'Avenue Bourguiba, à 25m du Crédit Mutuel de Castors, face au jardin de Dieuppeul II, Dakar',
     site: 'isca.sn',
     contact: '33 825 02 03',
+    logoUrl: null,
+    coverImageUrl: null,
     typeLabel: 'Institut Supérieur',
     formations: [
       { niveau: 'DT/DU/DTS/BTS/BT/DUT/Certificat/DEUG', filieres: ['Informatique de Gestion', 'Réseaux Informatique'] },
@@ -337,6 +364,8 @@ const ECOLES_DATA = [
     adresse: 'Sicap Sacré-Cœur 2, Immeuble IPG-ISTI, BP 10155, Dakar (2ᵉ site Almadies)',
     site: 'ipg-isti.sn',
     contact: null,
+    logoUrl: null,
+    coverImageUrl: null,
     typeLabel: 'Groupe d\'Instituts',
     formations: [
       { niveau: 'BTS', filieres: ['Électronique', 'Informatique', 'Froid-Climatisation', 'Électrotechnique', 'Électromécanique'] },
@@ -351,6 +380,8 @@ const ECOLES_DATA = [
     adresse: 'Cité Malick Sy, derrière la station Titan Oil, Thiès (siège aussi Dakar Point E ; campus Ziguinchor)',
     site: 'smi.sn',
     contact: '33 951 66 62',
+    logoUrl: null,
+    coverImageUrl: null,
     typeLabel: 'École de Management',
     formations: [
       { niveau: 'BT/BTS/DEC', filieres: ['Comptabilité', 'Gestion', 'Management', 'Commerce', 'Logistique', 'Marketing', 'Informatique'] },
@@ -365,6 +396,8 @@ const ECOLES_DATA = [
     adresse: 'Croisement Saly, Mbour',
     site: null,
     contact: null,
+    logoUrl: null,
+    coverImageUrl: null,
     typeLabel: 'Institut de Santé',
     formations: [
       { niveau: 'Diplômes/certifications', filieres: ['Secrétariat médical', 'Assistant Infirmier', 'Gestionnaire de pharmacie', 'Délégué Médical', 'Orthoprothésiste'] },
@@ -378,6 +411,8 @@ const ECOLES_DATA = [
     adresse: 'Après l\'agence Free de Mbour, intersection LDD (ex-IMG)',
     site: 'imgmbour.com',
     contact: null,
+    logoUrl: null,
+    coverImageUrl: null,
     typeLabel: 'Institut de Management',
     formations: [
       { niveau: 'DTS', filieres: ['Comptabilité de gestion', 'Transport logistique', 'Marketing et communication'] },
@@ -393,6 +428,8 @@ const ECOLES_DATA = [
     adresse: 'Croisement Saly, Mbour',
     site: 'ensupafrique.com',
     contact: null,
+    logoUrl: null,
+    coverImageUrl: null,
     typeLabel: 'École Supérieure',
     formations: [
       { niveau: 'BTS/Licence/Master', filieres: ['Comptabilité-Gestion', 'GRH', 'Transport-Logistique', 'Banque-Finance-Assurance', 'Marketing', 'Gestion immobilière', 'Marchés publics'] }
@@ -401,26 +438,17 @@ const ECOLES_DATA = [
 ]
 
 async function main() {
-  // Vider la base de données existante
   console.log('Suppression des données existantes...')
-  
-  // Supprimer les candidatures (liées aux programmes)
-  await prisma.candidature.deleteMany({})
-  console.log('Candidatures supprimées')
-  
-  // Supprimer les bourses
-  await prisma.bourse.deleteMany({})
-  console.log('Bourses supprimées')
-  
-  // Supprimer les programmes
-  await prisma.programme.deleteMany({})
-  console.log('Programmes supprimés')
-  
-  // Supprimer les établissements
-  await prisma.etablissement.deleteMany({})
-  console.log('Établissements supprimés')
-  
-  // Créer un partenaire par défaut
+
+  await prisma.$transaction([
+    prisma.candidature.deleteMany({}),
+    prisma.bourse.deleteMany({}),
+    prisma.programme.deleteMany({}),
+    prisma.etablissement.deleteMany({})
+  ])
+
+  console.log('Données principales supprimées')
+
   const partner = await prisma.partner.upsert({
     where: { slug: 'boursefi-partenaire' },
     update: {
@@ -441,43 +469,48 @@ async function main() {
     }
   })
 
-  // Créer les 33 écoles
   for (const ecoleData of ECOLES_DATA) {
     const ecole = await prisma.etablissement.upsert({
       where: { slug: ecoleData.slug },
       update: {
         nom: ecoleData.nom,
         ville: ecoleData.ville,
-        site: ecoleData.site,
-        resume: `${ecoleData.typeLabel} situé à ${ecoleData.adresse || ecoleData.ville}. ${ecoleData.contact ? `Contact: ${ecoleData.contact}` : ''}`,
+        site: normalizeUrl(ecoleData.site),
+        resume: buildResume(ecoleData),
         typeLabel: ecoleData.typeLabel,
-        logoUrl: ecoleData.logoUrl,
-        coverImageUrl: ecoleData.coverImageUrl
+        logoUrl: normalizeUrl(ecoleData.logoUrl),
+        coverImageUrl: normalizeUrl(ecoleData.coverImageUrl)
       },
       create: {
         slug: ecoleData.slug,
         nom: ecoleData.nom,
         ville: ecoleData.ville,
-        site: ecoleData.site,
-        resume: `${ecoleData.typeLabel} situé à ${ecoleData.adresse || ecoleData.ville}. ${ecoleData.contact ? `Contact: ${ecoleData.contact}` : ''}`,
+        site: normalizeUrl(ecoleData.site),
+        resume: buildResume(ecoleData),
         typeLabel: ecoleData.typeLabel,
-        logoUrl: ecoleData.logoUrl,
-        coverImageUrl: ecoleData.coverImageUrl
+        logoUrl: normalizeUrl(ecoleData.logoUrl),
+        coverImageUrl: normalizeUrl(ecoleData.coverImageUrl)
       }
     })
 
-    // Créer les programmes pour chaque école
     for (const formation of ecoleData.formations) {
-      for (const filiere of formation.filieres) {
-        const slug = `${ecoleData.slug}-${formation.niveau.toLowerCase().replace(/\s+/g, '-')}-${filiere.toLowerCase().replace(/[^a-z0-9]/g, '-').substring(0, 30)}`
+      const filieres = dedupeArray(formation.filieres)
+
+      for (const filiere of filieres) {
+        const slug = `${ecoleData.slug}-${formation.niveau.toLowerCase().replace(/\s+/g, '-')}-${filiere.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').substring(0, 40)}`
         const titre = `${filiere} (${formation.niveau})`
-        
+        const duree =
+          ['BTS', 'DTS', 'DT'].includes(formation.niveau) ? '2 ans' :
+          formation.niveau === 'Licence' || formation.niveau.includes('Licence') ? '3 ans' :
+          formation.niveau === 'Master' || formation.niveau.includes('Master') ? '2 ans' :
+          'Variable'
+
         await prisma.programme.upsert({
           where: { slug },
           update: {
             titre,
             ville: ecoleData.ville,
-            duree: formation.niveau === 'BTS' || formation.niveau === 'DTS' || formation.niveau === 'DT' ? '2 ans' : formation.niveau === 'Licence' ? '3 ans' : formation.niveau === 'Master' ? '2 ans' : 'Variable',
+            duree,
             niveau: formation.niveau,
             description: `Formation en ${filiere} à ${ecoleData.nom}.`,
             eligibilite: 'Selon les exigences de la filière. Contactez l\'établissement pour plus d\'informations.',
@@ -487,7 +520,7 @@ async function main() {
             slug,
             titre,
             ville: ecoleData.ville,
-            duree: formation.niveau === 'BTS' || formation.niveau === 'DTS' || formation.niveau === 'DT' ? '2 ans' : formation.niveau === 'Licence' ? '3 ans' : formation.niveau === 'Master' ? '2 ans' : 'Variable',
+            duree,
             fraisDossier: 20000,
             fraisDossierEtranger: 30000,
             devise: 'FCFA',
@@ -503,44 +536,40 @@ async function main() {
     }
   }
 
-  // Créer les utilisateurs de démonstration
-  await upsertUser({
-    name: 'Admin BourseFi',
-    email: 'admin@boursefi.sn',
-    password: 'Admin1234!',
-    role: 'ADMIN'
-  })
+  await Promise.all([
+    upsertUser({
+      name: 'Admin BourseFi',
+      email: 'admin@boursefi.sn',
+      password: 'Admin1234!',
+      role: 'ADMIN'
+    }),
+    upsertUser({
+      name: 'Partenaire BourseFi',
+      email: 'partenaire@boursefi.sn',
+      password: 'Partner1234!',
+      role: 'PARTNER',
+      partnerId: partner.id
+    }),
+    upsertUser({
+      name: 'Etudiant Demo',
+      email: 'etudiant@boursefi.sn',
+      password: 'Student1234!',
+      role: 'STUDENT'
+    })
+  ])
 
-  await upsertUser({
-    name: 'Partenaire BourseFi',
-    email: 'partenaire@boursefi.sn',
-    password: 'Partner1234!',
-    role: 'PARTNER',
-    partnerId: partner.id
-  })
-
-  await upsertUser({
-    name: 'Etudiant Demo',
-    email: 'etudiant@boursefi.sn',
-    password: 'Student1234!',
-    role: 'STUDENT'
-  })
-
-  // Créer une bourse pour chaque programme
   const programmes = await prisma.programme.findMany({
     orderBy: { titre: 'asc' }
   })
 
   const dateLimite = new Date('2026-12-31T23:59:59.000Z')
 
-  for (const programme of programmes) {
+  for (let i = 0; i < programmes.length; i++) {
+    const programme = programmes[i]
     const slug = `bourse-${programme.slug}`
-    
-    // Mix de demi-bourses (50%) et bourses complètes (100%)
-    // Alternance basée sur l'index pour varier
-    const isFullScholarship = programmes.indexOf(programme) % 3 === 0
+    const isFullScholarship = i % 3 === 0
     const coveragePercent = isFullScholarship ? 100 : 50
-    
+
     await prisma.bourse.upsert({
       where: { slug },
       update: {
@@ -573,7 +602,7 @@ async function main() {
 
   await seedCmsFromDisk()
 
-  console.log('Seed terminé : écoles avec formations, programmes, bourses et utilisateurs créés (après nettoyage de la base).')
+  console.log('Seed terminé : écoles, programmes, bourses et utilisateurs créés avec nettoyage préalable.')
 }
 
 main()

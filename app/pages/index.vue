@@ -457,62 +457,69 @@ useJsonLd(
                 </div>
               </div>
 
-              <!-- Sélecteur de Secteur — desktop uniquement -->
-              <div
-                class="relative hidden min-h-[52px] min-w-0 items-center px-4 md:flex md:py-1"
-              >
-                <button
-                  type="button"
-                  class="flex w-full items-center gap-3 py-3 text-left focus:outline-none"
-                  @click="showSectorDropdown = !showSectorDropdown"
-                >
-                  <span
-                    class="material-symbols-outlined shrink-0 text-slate-400 text-xl"
-                    >category</span
-                  >
-                  <span
-                    class="block truncate text-base font-medium text-slate-700 sm:text-sm md:text-base"
-                  >
-                    {{ heroSector || "Tous les secteurs" }}
-                  </span>
-                  <span
-                    class="material-symbols-outlined ml-auto text-slate-400 transition-transform duration-300"
-                    :class="{ 'rotate-180': showSectorDropdown }"
-                  >
-                    expand_more
-                  </span>
-                </button>
+          <!-- Sélecteur de Secteur — desktop uniquement
 
-                <!-- Dropdown personnalisé (Options) -->
-                <div
-                  v-if="showSectorDropdown"
-                  class="absolute left-0 top-full z-50 mt-2 w-full min-w-[240px] overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-2xl animate-in fade-in slide-in-from-top-2 duration-200"
-                >
-                  <div class="p-2">
-                    <button
-                      v-for="opt in sectorOptions"
-                      :key="opt"
-                      type="button"
-                      class="flex w-full items-center rounded-xl px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-primary/5 hover:text-primary"
-                      @click="
-                        () => {
-                          heroSector = opt;
-                          showSectorDropdown = false;
-                        }
-                      "
-                    >
-                      <span
-                        v-if="heroSector === opt"
-                        class="material-symbols-outlined mr-2 text-primary text-lg"
-                        >check</span
-                      >
-                      <span :class="{ 'ml-7': heroSector !== opt }">{{
-                        opt
-                      }}</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
+<div
+  class="relative hidden min-h-[52px] min-w-0 items-center px-4 md:flex md:py-1"
+>
+  <button
+    type="button"
+    class="flex w-full items-center gap-3 py-3 text-left focus:outline-none"
+    @click="showSectorDropdown = !showSectorDropdown"
+  >
+    <span
+      class="material-symbols-outlined shrink-0 text-slate-400 text-xl"
+    >
+      category
+    </span>
+
+    <span
+      class="block truncate text-base font-medium text-slate-700 sm:text-sm md:text-base"
+    >
+      {{ heroSector || "Tous les secteurs" }}
+    </span>
+
+    <span
+      class="material-symbols-outlined ml-auto text-slate-400 transition-transform duration-300"
+      :class="{ 'rotate-180': showSectorDropdown }"
+    >
+      expand_more
+    </span>
+  </button>
+
+  <div
+    v-if="showSectorDropdown"
+    class="absolute left-0 top-full z-50 mt-2 w-full min-w-[240px] overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-2xl animate-in fade-in slide-in-from-top-2 duration-200"
+  >
+    <div class="p-2">
+      <button
+        v-for="opt in sectorOptions"
+        :key="opt"
+        type="button"
+        class="flex w-full items-center rounded-xl px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-primary/5 hover:text-primary"
+        @click="
+          () => {
+            heroSector = opt;
+            showSectorDropdown = false;
+          }
+        "
+      >
+        <span
+          v-if="heroSector === opt"
+          class="material-symbols-outlined mr-2 text-primary text-lg"
+        >
+          check
+        </span>
+
+        <span :class="{ 'ml-7': heroSector !== opt }">
+          {{ opt }}
+        </span>
+      </button>
+    </div>
+  </div>
+</div>
+
+-->
 
               <!-- Bouton CTA primaire -->
               <button
