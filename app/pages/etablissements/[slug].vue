@@ -52,7 +52,7 @@ const initials = computed(() => {
       <section v-if="ecole.resume" class="text-center">
         <h2 class="mb-4 text-xs font-bold uppercase tracking-widest text-slate-400">À propos</h2>
         <p class="mx-auto max-w-2xl text-lg leading-relaxed italic text-slate-600">
-          « {{ ecole.resume }} »
+           {{ ecole.resume }} 
         </p>
       </section>
 
