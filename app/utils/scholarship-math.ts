@@ -16,7 +16,7 @@ export function computeScholarshipEconomy(
   const pct = Math.min(100, Math.max(0, coveragePercent))
   
   // Les frais de dossier ne sont pas financés par la bourse
-  // L'étudiant paie 100% des frais de dossier
+  // Ils restent fixes : 20000 FCFA (local) ou 30000 FCFA (étranger)
   const montantBourse = 0
   const resteACharge = fraisDossier
   const economiePercent = 0
