@@ -501,10 +501,8 @@ async function main() {
     role: 'STUDENT'
   })
 
-  // Créer des bourses pour quelques programmes
+  // Créer une bourse pour chaque programme
   const programmes = await prisma.programme.findMany({
-    where: { niveau: { in: ['Licence', 'Master'] } },
-    take: 20,
     orderBy: { titre: 'asc' }
   })
 
@@ -537,6 +535,8 @@ async function main() {
       }
     })
   }
+
+  console.log(`${programmes.length} bourses créées pour tous les programmes.`)
 
   await seedCmsFromDisk()
 
