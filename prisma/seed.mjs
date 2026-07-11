@@ -81,6 +81,9 @@ const ECOLES_DATA = [
     adresse: 'Rond-point Castor x Avenue Bourguiba, Dakar',
     site: 'imtech-nelsonmandela.com',
     contact: '33 825 58 21',
+      logoUrl: null,
+    coverImageUrl: 'https://www.sencampus.com/api/media/file/imtech-nelson-mandela-1.jpg',
+
     typeLabel: 'Institut de Management et Technologie',
     formations: [
       { niveau: 'BTS/DT', filieres: ['Management', 'Génie Civil', 'Électromécanique', 'Informatique', 'Marketing', 'Logistique', 'Comptabilité'] },
@@ -95,6 +98,9 @@ const ECOLES_DATA = [
     adresse: 'Parcelles Assainies Unité 6 N°518, à côté du Lycée des Parcelles Assainies (LPA) et station Shell, Dakar',
     site: 'isdb.sn',
     contact: '77 544 52 41',
+     logoUrl: 'https://www.sencampus.com/api/media/file/isdb.jpg',
+    coverImageUrl: 'https://www.sencampus.com/api/media/file/isdb-institut-superieur-de-formation.webp',
+
     typeLabel: 'Institut Supérieur',
     formations: [
       { niveau: 'DT/DTS/BEP/BTS', filieres: ['Transit douane (2 ans)', 'Hôtellerie-restauration (2 ans)', 'Comptabilité gestion de caisse', 'Secrétariat bureautique informatique', 'Infographie'] },
@@ -109,6 +115,10 @@ const ECOLES_DATA = [
     adresse: 'Sicap/Liberté 4, Lot 5001, Dakar (côté camp des sapeurs-pompiers)',
     site: 'estg.sn',
     contact: null,
+        logoUrl: 'https://www.sencampus.com/api/media/file/logo-estg-ecole-superieure-des-techniques-de-gestion.jpg',
+    coverImageUrl: 'https://www.sencampus.com/api/media/file/ESTG-ecole-superieur-des-techniques-de-gestions.jpg',
+
+
     typeLabel: 'École Supérieure de Gestion',
     formations: [
       { niveau: 'BTS/Bachelor', filieres: ['Audit et Contrôle de Gestion', 'Communication et Publicité', 'Banque-Finance-Assurance'] },
@@ -151,6 +161,9 @@ const ECOLES_DATA = [
     adresse: 'VDN, Liberté 6 Extension villa n°05, en face du cimetière Saint-Lazare de Béthanie, Dakar',
     site: 'amdiafrique.com',
     contact: '33 825 72 32',
+     logoUrl: null,
+    coverImageUrl: 'https://www.sencampus.com/api/media/file/amdi-afrique-sencampus-thumbnail.webp',
+
     typeLabel: 'Institut de Développement',
     formations: [
       { niveau: 'DT/Diplômes santé d\'État', filieres: ['Infirmier d\'État', 'Sage-femme d\'État', 'Vendeur en Pharmacie', 'Délégation Médicale', 'Secrétaire médicale'] },
@@ -165,6 +178,10 @@ const ECOLES_DATA = [
     adresse: 'Mermoz, ancienne piste, Dakar',
     site: 'isbd-school.com',
     contact: null,
+    logoUrl: 'https://www.sencampus.com/api/media/file/isbd.jpg',
+    coverImageUrl: 'https://www.sencampus.com/api/media/file/isbd-international-school-of-business-and-development-thumbnail.webp',
+
+
     typeLabel: 'Business School',
     formations: [
       { niveau: 'Licence', filieres: ['Informatique de gestion', 'Marketing et Communication', 'Ressources Humaines', 'Transport Logistique'] },
@@ -178,6 +195,10 @@ const ECOLES_DATA = [
     adresse: 'Cité Keur Damel, en face de Yenguoulène, avant le rond-point 26 des Parcelles Assainies, Dakar',
     site: 'cefas-senegal.com',
     contact: '77 868 57 27',
+    logoUrl: null,
+    coverImageUrl: 'https://www.sencampus.com/api/media/file/cefas-sencampus-thumbnail.webp',
+
+
     typeLabel: 'Centre de Formation',
     formations: [
       { niveau: 'BT/BTS/DTS', filieres: ['Analyse Biologique (Santé)', 'Filières Techniques (électricité, mécanique, génie industriel)', 'Département Santé'] },
@@ -429,7 +450,9 @@ async function main() {
         ville: ecoleData.ville,
         site: ecoleData.site,
         resume: `${ecoleData.typeLabel} situé à ${ecoleData.adresse || ecoleData.ville}. ${ecoleData.contact ? `Contact: ${ecoleData.contact}` : ''}`,
-        typeLabel: ecoleData.typeLabel
+        typeLabel: ecoleData.typeLabel,
+        logoUrl: ecoleData.logoUrl,
+        coverImageUrl: ecoleData.coverImageUrl
       },
       create: {
         slug: ecoleData.slug,
@@ -437,7 +460,9 @@ async function main() {
         ville: ecoleData.ville,
         site: ecoleData.site,
         resume: `${ecoleData.typeLabel} situé à ${ecoleData.adresse || ecoleData.ville}. ${ecoleData.contact ? `Contact: ${ecoleData.contact}` : ''}`,
-        typeLabel: ecoleData.typeLabel
+        typeLabel: ecoleData.typeLabel,
+        logoUrl: ecoleData.logoUrl,
+        coverImageUrl: ecoleData.coverImageUrl
       }
     })
 
