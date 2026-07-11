@@ -14,13 +14,12 @@ export function computeScholarshipEconomy(
   devise = 'FCFA',
 ): ScholarshipEconomy {
   const pct = Math.min(100, Math.max(0, coveragePercent))
-  let montantBourse = Math.round((fraisDossier * pct) / 100)
-  if (montantMax != null && montantMax > 0) {
-    montantBourse = Math.min(montantBourse, montantMax)
-  }
-  const resteACharge = Math.max(0, fraisDossier - montantBourse)
-  const economiePercent =
-    fraisDossier > 0 ? Math.round((montantBourse / fraisDossier) * 100) : 0
+  
+  // Les frais de dossier ne sont pas financés par la bourse
+  // L'étudiant paie 100% des frais de dossier
+  const montantBourse = 0
+  const resteACharge = fraisDossier
+  const economiePercent = 0
 
   return {
     referentiel: fraisDossier,
