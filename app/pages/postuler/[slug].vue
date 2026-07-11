@@ -224,7 +224,7 @@ function validateStep(s: number): boolean {
       return false
     }
     if (!form.bfemAttestation) {
-      errorMessage.value = 'Ajoutez l'attestation de diplôme BFEM.'
+      errorMessage.value = "Ajoutez l'attestation de diplôme BFEM."
       return false
     }
     if (!form.bacTranscript) {
