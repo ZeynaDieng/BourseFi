@@ -36,6 +36,9 @@ useSiteSeo({
     <!-- Hero -->
     <header class="overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary to-primary/85 p-6 text-white shadow-premium md:p-10">
       <div class="flex flex-wrap gap-2">
+        <span class="inline-flex rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">
+          {{ bourse.coveragePercent }} % {{ bourse.coveragePercent === 100 ? 'Bourse complète' : 'Demi-bourse' }}
+        </span>
         <span class="inline-flex rounded-full bg-white/10 px-3 py-1 text-xs font-bold">
           {{ bourse.programmeNiveau }}
         </span>

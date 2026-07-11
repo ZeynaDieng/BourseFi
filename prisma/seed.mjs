@@ -510,11 +510,17 @@ async function main() {
 
   for (const programme of programmes) {
     const slug = `bourse-${programme.slug}`
+    
+    // Mix de demi-bourses (50%) et bourses complètes (100%)
+    // Alternance basée sur l'index pour varier
+    const isFullScholarship = programmes.indexOf(programme) % 3 === 0
+    const coveragePercent = isFullScholarship ? 100 : 50
+    
     await prisma.bourse.upsert({
       where: { slug },
       update: {
         titre: `Bourse ${programme.titre}`,
-        coveragePercent: 50,
+        coveragePercent,
         quota: 20,
         dateLimite,
         isActive: true,
@@ -526,7 +532,7 @@ async function main() {
         titre: `Bourse ${programme.titre}`,
         programmeId: programme.id,
         partnerId: partner.id,
-        coveragePercent: 50,
+        coveragePercent,
         quota: 20,
         dateLimite,
         isActive: true,
@@ -536,7 +542,9 @@ async function main() {
     })
   }
 
-  console.log(`${programmes.length} bourses créées pour tous les programmes.`)
+  const fullCount = programmes.filter((_, i) => i % 3 === 0).length
+  const halfCount = programmes.length - fullCount
+  console.log(`${programmes.length} bourses créées : ${fullCount} complètes (100%) et ${halfCount} demi-bourses (50%).`)
 
   await seedCmsFromDisk()
 

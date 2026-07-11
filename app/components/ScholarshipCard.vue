@@ -54,7 +54,11 @@ function formatDate(iso: string) {
       {{ bourse.etablissement }}
     </p>
 
-    <p class="mt-4 font-headline text-lg font-bold text-primary">
+    <span :class="[badgeCoverage, 'mt-4 w-fit']">
+      {{ bourse.coveragePercent }} % {{ bourse.coveragePercent === 100 ? 'Bourse complète' : 'Demi-bourse' }}
+    </span>
+
+    <p class="mt-3 font-headline text-lg font-bold text-primary">
       Frais de dossier : {{ bourse.fraisDossier.toLocaleString('fr-FR') }} {{ bourse.devise }}
     </p>
 
