@@ -394,17 +394,8 @@ useSeoMeta({
         <details class="mb-4 rounded-2xl border border-slate-100 bg-white p-4 shadow-premium lg:hidden">
           <summary class="flex cursor-pointer items-center justify-between text-sm font-semibold text-primary">
             Résumé de la bourse
-            <span class="font-headline text-secondary">{{ bourse.coveragePercent }} %</span>
           </summary>
           <dl class="mt-3 space-y-2 text-sm">
-            <div class="flex justify-between gap-3">
-              <dt class="text-slate-500">Montant couvert</dt>
-              <dd class="font-bold text-secondary">{{ formatFcfa(bourse.montantBourse) }} {{ bourse.devise }}</dd>
-            </div>
-            <div class="flex justify-between gap-3">
-              <dt class="text-slate-500">Reste à payer</dt>
-              <dd class="font-semibold text-primary">{{ formatFcfa(bourse.resteACharge) }} {{ bourse.devise }}</dd>
-            </div>
             <div v-if="bourse.fraisDossier > 0" class="flex justify-between gap-3">
               <dt class="text-slate-500">Frais dossier</dt>
               <dd class="font-semibold">{{ formatFcfa(bourse.fraisDossier) }} {{ bourse.devise }}</dd>
@@ -645,20 +636,9 @@ useSeoMeta({
             <p class="text-xs font-bold uppercase tracking-widest text-secondary-container">Bourse sélectionnée</p>
             <h3 class="mt-2 font-headline text-xl font-extrabold leading-snug">{{ bourse.programmeTitre }}</h3>
             <p class="mt-1 text-sm text-white/70">{{ bourse.etablissement }}</p>
-            <span class="mt-4 inline-flex rounded-full bg-white/15 px-3 py-1 text-sm font-bold">
-              Bourse : {{ bourse.coveragePercent }} %
-            </span>
           </div>
           <dl class="space-y-4 p-6 text-sm">
-            <div class="flex items-center justify-between gap-3">
-              <dt class="text-slate-500">Montant couvert</dt>
-              <dd class="font-headline text-lg font-extrabold text-secondary">{{ formatFcfa(bourse.montantBourse) }} {{ bourse.devise }}</dd>
-            </div>
-            <div class="flex items-center justify-between gap-3 border-t border-slate-100 pt-4">
-              <dt class="text-slate-500">Reste à payer</dt>
-              <dd class="font-bold text-primary">{{ formatFcfa(bourse.resteACharge) }} {{ bourse.devise }}</dd>
-            </div>
-            <div v-if="bourse.fraisDossier > 0" class="flex items-center justify-between gap-3 border-t border-slate-100 pt-4">
+            <div v-if="bourse.fraisDossier > 0" class="flex items-center justify-between gap-3">
               <dt class="text-slate-500">Frais dossier</dt>
               <dd class="font-semibold text-slate-700">{{ formatFcfa(bourse.fraisDossier) }} {{ bourse.devise }}</dd>
             </div>

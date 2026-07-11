@@ -36,9 +36,6 @@ useSiteSeo({
     <!-- Hero -->
     <header class="overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary to-primary/85 p-6 text-white shadow-premium md:p-10">
       <div class="flex flex-wrap gap-2">
-        <span class="inline-flex rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">
-          {{ bourse.coveragePercent }} % financé
-        </span>
         <span class="inline-flex rounded-full bg-white/10 px-3 py-1 text-xs font-bold">
           {{ bourse.programmeNiveau }}
         </span>
@@ -50,15 +47,11 @@ useSiteSeo({
         {{ bourse.programmeTitre }}
       </p>
 
-      <div class="mt-6 grid gap-4 sm:grid-cols-3">
+      <div class="mt-6 grid gap-4 sm:grid-cols-2">
         <div class="rounded-2xl bg-white/10 p-4">
-          <p class="text-xs font-semibold uppercase tracking-wider text-white/60">Financé</p>
-          <p class="mt-1 font-headline text-2xl font-extrabold text-secondary-container">{{ bourse.coveragePercent }} %</p>
-        </div>
-        <div class="rounded-2xl bg-white/10 p-4">
-          <p class="text-xs font-semibold uppercase tracking-wider text-white/60">Pris en charge</p>
+          <p class="text-xs font-semibold uppercase tracking-wider text-white/60">Frais de dossier</p>
           <p class="mt-1 font-headline text-2xl font-extrabold">
-            <AnimatedNumber :value="bourse.montantBourse" />
+            {{ bourse.fraisDossier.toLocaleString('fr-FR') }}
             <span class="text-sm font-semibold text-white/70">{{ bourse.devise }}</span>
           </p>
         </div>
@@ -71,9 +64,6 @@ useSiteSeo({
         Postuler à cette bourse
       </NuxtLink>
       <p class="mt-3 text-center text-xs text-white/75 sm:text-left">
-        <template v-if="bourse.fraisDossier > 0">
-          Frais de dossier : {{ bourse.fraisDossier.toLocaleString('fr-FR') }} {{ bourse.devise }} ·
-        </template>
         Compte requis pour postuler · Environ 2 minutes
       </p>
     </header>
