@@ -88,10 +88,7 @@ useSiteSeo({
         <span class="material-symbols-outlined text-base">school</span>
         {{ bourse.etablissement }}
       </NuxtLink>
-      <span class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5 font-semibold text-slate-600">
-        <span class="material-symbols-outlined text-base">event</span>
-        Limite : {{ formatDate(bourse.dateLimite) }}
-      </span>
+      
     </div>
 
     <div class="mb-10 mt-8 grid gap-6 lg:grid-cols-2">
@@ -117,10 +114,7 @@ useSiteSeo({
               {{ bourse.resteACharge.toLocaleString('fr-FR') }} {{ bourse.devise }}
             </dd>
           </div>
-          <div class="flex justify-between gap-3">
-            <dt class="text-slate-500">Date limite</dt>
-            <dd class="font-semibold">{{ formatDate(bourse.dateLimite) }}</dd>
-          </div>
+          
           <div class="flex justify-between gap-3">
             <dt class="text-slate-500">Durée</dt>
             <dd class="font-semibold">{{ bourse.programmeDuree }}</dd>
