@@ -145,6 +145,8 @@ model Candidature {
   documentIssuedAt     DateTime?
   identityCardRectoUrl String?
   identityCardVersoUrl String?
+  bfemAttestationUrl   String?
+  bacTranscriptUrl     String?
   createdAt            DateTime          @default(now())
   bourseId             String?
   bourse               Bourse?           @relation(fields: [bourseId], references: [id])
