@@ -34,106 +34,101 @@ useSiteSeo({
     </nav>
 
     <!-- Hero -->
-    <header class="overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary to-primary/85 p-6 text-white shadow-premium md:p-10">
-      <div class="flex flex-wrap gap-2">
-        <span class="inline-flex rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">
-          {{ bourse.coveragePercent }} % {{ bourse.coveragePercent === 100 ? 'Bourse complète' : 'Demi-bourse' }}
-        </span>
-        <span class="inline-flex rounded-full bg-white/10 px-3 py-1 text-xs font-bold">
-          {{ bourse.programmeNiveau }}
-        </span>
-      </div>
-      <h1 class="mt-4 font-headline text-3xl font-extrabold leading-tight md:text-5xl">
-        {{ bourse.titre }}
-      </h1>
-      <p class="mt-2 text-lg font-medium text-white/75">
-        {{ bourse.programmeTitre }}
-      </p>
-
-      <div class="mt-6 grid gap-4 sm:grid-cols-2">
-        <div class="rounded-2xl bg-white/10 p-4">
-          <p class="text-xs font-semibold uppercase tracking-wider text-white/60">Frais de dossier</p>
-          <p class="mt-1 font-headline text-2xl font-extrabold">
-            {{ bourse.fraisDossier.toLocaleString('fr-FR') }}
-            <span class="text-sm font-semibold text-white/70">{{ bourse.devise }}</span>
-          </p>
+    <header class="overflow-hidden rounded-3xl bg-white shadow-premium">
+      <!-- Bandeau école : image + logo, remplace le simple gradient plat -->
+      <div class="relative h-40 overflow-hidden bg-gradient-to-br from-primary/10 via-slate-50 to-primary/5 md:h-48">
+        <img
+          v-if="bourse.etablissementCoverImageUrl"
+          :src="bourse.etablissementCoverImageUrl"
+          :alt="bourse.etablissement"
+          class="absolute inset-0 h-full w-full object-cover"
+        >
+        <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent"></div>
+        <div class="absolute bottom-4 left-5 flex items-center gap-3">
+          <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-md">
+            <img v-if="bourse.etablissementLogoUrl" :src="bourse.etablissementLogoUrl" :alt="bourse.etablissement" class="h-9 w-9 object-contain">
+            <span v-else class="material-symbols-outlined text-2xl text-primary">school</span>
+          </div>
+          <div>
+            <p class="text-sm font-semibold text-white">{{ bourse.etablissement }}</p>
+            <p class="flex items-center gap-1 text-xs text-white/80">
+              <span class="material-symbols-outlined text-sm">location_on</span>
+              {{ bourse.ville }}
+            </p>
+          </div>
         </div>
       </div>
 
-      <NuxtLink
-        :to="`/postuler/${route.params.slug}`"
-        class="mt-6 inline-flex w-full items-center justify-center rounded-2xl bg-secondary-container px-8 py-4 font-bold text-on-secondary-container shadow-lg transition hover:opacity-95 active:scale-[0.99] sm:w-auto"
-      >
-        Postuler à cette bourse
-      </NuxtLink>
-      <p class="mt-3 text-center text-xs text-white/75 sm:text-left">
-        Compte requis pour postuler · Environ 2 minutes
-      </p>
-    </header>
+      <div class="p-6 md:p-8">
+        <div class="flex flex-wrap gap-2">
+          <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+            <span class="material-symbols-outlined text-sm">check_circle</span>
+            {{ bourse.coveragePercent === 100 ? 'Bourse complète' : 'Demi-bourse' }}
+          </span>
+          <span class="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+            {{ bourse.programmeNiveau }}
+          </span>
+        </div>
 
-    <!-- Indicateurs -->
-    <div class="mt-6 flex flex-wrap gap-2 text-sm">
-      <span class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5 font-semibold text-primary">
-        <span class="material-symbols-outlined text-base">workspace_premium</span>
-        Niveau : {{ bourse.programmeNiveau }}
-      </span>
-      <span class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5 font-semibold text-slate-600">
-        <span class="material-symbols-outlined text-base">location_on</span>
-        {{ bourse.ville }}
-      </span>
-      <NuxtLink
-        :to="`/etablissements/${bourse.etablissementSlug}`"
-        class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5 font-semibold text-primary transition hover:bg-primary/5"
-      >
-        <span class="material-symbols-outlined text-base">school</span>
-        {{ bourse.etablissement }}
-      </NuxtLink>
-      
-    </div>
+        <h1 class="mt-3 font-headline text-2xl font-bold leading-snug text-primary md:text-4xl">
+          {{ bourse.titre }}
+        </h1>
+        <p class="mt-1 text-sm text-slate-500 md:text-base">
+          {{ bourse.programmeTitre }}
+        </p>
 
-    <div class="mb-10 mt-8 grid gap-6 lg:grid-cols-2">
-      <ScholarshipEconomyCalculator
-        :frais-dossier="bourse.fraisDossier"
-        :frais-dossier-etranger="bourse.fraisDossierEtranger"
-        :coverage-percent="bourse.coveragePercent"
-        :montant-max="bourse.montantMax"
-        :devise="bourse.devise"
-      />
-      <div class="rounded-2xl border border-slate-100 bg-white p-6 shadow-premium">
-        <h2 class="font-headline text-lg font-bold text-primary">Financement</h2>
-        <dl class="mt-4 space-y-3 text-sm">
-          <div class="flex justify-between gap-3">
-            <dt class="text-slate-500">Montant couvert</dt>
-            <dd class="font-bold text-secondary">
-              {{ bourse.montantBourse.toLocaleString('fr-FR') }} {{ bourse.devise }}
-            </dd>
+        <!-- Stats en grille avec séparateurs, plus de contraste que 3 cards blanches identiques -->
+        <div class="mt-6 grid grid-cols-3 divide-x divide-slate-100 rounded-2xl border border-slate-100 bg-slate-50/50">
+          <div class="p-4 text-center">
+            <p class="font-headline text-xl font-bold text-primary">
+              {{ bourse.fraisDossier.toLocaleString('fr-FR') }}
+            </p>
+            <p class="mt-0.5 text-xs text-slate-500">{{ bourse.devise }} de dossier</p>
           </div>
-          <div class="flex justify-between gap-3">
-            <dt class="text-slate-500">Reste à charge</dt>
-            <dd class="font-semibold text-primary">
-              {{ bourse.resteACharge.toLocaleString('fr-FR') }} {{ bourse.devise }}
-            </dd>
+          <div class="p-4 text-center">
+            <p class="font-headline text-xl font-bold text-emerald-600">
+              {{ bourse.coveragePercent === 100 ? 'Complète' : '50 %' }}
+            </p>
+            <p class="mt-0.5 text-xs text-slate-500">de couverture</p>
           </div>
-          
-          <div class="flex justify-between gap-3">
-            <dt class="text-slate-500">Durée</dt>
-            <dd class="font-semibold">{{ bourse.programmeDuree }}</dd>
+          <div class="p-4 text-center">
+            <p class="font-headline text-xl font-bold text-primary">{{ bourse.programmeDuree }}</p>
+            <p class="mt-0.5 text-xs text-slate-500">de formation</p>
           </div>
-        </dl>
+        </div>
+
+       
+
         <NuxtLink
           :to="`/postuler/${route.params.slug}`"
-          class="mt-8 inline-flex w-full items-center justify-center rounded-2xl bg-primary px-8 py-4 font-bold text-white shadow-lg transition hover:opacity-95 active:scale-[0.99]"
+          class="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-8 py-4 font-bold text-white shadow-lg transition hover:opacity-95 active:scale-[0.99]"
         >
           Postuler à cette bourse
+          <span class="material-symbols-outlined text-lg">arrow_forward</span>
         </NuxtLink>
-        <p class="mt-3 text-center text-xs text-slate-500">
-          <template v-if="bourse.fraisDossier > 0">
-            Frais de dossier : {{ bourse.fraisDossier.toLocaleString('fr-FR') }} {{ bourse.devise }} ·
-          </template>
-          Compte requis · Environ 2 minutes
-        </p>
+        <p class="mt-3 text-center text-xs text-slate-500">Compte requis · Environ 2 minutes</p>
       </div>
-    </div>
+    </header>
+
+    <!-- Détail financement, désormais secondaire visuellement puisque le hero porte déjà les chiffres clés -->
+    <section class="mb-10 mt-6 rounded-2xl border border-slate-100 bg-white p-6 shadow-premium md:p-8">
+      <h2 class="font-headline text-lg font-bold text-primary">Détail du financement</h2>
+      <dl class="mt-4 grid gap-4 sm:grid-cols-2">
+       
+        <div class="flex justify-between gap-3">
+          <dt class="text-slate-500">Reste à charge</dt>
+          <dd class="font-semibold text-primary">
+            {{ bourse.resteACharge.toLocaleString('fr-FR') }} {{ bourse.devise }}
+          </dd>
+        </div>
+      </dl>
+      <p
+        v-if="bourse.fraisDossierEtranger && bourse.fraisDossierEtranger !== bourse.fraisDossier"
+        class="mt-4 text-xs text-slate-500"
+      >
+        Frais de dossier pour les résidents étrangers : {{ bourse.fraisDossierEtranger.toLocaleString('fr-FR') }} {{ bourse.devise }}
+      </p>
+    </section>
 
     <BourseProcessTimeline v-reveal class="mb-8" />
 
@@ -141,23 +136,6 @@ useSiteSeo({
       <h2 class="font-headline text-lg font-bold text-primary">Présentation de la formation</h2>
       <p class="mt-3 whitespace-pre-line text-sm leading-relaxed text-slate-600">
         {{ bourse.programmeDescription }}
-      </p>
-    </section>
-
-    <section
-      v-if="bourse.programmePerspectives || bourse.programmePlacement"
-      v-reveal
-      class="mb-8 rounded-2xl bg-slate-50 p-6 md:p-8"
-    >
-      <h2 class="font-headline text-lg font-bold text-primary">Débouchés</h2>
-      <p v-if="bourse.programmePlacement" class="mt-2 text-sm font-semibold text-secondary">
-        {{ bourse.programmePlacement }}
-      </p>
-      <p
-        v-if="bourse.programmePerspectives"
-        class="mt-3 whitespace-pre-line text-sm leading-relaxed text-slate-600"
-      >
-        {{ bourse.programmePerspectives }}
       </p>
     </section>
 
@@ -178,7 +156,7 @@ useSiteSeo({
       <p class="mt-3 whitespace-pre-line text-sm leading-relaxed text-slate-600">{{ bourse.documentsRequis }}</p>
     </section>
 
-    <div v-if="bourse.programmeBrochureUrl" class="text-center">
+    <div v-if="bourse.programmeBrochureUrl" class="mb-24 text-center md:mb-0">
       <a
         :href="bourse.programmeBrochureUrl"
         target="_blank"
@@ -188,6 +166,25 @@ useSiteSeo({
         <span class="material-symbols-outlined text-lg">picture_as_pdf</span>
         Télécharger la brochure
       </a>
+    </div>
+
+    <!-- CTA sticky mobile -->
+    <div class="fixed inset-x-0 bottom-0 z-20 border-t border-slate-100 bg-white/95 px-4 py-3 backdrop-blur md:hidden">
+      <div class="mx-auto flex max-w-4xl items-center justify-between gap-3">
+        <div class="min-w-0">
+          <p class="truncate text-sm font-bold text-primary">
+            {{ bourse.fraisDossier.toLocaleString('fr-FR') }} {{ bourse.devise }}
+            · {{ bourse.coveragePercent === 100 ? 'Bourse complète' : 'Demi-bourse' }}
+          </p>
+          
+        </div>
+        <NuxtLink
+          :to="`/postuler/${route.params.slug}`"
+          class="flex-shrink-0 rounded-2xl bg-primary px-5 py-2.5 text-sm font-bold text-white"
+        >
+          Postuler
+        </NuxtLink>
+      </div>
     </div>
   </main>
 

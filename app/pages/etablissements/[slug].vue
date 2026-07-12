@@ -24,6 +24,15 @@ const initials = computed(() => {
 
 <template>
   <main v-if="ecole" class="mx-auto max-w-4xl px-4 py-12 sm:px-6 md:py-20">
+    <!-- Image de couverture -->
+    <div v-if="ecole.coverImageUrl?.trim()" class="mb-8 overflow-hidden rounded-3xl shadow-premium">
+      <img
+        :src="ecole.coverImageUrl.trim()"
+        :alt="`Image de couverture ${ecole.nom}`"
+        class="h-64 w-full object-cover md:h-80"
+      />
+    </div>
+
     <header class="mb-12 flex flex-col items-center text-center">
       <div class="mb-6 flex h-24 w-24 items-center justify-center overflow-hidden rounded-3xl bg-slate-50 p-4 shadow-sm ring-1 ring-slate-100 md:h-32 md:w-32">
         <img

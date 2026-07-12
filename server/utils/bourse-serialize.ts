@@ -28,7 +28,7 @@ type BourseRow = {
     fraisDossier: number
     fraisDossierEtranger: number
     devise: string
-    etablissement: { slug: string; nom: string }
+    etablissement: { slug: string; nom: string; logoUrl: string | null; coverImageUrl: string | null }
   }
   partner: { name: string; slug: string; logoUrl: string | null }
 }
@@ -51,6 +51,8 @@ export function serializeBourse(b: BourseRow) {
     programmeTitre: b.programme.titre,
     etablissement: b.programme.etablissement.nom,
     etablissementSlug: b.programme.etablissement.slug,
+    etablissementLogoUrl: b.programme.etablissement.logoUrl,
+    etablissementCoverImageUrl: b.programme.etablissement.coverImageUrl,
     partnerName: b.partner.name,
     partnerSlug: b.partner.slug,
     partnerLogoUrl: b.partner.logoUrl,

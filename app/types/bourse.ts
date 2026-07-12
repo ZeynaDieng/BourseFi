@@ -14,6 +14,8 @@ export type BourseDto = {
   programmeBrochureUrl: string | null
   etablissement: string
   etablissementSlug: string
+  etablissementLogoUrl: string | null
+  etablissementCoverImageUrl: string | null
   partnerName: string
   partnerSlug: string
   partnerLogoUrl: string | null
