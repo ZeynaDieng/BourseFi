@@ -22,7 +22,7 @@ const filtered = computed(() => {
   return list.filter((c) => c.status === filterStatus.value)
 })
 
-useSeoMeta({ title: 'Mes candidatures — BourseFi' })
+useSeoMeta({ title: 'Mes candidatures  BourseFi' })
 </script>
 
 <template>

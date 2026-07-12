@@ -1,17 +1,17 @@
 /** Libellés lisibles pour les clés de contenu site */
 export const SITE_CONTENT_LABELS: Record<string, string> = {
   visual_assets: 'Bibliothèque d’images (URLs)',
-  home_hero: 'Accueil — Hero principal',
-  home_stats: 'Accueil — Chiffres clés',
-  home_process: 'Accueil — Étapes du parcours',
-  home_partner_section: 'Accueil — Bandeau écoles partenaires',
-  why_choose: 'Accueil — Pourquoi nous choisir',
-  financement: 'Accueil — Bloc financement',
-  espace_etudiant: 'Accueil — Espace étudiant',
-  partners_strip: 'Accueil — Réseau / bandeau partenaires',
-  landing_metiers: 'Accueil — Section métiers',
-  faq_section: 'Accueil — Titres section FAQ',
-  testimonials_section: 'Accueil — Titres section témoignages',
+  home_hero: 'Accueil  Hero principal',
+  home_stats: 'Accueil  Chiffres clés',
+  home_process: 'Accueil  Étapes du parcours',
+  home_partner_section: 'Accueil  Bandeau écoles partenaires',
+  why_choose: 'Accueil  Pourquoi nous choisir',
+  financement: 'Accueil  Bloc financement',
+  espace_etudiant: 'Accueil  Espace étudiant',
+  partners_strip: 'Accueil  Réseau / bandeau partenaires',
+  landing_metiers: 'Accueil  Section métiers',
+  faq_section: 'Accueil  Titres section FAQ',
+  testimonials_section: 'Accueil  Titres section témoignages',
   orientation_page: 'Page Orientation',
   metiers_hub_page: 'Page Hub métiers'
 }

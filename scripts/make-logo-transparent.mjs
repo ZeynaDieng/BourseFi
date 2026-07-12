@@ -54,4 +54,4 @@ await sharp(out, { raw: { width: w, height: h, channels: 4 } })
   .png()
   .toFile(file)
 
-console.log('OK — fond rendu transparent :', file)
+console.log('OK  fond rendu transparent :', file)

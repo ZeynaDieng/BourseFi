@@ -1,5 +1,5 @@
 /**
- * Visuels marketing — photos Unsplash (https://unsplash.com/license).
+ * Visuels marketing  photos Unsplash (https://unsplash.com/license).
  * En production, vous pouvez remplacer par vos propres shoots ou banques partenaires.
  */
 function photo(photoPath: string, w: number): string {

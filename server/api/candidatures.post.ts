@@ -182,7 +182,7 @@ export default defineEventHandler(async (event) => {
   const needsPayment = initialStatus === 'EN_ATTENTE_PAIEMENT'
   await sendEmail({
     to: { email, name: fullName },
-    subject: 'Votre candidature a bien été reçue — BourseFi',
+    subject: 'Votre candidature a bien été reçue  BourseFi',
     html: renderEmail({
       title: 'Candidature enregistrée',
       bodyHtml: `<p>Bonjour ${firstName},</p>

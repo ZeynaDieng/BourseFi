@@ -54,7 +54,7 @@ const secondaryKpis = computed(() => [
   },
   {
     label: 'Taux acceptation',
-    value: stats.value?.tauxAcceptation != null ? `${stats.value.tauxAcceptation} %` : '—',
+    value: stats.value?.tauxAcceptation != null ? `${stats.value.tauxAcceptation} %` : '',
   },
 ])
 
@@ -117,7 +117,7 @@ function formatRelative(date: string | Date) {
           </div>
         </article>
 
-        <!-- KPI secondaires — scroll horizontal mobile -->
+        <!-- KPI secondaires  scroll horizontal mobile -->
         <div class="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 md:mx-0 md:grid md:grid-cols-2 md:gap-4 md:overflow-visible md:px-0 md:pb-0 xl:grid-cols-4">
           <article
             v-for="kpi in secondaryKpis"

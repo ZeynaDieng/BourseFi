@@ -2,7 +2,7 @@
 const { data: partners } = await useFetch('/api/partners')
 
 useSeoMeta({
-  title: 'Partenaires financeurs — BourseFi',
+  title: 'Partenaires financeurs  BourseFi',
   description: 'Découvrez les partenaires qui financent les bourses d\'études sur BourseFi.',
 })
 </script>

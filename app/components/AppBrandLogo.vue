@@ -11,7 +11,7 @@ withDefaults(
   }
 )
 
-const alt = 'BourseFi — Plateforme de gestion de bourses'
+const alt = 'BourseFi  Plateforme de gestion de bourses'
 </script>
 
 <template>

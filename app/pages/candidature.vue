@@ -17,7 +17,7 @@ const processCards = computed(() => {
 })
 
 useSeoMeta({
-  title: 'Comment obtenir une bourse — BourseFi',
+  title: 'Comment obtenir une bourse  BourseFi',
   description: 'Obtenez votre bourse en 3 étapes : choisissez une formation, déposez votre demande, recevez votre attestation.',
 })
 </script>

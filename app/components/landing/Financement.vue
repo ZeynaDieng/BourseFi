@@ -101,6 +101,6 @@ const closureTitle = computed(
 const closureBody = computed(
   () =>
     (site.value?.content?.financement as { closureBody?: string } | undefined)?.closureBody ||
-    "Une fois votre dossier validé par le partenaire financier (mairie, agence ou bailleur institutionnel), l'attestation est émise sur la plateforme. Vous la téléchargez depuis votre espace pour la présenter à l'établissement — preuve claire et traçable de votre financement."
+    "Une fois votre dossier validé par le partenaire financier (mairie, agence ou bailleur institutionnel), l'attestation est émise sur la plateforme. Vous la téléchargez depuis votre espace pour la présenter à l'établissement  preuve claire et traçable de votre financement."
 )
 </script>

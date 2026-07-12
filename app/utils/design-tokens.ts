@@ -1,4 +1,4 @@
-/** Classes Tailwind réutilisables — ne pas inventer de nouvelles couleurs. */
+/** Classes Tailwind réutilisables  ne pas inventer de nouvelles couleurs. */
 export const cardBase =
   'overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-premium transition hover:border-primary/25 hover:shadow-lg'
 

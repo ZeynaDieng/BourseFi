@@ -104,7 +104,7 @@
         }
       ],
       "closureTitle": "Attestation finale du bailleur",
-      "closureBody": "Une fois votre dossier validé par le partenaire financier (mairie, agence ou bailleur institutionnel), l'attestation est émise sur la plateforme. Vous la téléchargez depuis votre espace pour la présenter à l'établissement — preuve claire et traçable de votre financement."
+      "closureBody": "Une fois votre dossier validé par le partenaire financier (mairie, agence ou bailleur institutionnel), l'attestation est émise sur la plateforme. Vous la téléchargez depuis votre espace pour la présenter à l'établissement  preuve claire et traçable de votre financement."
     },
     "espace_etudiant": {
       "kicker": "Espace étudiant",
@@ -121,7 +121,7 @@
         {
           "icon": "timeline",
           "title": "Suivi en temps réel",
-          "text": "Dépôt, analyse, compléments et décision — chaque étape est visible."
+          "text": "Dépôt, analyse, compléments et décision  chaque étape est visible."
         },
         {
           "icon": "folder_open",

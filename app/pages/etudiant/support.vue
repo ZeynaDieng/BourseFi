@@ -8,7 +8,7 @@ const quickLinks = [
   { to: '/etudiant/documents', icon: 'folder', label: 'Mes documents' },
 ]
 
-useSeoMeta({ title: 'Support — BourseFi' })
+useSeoMeta({ title: 'Support  BourseFi' })
 </script>
 
 <template>

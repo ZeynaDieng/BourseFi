@@ -102,6 +102,8 @@ model User {
   firstName            String?
   identityCardRectoUrl String?
   identityCardVersoUrl String?
+   bfemAttestationUrl String?
+  bacTranscriptUrl   String?
   lastName             String?
   phone                String?
   auditLogs            AuditLog[]

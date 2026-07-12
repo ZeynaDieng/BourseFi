@@ -197,7 +197,7 @@ async function savePatch(id: string) {
                   <div class="flex flex-col gap-1 text-xs">
                     <a v-if="d.identityCardRectoUrl" :href="d.identityCardRectoUrl" target="_blank" class="text-primary underline">Recto</a>
                     <a v-if="d.identityCardVersoUrl" :href="d.identityCardVersoUrl" target="_blank" class="text-primary underline">Verso</a>
-                    <span v-if="!d.identityCardRectoUrl && !d.identityCardVersoUrl">—</span>
+                    <span v-if="!d.identityCardRectoUrl && !d.identityCardVersoUrl"></span>
                   </div>
                 </td>
                 <td class="p-4">

@@ -21,7 +21,7 @@ const defaultFeatures: Feat[] = [
   {
     icon: 'timeline',
     title: 'Suivi en temps réel',
-    text: 'Dépôt, analyse, compléments et décision — chaque étape est visible.',
+    text: 'Dépôt, analyse, compléments et décision  chaque étape est visible.',
   },
   {
     icon: 'folder_open',
@@ -86,7 +86,7 @@ onUnmounted(() => observer?.disconnect())
 
     <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
       <div class="grid grid-cols-1 items-center gap-12 lg:grid-cols-2 lg:gap-16 xl:gap-20">
-        <!-- Texte — toujours en premier (mobile + desktop) -->
+        <!-- Texte  toujours en premier (mobile + desktop) -->
         <div
           class="max-w-xl transition duration-700 ease-out"
           :class="isVisible ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'"
@@ -140,7 +140,7 @@ onUnmounted(() => observer?.disconnect())
           </NuxtLink>
         </div>
 
-        <!-- Maquette tableau de bord — sous le texte sur mobile -->
+        <!-- Maquette tableau de bord  sous le texte sur mobile -->
         <div
           class="transition duration-700 ease-out lg:justify-self-end"
           :class="isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'"

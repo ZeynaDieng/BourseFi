@@ -130,7 +130,7 @@ function statusTone(status: string) {
                 Dossiers cumulés
               </p>
               <p class="font-headline text-4xl font-black tracking-tight md:text-6xl">
-                {{ stats?.candidatures ?? '—' }}
+                {{ stats?.candidatures ?? '' }}
               </p>
               <div class="flex flex-wrap gap-2">
                 <span
@@ -152,7 +152,7 @@ function statusTone(status: string) {
               Taux de conversion
             </p>
             <p class="mt-2 font-headline text-3xl font-black text-primary md:text-4xl">
-              {{ stats?.conversion ?? '—' }}<span v-if="stats?.conversion != null" class="text-xl">%</span>
+              {{ stats?.conversion ?? '' }}<span v-if="stats?.conversion != null" class="text-xl">%</span>
             </p>
             <p class="mt-3 text-xs leading-snug text-slate-500">
               Part des dossiers avec paiement validé par rapport au total des candidatures.
@@ -203,7 +203,7 @@ function statusTone(status: string) {
               En revue active
             </p>
             <p class="mt-2 font-headline text-3xl font-black text-primary md:text-4xl">
-              {{ stats?.enRevue ?? '—' }}
+              {{ stats?.enRevue ?? '' }}
             </p>
             <p class="mt-3 text-xs text-slate-500">
               Dossiers côté partenaire : en revue, complément demandé ou acceptés en attente de
@@ -216,7 +216,7 @@ function statusTone(status: string) {
               Programmes publiés
             </p>
             <p class="mt-2 font-headline text-3xl font-black text-primary md:text-4xl">
-              {{ stats?.programmesCount ?? '—' }}
+              {{ stats?.programmesCount ?? '' }}
             </p>
           </article>
 
@@ -225,7 +225,7 @@ function statusTone(status: string) {
               Écoles
             </p>
             <p class="mt-2 font-headline text-3xl font-black text-primary md:text-4xl">
-              {{ stats?.ecolesCount ?? '—' }}
+              {{ stats?.ecolesCount ?? '' }}
             </p>
           </article>
 
@@ -234,7 +234,7 @@ function statusTone(status: string) {
               Partenaires
             </p>
             <p class="mt-2 font-headline text-3xl font-black text-primary md:text-4xl">
-              {{ stats?.partenairesCount ?? '—' }}
+              {{ stats?.partenairesCount ?? '' }}
             </p>
           </article>
         </section>
@@ -243,15 +243,15 @@ function statusTone(status: string) {
         <div class="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 md:mx-0 md:hidden md:overflow-visible md:px-0">
           <article class="portal-dash-card min-w-[10rem] shrink-0 snap-start p-4">
             <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Conversion</p>
-            <p class="mt-1 font-headline text-2xl font-black text-primary">{{ stats?.conversion ?? '—' }}<span v-if="stats?.conversion != null">%</span></p>
+            <p class="mt-1 font-headline text-2xl font-black text-primary">{{ stats?.conversion ?? '' }}<span v-if="stats?.conversion != null">%</span></p>
           </article>
           <article class="portal-dash-card min-w-[10rem] shrink-0 snap-start p-4">
             <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">En revue</p>
-            <p class="mt-1 font-headline text-2xl font-black text-primary">{{ stats?.enRevue ?? '—' }}</p>
+            <p class="mt-1 font-headline text-2xl font-black text-primary">{{ stats?.enRevue ?? '' }}</p>
           </article>
           <article class="portal-dash-card min-w-[10rem] shrink-0 snap-start p-4">
             <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Programmes</p>
-            <p class="mt-1 font-headline text-2xl font-black text-primary">{{ stats?.programmesCount ?? '—' }}</p>
+            <p class="mt-1 font-headline text-2xl font-black text-primary">{{ stats?.programmesCount ?? '' }}</p>
           </article>
         </div>
 

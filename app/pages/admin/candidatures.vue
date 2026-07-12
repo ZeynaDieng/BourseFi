@@ -321,7 +321,7 @@ async function deleteDossier() {
                 <div class="flex flex-wrap gap-1">
                   <span v-if="d.identityCardRectoUrl" class="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-600">CNI</span>
                   <span v-if="d.documentUrl" class="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700">Attest.</span>
-                  <span v-if="!d.identityCardRectoUrl && !d.documentUrl" class="text-xs text-slate-400">—</span>
+                  <span v-if="!d.identityCardRectoUrl && !d.documentUrl" class="text-xs text-slate-400"></span>
                 </div>
               </td>
               <td class="admin-td text-xs text-slate-500">{{ formatDate(d.createdAt) }}</td>
@@ -385,7 +385,7 @@ async function deleteDossier() {
               </select>
             </label>
             <label class="block">
-              <span class="text-xs font-semibold text-slate-500">Attestation — importer un fichier (PDF ou image)</span>
+              <span class="text-xs font-semibold text-slate-500">Attestation  importer un fichier (PDF ou image)</span>
               <CandidatureDocumentDropzone v-model="draft.documentDataUrl" label="Attestation" class="mt-2" />
             </label>
             <button type="button" class="admin-btn-primary w-full text-sm" :disabled="saving" @click="savePatch">
@@ -400,8 +400,8 @@ async function deleteDossier() {
           <dl class="mt-3 grid gap-2 text-sm sm:grid-cols-2">
             <div><dt class="text-slate-400">Nom complet</dt><dd class="font-medium">{{ detail.fullName }}</dd></div>
             <div><dt class="text-slate-400">Email</dt><dd>{{ detail.email }}</dd></div>
-            <div><dt class="text-slate-400">Téléphone</dt><dd>{{ detail.phone || '—' }}</dd></div>
-            <div class="sm:col-span-2"><dt class="text-slate-400">Adresse</dt><dd>{{ detail.address || '—' }}</dd></div>
+            <div><dt class="text-slate-400">Téléphone</dt><dd>{{ detail.phone || '' }}</dd></div>
+            <div class="sm:col-span-2"><dt class="text-slate-400">Adresse</dt><dd>{{ detail.address || '' }}</dd></div>
             <div><dt class="text-slate-400">Déposé le</dt><dd>{{ formatDate(detail.createdAt) }}</dd></div>
           </dl>
         </section>
@@ -410,12 +410,12 @@ async function deleteDossier() {
         <section>
           <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Parcours académique</p>
           <dl class="mt-3 grid gap-2 text-sm sm:grid-cols-2">
-            <div><dt class="text-slate-400">Établissement</dt><dd>{{ detail.institution || '—' }}</dd></div>
-            <div><dt class="text-slate-400">Filière</dt><dd>{{ detail.field || '—' }}</dd></div>
-            <div><dt class="text-slate-400">Niveau</dt><dd>{{ detail.level || '—' }}</dd></div>
-            <div><dt class="text-slate-400">Dernier diplôme</dt><dd>{{ detail.lastDiploma || '—' }}</dd></div>
-            <div><dt class="text-slate-400">Année obtention</dt><dd>{{ detail.graduationDate || '—' }}</dd></div>
-            <div><dt class="text-slate-400">Moyenne</dt><dd>{{ detail.gpa || '—' }}</dd></div>
+            <div><dt class="text-slate-400">Établissement</dt><dd>{{ detail.institution || '' }}</dd></div>
+            <div><dt class="text-slate-400">Filière</dt><dd>{{ detail.field || '' }}</dd></div>
+            <div><dt class="text-slate-400">Niveau</dt><dd>{{ detail.level || '' }}</dd></div>
+            <div><dt class="text-slate-400">Dernier diplôme</dt><dd>{{ detail.lastDiploma || '' }}</dd></div>
+            <div><dt class="text-slate-400">Année obtention</dt><dd>{{ detail.graduationDate || '' }}</dd></div>
+            <div><dt class="text-slate-400">Moyenne</dt><dd>{{ detail.gpa || '' }}</dd></div>
           </dl>
         </section>
 

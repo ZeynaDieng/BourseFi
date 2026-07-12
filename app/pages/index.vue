@@ -19,7 +19,7 @@ const hero = computed(
   () => (site.value?.content?.home_hero ?? {}) as Record<string, unknown>,
 );
 
-/** Carrousel d’accueil : bannière métier puis visuels 1, 2, 4, 5 et 6 — sans `slide-3.png`. Champ CMS `bannerImageUrl` plein → image fixe (remplace le carrousel). */
+/** Carrousel d’accueil : bannière métier puis visuels 1, 2, 4, 5 et 6  sans `slide-3.png`. Champ CMS `bannerImageUrl` plein → image fixe (remplace le carrousel). */
 const HERO_SLIDES_DEFAULT = [
   "/hero/slide-accueil-banniere.png",
   "/hero/slide-1.png",
@@ -162,7 +162,7 @@ watch(
 const router = useRouter();
 const route = useRoute();
 
-/** Configuration Fuse.js — bourses */
+/** Configuration Fuse.js  bourses */
 const fuse = computed(() => {
   const items = (allBourses.value ?? []).map(
     (b: {
@@ -456,7 +456,7 @@ useJsonLd(
                 </div>
               </div>
 
-          <!-- Sélecteur de Secteur — desktop uniquement
+          <!-- Sélecteur de Secteur  desktop uniquement
 
 <div
   class="relative hidden min-h-[52px] min-w-0 items-center px-4 md:flex md:py-1"

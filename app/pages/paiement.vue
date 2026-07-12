@@ -49,12 +49,23 @@ async function loadCandidatures() {
 
 onMounted(async () => {
   window.addEventListener('message', onPaytechMessage)
+
   await loadCandidatures()
+
   if (returnStatus.value === 'success') {
     confirmingPayment.value = true
     pollStatus()
-  } else if (returnStatus.value === 'cancel') {
+    return
+  }
+
+  if (returnStatus.value === 'cancel') {
     cancelled.value = true
+    return
+  }
+
+  // Déclenche automatiquement PayTech
+  if (canPay.value) {
+    submitPayment()
   }
 })
 
@@ -78,6 +89,7 @@ const cancelled = ref(false)
 const confirmingPayment = ref(false)
 const showPaytechModal = ref(false)
 const paytechUrl = ref('')
+const paymentStarted = ref(false)
 
 const canPay = computed(
   () => !!dossier.value && dossier.value.status === 'EN_ATTENTE_PAIEMENT',
@@ -91,7 +103,6 @@ function openPaytechModal(url: string) {
   paytechUrl.value = url
   showPaytechModal.value = true
   confirmingPayment.value = false
-  pollStatus()
 }
 
 function closePaytechModal() {
@@ -100,7 +111,9 @@ function closePaytechModal() {
 }
 
 async function submitPayment() {
-  if (!canPay.value) return
+  if (!canPay.value || paymentStarted.value) return
+
+  paymentStarted.value = true
   paymentError.value = ''
   isPaying.value = true
   try {
@@ -112,9 +125,10 @@ async function submitPayment() {
     })
     isPaying.value = false
     if (!res?.redirectUrl) {
-      paymentError.value = 'Réponse inattendue de la passerelle de paiement.'
-      return
-    }
+  paymentStarted.value = false
+  paymentError.value = 'Réponse inattendue de la passerelle de paiement.'
+  return
+}
     if (res.redirectUrl.startsWith('http')) {
       openPaytechModal(res.redirectUrl)
     } else {
@@ -122,9 +136,10 @@ async function submitPayment() {
       pollStatus()
     }
   } catch {
-    paymentError.value = 'Impossible d’initier le paiement. Réessayez dans un instant.'
-    isPaying.value = false
-  }
+  paymentStarted.value = false
+  paymentError.value = 'Impossible d’initier le paiement. Réessayez dans un instant.'
+  isPaying.value = false
+}
 }
 
 async function pollStatus() {
@@ -179,6 +194,8 @@ function cancelVerifying() {
 }
 
 async function onPaymentValidated() {
+  paymentStarted.value = false
+isPaying.value = false
   isPaid.value = true
   verifying.value = false
   confirmingPayment.value = false
@@ -203,6 +220,7 @@ function retryPayment() {
   confirmingPayment.value = false
   verifyTimedOut.value = false
   paymentError.value = ''
+  paymentStarted.value = false
   navigateTo(`/paiement?candidatureId=${candidatureId.value}`, { replace: true })
 }
 
@@ -243,7 +261,7 @@ function onLogoError(e: Event) {
   ;(e.target as HTMLImageElement).style.display = 'none'
 }
 
-useSeoMeta({ title: 'Paiement — BourseFi' })
+useSeoMeta({ title: 'Paiement  BourseFi' })
 </script>
 
 <template>
@@ -282,7 +300,7 @@ useSeoMeta({ title: 'Paiement — BourseFi' })
       </div>
     </div>
 
-    <!-- Vérification (retour PayTech — page parente, pas dans l'iframe) -->
+    <!-- Vérification (retour PayTech  page parente, pas dans l'iframe) -->
     <div v-else-if="confirmingPayment" class="mx-auto flex max-w-lg flex-col items-center px-4 py-16 text-center sm:px-6">
       <template v-if="!verifyTimedOut">
         <div class="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 text-primary">

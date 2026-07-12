@@ -42,7 +42,7 @@ onMounted(() => {
   navigateTo(`/paiement?${q.toString()}`, { replace: true })
 })
 
-useSeoMeta({ title: 'Finalisation — BourseFi' })
+useSeoMeta({ title: 'Finalisation  BourseFi' })
 </script>
 
 <template>

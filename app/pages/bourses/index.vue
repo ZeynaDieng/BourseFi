@@ -43,7 +43,7 @@ const filtered = computed(() => {
 })
 
 useSiteSeo({
-  title: 'Bourses disponibles — BourseFi',
+  title: 'Bourses disponibles  BourseFi',
   description:
     "Parcourez les bourses d'études disponibles au Sénégal : couverture, écoles partenaires et dates limites.",
 })

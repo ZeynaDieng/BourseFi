@@ -78,7 +78,7 @@ function formatDate(iso: string) {
 }
 
 function formatMeta(meta: Record<string, unknown> | null): string {
-  if (!meta || !Object.keys(meta).length) return '—'
+  if (!meta || !Object.keys(meta).length) return ''
   return Object.entries(meta)
     .map(([k, v]) => `${k} : ${typeof v === 'object' ? JSON.stringify(v) : String(v)}`)
     .join(' · ')
@@ -220,7 +220,7 @@ const entityOptions = computed(() => data.value?.stats.topEntities ?? [])
             <tr v-for="log in paginated" :key="log.id" class="hover:bg-slate-50/80">
               <td class="admin-td whitespace-nowrap text-xs text-slate-500">{{ formatDate(log.createdAt) }}</td>
               <td class="admin-td">
-                <p class="text-sm font-semibold text-primary">{{ log.actorName ?? '—' }}</p>
+                <p class="text-sm font-semibold text-primary">{{ log.actorName ?? '' }}</p>
                 <p class="text-[11px] text-slate-400">{{ log.actorRole }}</p>
               </td>
               <td class="admin-td">

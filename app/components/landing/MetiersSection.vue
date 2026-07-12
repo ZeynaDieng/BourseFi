@@ -19,7 +19,7 @@
         >
           <img
             :src="metier.coverImageUrl?.trim() || metierVisual(metier.slug)"
-            :alt="`Illustration — ${metier.label}`"
+            :alt="`Illustration  ${metier.label}`"
             class="h-44 w-full object-cover"
             width="900"
             height="352"

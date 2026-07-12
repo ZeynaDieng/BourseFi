@@ -16,7 +16,7 @@ function formatDate(iso: string) {
 }
 
 useSiteSeo({
-  title: () => (bourse.value ? `${bourse.value.titre} — BourseFi` : 'Bourse — BourseFi'),
+  title: () => (bourse.value ? `${bourse.value.titre}  BourseFi` : 'Bourse  BourseFi'),
   description: () =>
     bourse.value
       ? `${bourse.value.programmeTitre} · ${bourse.value.etablissement} · couverture ${bourse.value.coveragePercent} %`

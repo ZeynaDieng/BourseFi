@@ -26,11 +26,11 @@ const { data: partner, error } = await useFetch<PartnerDetail>(
 )
 
 useSiteSeo({
-  title: () => (partner.value ? `${partner.value.name} — BourseFi` : 'Partenaire — BourseFi'),
+  title: () => (partner.value ? `${partner.value.name}  BourseFi` : 'Partenaire  BourseFi'),
   description: () =>
     partner.value?.description?.trim() ||
     (partner.value
-      ? `${partner.value.name} — partenaire bourse d'études sur BourseFi Sénégal.`
+      ? `${partner.value.name}  partenaire bourse d'études sur BourseFi Sénégal.`
       : undefined),
   canonical: () => (partner.value ? `/partenaires/${partner.value.slug}` : '/partenaires'),
 })

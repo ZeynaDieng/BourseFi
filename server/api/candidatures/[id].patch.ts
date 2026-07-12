@@ -111,7 +111,7 @@ export default defineEventHandler(async (event) => {
     const siteUrl = String(process.env.NUXT_PUBLIC_SITE_URL || 'https://boursefi.sn').replace(/\/+$/, '')
     await sendEmail({
       to: { email: dossier.email, name: dossier.fullName },
-      subject: 'Votre attestation est disponible — BourseFi',
+      subject: 'Votre attestation est disponible  BourseFi',
       html: renderEmail({
         title: 'Votre attestation est prête 🎉',
         bodyHtml: `<p>Bonjour ${dossier.firstName || dossier.fullName},</p>

@@ -17,7 +17,7 @@ const saving = ref(false)
 const siteFormRef = ref<{ buildPayload: () => Record<string, unknown> } | null>(null)
 
 function payloadSummary(payload: unknown) {
-  if (payload === null || typeof payload !== 'object') return '—'
+  if (payload === null || typeof payload !== 'object') return ''
   try {
     const s = JSON.stringify(payload)
     const kb = Math.round((s.length / 1024) * 10) / 10
@@ -25,7 +25,7 @@ function payloadSummary(payload: unknown) {
     const unit = Array.isArray(payload) ? 'éléments' : 'champs'
     return `${kb} ko · ${count} ${unit}`
   } catch {
-    return '—'
+    return ''
   }
 }
 
@@ -103,7 +103,7 @@ function closeDrawer() {
           <tbody>
             <tr v-for="row in keysList" :key="row.key" class="hover:bg-slate-50/80">
               <td class="admin-td font-semibold text-primary">
-                {{ SITE_CONTENT_LABELS[row.key] || '—' }}
+                {{ SITE_CONTENT_LABELS[row.key] || '' }}
               </td>
               <td class="admin-td admin-td-mono text-[11px]">{{ row.key }}</td>
               <td class="admin-td text-slate-600">{{ payloadSummary(row.payload) }}</td>
@@ -114,7 +114,7 @@ function closeDrawer() {
                   :disabled="!supportsForm(row.key)"
                   @click="openDrawer(row)"
                 >
-                  {{ supportsForm(row.key) ? 'Modifier' : '—' }}
+                  {{ supportsForm(row.key) ? 'Modifier' : '' }}
                 </button>
               </td>
             </tr>

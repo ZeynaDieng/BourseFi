@@ -1,5 +1,5 @@
 /**
- * Statuts dossier — source unique (évite les imports runtime @prisma/client en ESM/Nitro).
+ * Statuts dossier  source unique (évite les imports runtime @prisma/client en ESM/Nitro).
  * Rester aligné avec prisma/schema.prisma enum CandidatureStatus.
  */
 export const CANDIDATURE_STATUSES = [

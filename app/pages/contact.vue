@@ -35,7 +35,7 @@ async function submitForm() {
 }
 
 useSiteSeo({
-  title: 'Contactez-nous — BourseFi',
+  title: 'Contactez-nous  BourseFi',
   description:
     "Une question ? Un besoin d'accompagnement ? Notre équipe est à votre écoute pour vous aider dans vos démarches de bourses.",
 })

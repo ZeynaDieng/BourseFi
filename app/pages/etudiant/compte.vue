@@ -84,7 +84,7 @@ async function submit() {
   }
 }
 
-useSeoMeta({ title: 'Mon compte — BourseFi' })
+useSeoMeta({ title: 'Mon compte  BourseFi' })
 </script>
 
 <template>
@@ -139,7 +139,7 @@ useSeoMeta({ title: 'Mon compte — BourseFi' })
               Recto enregistré
               <a :href="currentRecto" target="_blank" class="text-primary underline">voir</a>
             </div>
-            <CandidatureDocumentDropzone v-model="form.identityCardRecto" :label="currentRecto ? 'Remplacer le recto' : 'Carte d’identité — Recto'" />
+            <CandidatureDocumentDropzone v-model="form.identityCardRecto" :label="currentRecto ? 'Remplacer le recto' : 'Carte d’identité  Recto'" />
           </div>
           <div>
             <div v-if="currentVerso" class="mb-2 flex items-center gap-2 text-xs font-semibold text-emerald-600">
@@ -147,7 +147,7 @@ useSeoMeta({ title: 'Mon compte — BourseFi' })
               Verso enregistré
               <a :href="currentVerso" target="_blank" class="text-primary underline">voir</a>
             </div>
-            <CandidatureDocumentDropzone v-model="form.identityCardVerso" :label="currentVerso ? 'Remplacer le verso' : 'Carte d’identité — Verso'" />
+            <CandidatureDocumentDropzone v-model="form.identityCardVerso" :label="currentVerso ? 'Remplacer le verso' : 'Carte d’identité  Verso'" />
           </div>
         </div>
       </section>

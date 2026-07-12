@@ -59,7 +59,7 @@ export function buildStudentDocuments(
     if (c.documentUrl) {
       list.push({
         id: `doc-${c.id}`,
-        label: `Attestation — ${c.programmeTitre}`,
+        label: `Attestation  ${c.programmeTitre}`,
         url: c.documentUrl,
         group: 'attestation',
       })
@@ -71,7 +71,7 @@ export function buildStudentDocuments(
   for (const p of paiements || []) {
     list.push({
       id: `pay-${p.id}`,
-      label: `Reçu — ${p.amount.toLocaleString('fr-FR')} ${p.currency}`,
+      label: `Reçu  ${p.amount.toLocaleString('fr-FR')} ${p.currency}`,
       url: p.receiptUrl ?? undefined,
       group: 'receipt',
     })

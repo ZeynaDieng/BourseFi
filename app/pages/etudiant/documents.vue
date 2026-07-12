@@ -24,7 +24,7 @@ const openSections = reactive<Record<string, boolean>>({
   receipt: true,
 })
 
-useSeoMeta({ title: 'Mes documents — BourseFi' })
+useSeoMeta({ title: 'Mes documents  BourseFi' })
 </script>
 
 <template>

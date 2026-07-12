@@ -29,7 +29,7 @@ const { data: paiements } = await useFetch('/api/partner/paiements')
       <div class="flex flex-col gap-3 md:hidden">
         <article v-for="p in paiements ?? []" :key="p.id" class="portal-dash-card p-4">
           <p class="font-semibold text-primary">{{ p.fullName }}</p>
-          <p class="text-sm text-slate-500">{{ p.programme ?? '—' }}</p>
+          <p class="text-sm text-slate-500">{{ p.programme ?? '' }}</p>
           <div class="mt-3 flex justify-between text-sm">
             <span class="text-slate-600">Total</span>
             <span>{{ p.amount.toLocaleString('fr-FR') }} {{ p.currency }}</span>
@@ -66,7 +66,7 @@ const { data: paiements } = await useFetch('/api/partner/paiements')
             <tbody>
               <tr v-for="p in paiements ?? []" :key="p.id">
                 <td class="admin-td">{{ p.fullName }}</td>
-                <td class="admin-td">{{ p.programme ?? '—' }}</td>
+                <td class="admin-td">{{ p.programme ?? '' }}</td>
                 <td class="admin-td">{{ p.amount.toLocaleString('fr-FR') }} {{ p.currency }}</td>
                 <td class="admin-td font-semibold text-primary">{{ p.amountPartner.toLocaleString('fr-FR') }} {{ p.currency }}</td>
                 <td class="admin-td">{{ new Date(p.createdAt).toLocaleDateString('fr-FR') }}</td>

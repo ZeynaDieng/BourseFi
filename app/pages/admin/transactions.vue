@@ -311,7 +311,7 @@ function statusClass(status: string) {
               <td class="admin-td text-sm">{{ formatMethod(t.method) }}</td>
               <td class="admin-td text-sm">{{ t.amountPlatform.toLocaleString('fr-FR') }} {{ t.currency }}</td>
               <td class="admin-td">
-                <p class="text-sm">{{ t.programmeTitre ?? t.programme ?? '—' }}</p>
+                <p class="text-sm">{{ t.programmeTitre ?? t.programme ?? '' }}</p>
                 <p v-if="t.partnerName" class="text-xs text-slate-400">{{ t.partnerName }}</p>
               </td>
               <td class="admin-td text-xs text-slate-500">{{ formatDate(t.createdAt) }}</td>
@@ -394,7 +394,7 @@ function statusClass(status: string) {
           <dl class="mt-3 grid gap-2 text-sm sm:grid-cols-2">
             <div><dt class="text-slate-400">Nom</dt><dd class="font-medium">{{ detail.fullName }}</dd></div>
             <div><dt class="text-slate-400">Email</dt><dd>{{ detail.email }}</dd></div>
-            <div><dt class="text-slate-400">Téléphone</dt><dd>{{ detail.phone || '—' }}</dd></div>
+            <div><dt class="text-slate-400">Téléphone</dt><dd>{{ detail.phone || '' }}</dd></div>
             <div v-if="detail.refCommand">
               <dt class="text-slate-400">Référence</dt>
               <dd class="flex items-center gap-2">

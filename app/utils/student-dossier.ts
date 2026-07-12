@@ -64,8 +64,8 @@ export function computeDossierProgress(
 
   const missingHint =
     missingCount > 0
-      ? `Dossier à ${percent} % — pièces manquantes : ${missingCount}`
-      : `Dossier à ${percent} % — complet pour l’étape en cours`
+      ? `Dossier à ${percent} %  pièces manquantes : ${missingCount}`
+      : `Dossier à ${percent} %  complet pour l’étape en cours`
 
   const notification = notificationForStatus(statusForProgress)
 
@@ -75,7 +75,7 @@ export function computeDossierProgress(
 function notificationForStatus(status: string): string | null {
   switch (status) {
     case 'EN_REVUE_PARTENAIRE':
-      return 'Votre dossier a été transmis au bailleur — réponse sous 5 jours ouvrés.'
+      return 'Votre dossier a été transmis au bailleur  réponse sous 5 jours ouvrés.'
     case 'COMPLEMENT_DEMANDE':
       return 'Le bailleur demande un complément : consultez votre dossier et ajoutez les pièces.'
     case 'EN_ATTENTE_PAIEMENT':
@@ -83,7 +83,7 @@ function notificationForStatus(status: string): string | null {
     case 'DOCUMENT_EMIS':
       return 'Votre attestation de bourse est disponible dans Documents.'
     case 'ACCEPTE':
-      return 'Candidature acceptée — le document de bourse est en préparation.'
+      return 'Candidature acceptée  le document de bourse est en préparation.'
     case 'REFUSE':
       return 'Cette candidature n’a pas été retenue pour la vague en cours.'
     default:

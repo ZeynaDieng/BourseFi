@@ -14,7 +14,7 @@ function statusTone(status: string) {
   return 'bg-slate-100 text-slate-700'
 }
 
-useSeoMeta({ title: 'Mes paiements — BourseFi' })
+useSeoMeta({ title: 'Mes paiements  BourseFi' })
 </script>
 
 <template>

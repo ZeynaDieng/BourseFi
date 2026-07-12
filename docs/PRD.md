@@ -1,4 +1,4 @@
-# PRD — BourseFi
+# PRD  BourseFi
 
 **Plateforme digitale de bourses d'études au Sénégal**
 
@@ -76,10 +76,10 @@ Aujourd'hui au Sénégal :
 
 ## 5. Utilisateurs cibles
 
-1. **Candidats / étudiants** — recherche d'école, formation, bourse, opportunités académiques.
-2. **Partenaires financeurs** — mairies, agences, ONG, entreprises, collectivités, associations.
-3. **Écoles partenaires** — visibilité, candidatures, formations, collaboration avec partenaires.
-4. **Administrateurs BourseFi** — plateforme, validations, paiements, contenus, statistiques.
+1. **Candidats / étudiants**  recherche d'école, formation, bourse, opportunités académiques.
+2. **Partenaires financeurs**  mairies, agences, ONG, entreprises, collectivités, associations.
+3. **Écoles partenaires**  visibilité, candidatures, formations, collaboration avec partenaires.
+4. **Administrateurs BourseFi**  plateforme, validations, paiements, contenus, statistiques.
 
 ---
 
@@ -100,7 +100,7 @@ Aujourd'hui au Sénégal :
 
 ### Back office partenaire
 
-- Gestion des bourses (offres, quotas — à étendre selon produit).
+- Gestion des bourses (offres, quotas  à étendre selon produit).
 - Gestion des candidatures.
 - **Upload / association des documents officiels**.
 - Suivi des paiements et **revenus / parts**.
@@ -141,10 +141,10 @@ Aujourd'hui au Sénégal :
 
 Recherche par école, formation, métier, domaine, ville, niveau ; **suggestions** (ex. Développement Web, Informatique, Marketing, Santé).
 
-### 7.4 Système de bourses — processus utilisateur
+### 7.4 Système de bourses  processus utilisateur
 
 1. **Choix** : école, formation, partenaire.
-2. **Popup de candidature** — **IMPORTANT** : formulaire **dynamique, rapide, moderne, multi-étapes, responsive** ; **pas** une page comme parcours principal.
+2. **Popup de candidature**  **IMPORTANT** : formulaire **dynamique, rapide, moderne, multi-étapes, responsive** ; **pas** une page comme parcours principal.
 3. **Saisie** : prénom, nom, téléphone, email, niveau académique, documents éventuels.
 4. **Paiement sécurisé**.
 5. **Répartition automatique** : partenaire + BourseFi.
@@ -272,27 +272,27 @@ BourseFi n'est pas simplement une plateforme éducative. C'est une **infrastruct
 
 ---
 
-## Annexe A — Plan de réalisation (jalons livraison)
+## Annexe A  Plan de réalisation (jalons livraison)
 
-### Phase 0 — Cadrage
+### Phase 0  Cadrage
 
 Cadre légal documents ; modèle économique ; PSP pilote ; partenaires / écoles pilotes.
 
-### Phase 1 — MVP
+### Phase 1  MVP
 
 Guichet public (écoles, formations, bailleurs visibles) ; **modal candidature** ; paiement *(simulation ou PSP minimal)* ; document partenaire ; espaces candidat et partenaire ; admin et audit.
 
-### Phase 2 — Paiements et répartition
+### Phase 2  Paiements et répartition
 
 Webhooks PSP ; versements robustes ; reçus ; tableaux partenaires / admin enrichis.
 
-### Phase 3 — Croissance
+### Phase 3  Croissance
 
 Notifications ; filtres recherche avancés ; témoignages ; back-office école dédié ; favoris mobile.
 
 ---
 
-## Annexe B — Matrice conformité MVP / code *(indicatif)*
+## Annexe B  Matrice conformité MVP / code *(indicatif)*
 
 | Zone PRD | Statut MVP code |
 |---------|------------------|
@@ -300,31 +300,31 @@ Notifications ; filtres recherche avancés ; témoignages ; back-office école d
 | Répartition paiement partenaire / BourseFi | Enregistrée sur transaction |
 | Document officiel partenaire | Via URL déposée partenaire + téléchargement candidat |
 | Back-office partenaire | Dossiers + statuts + document |
-| Back-office école séparé | **Non** — contenu via seed / admin à prévoir |
+| Back-office école séparé | **Non**  contenu via seed / admin à prévoir |
 | Recherche intelligente + filtres riches | À renforcer |
-| Notifications listées §11 | **Non branchées** — roadmap |
+| Notifications listées §11 | **Non branchées**  roadmap |
 | Reçus PDF automatiques | **À ajouter** |
 | Landing hero libellés §9 au mot près | À harmoniser wording |
 
 ---
 
-## Annexe C — Matrice écrans × acteurs *(étendue PRD §6)*
+## Annexe C  Matrice écrans × acteurs *(étendue PRD §6)*
 
 | Fonction | Public | Candidat | Partenaire | Ecole *(cible)* | Admin |
 |----------|--------|----------|------------|-----------------|-------|
-| Accueil, catalogues | Oui | Oui | — | — | CRUD |
-| Recherche / filtres | Oui | Oui | — | — | — |
-| Popup candidature | — | Oui | — | — | — |
-| Paiement + splits | — | Oui | — | — | param / vue |
-| Document bourse | — | DL | Dépose | — | supervise |
-| Dashboard candidat | — | Oui | — | — | — |
-| Dashboard partenaire | — | — | Oui | — | — |
-| Dashboard ecole | — | — | — | V2 | — |
-| Dashboard BourseFi | — | — | — | — | Oui |
+| Accueil, catalogues | Oui | Oui |  |  | CRUD |
+| Recherche / filtres | Oui | Oui |  |  |  |
+| Popup candidature |  | Oui |  |  |  |
+| Paiement + splits |  | Oui |  |  | param / vue |
+| Document bourse |  | DL | Dépose |  | supervise |
+| Dashboard candidat |  | Oui |  |  |  |
+| Dashboard partenaire |  |  | Oui |  |  |
+| Dashboard ecole |  |  |  | V2 |  |
+| Dashboard BourseFi |  |  |  |  | Oui |
 
 ---
 
-## Annexe D — Machine à états dossier *(alignement technique)*
+## Annexe D  Machine à états dossier *(alignement technique)*
 
 ```mermaid
 stateDiagram-v2
@@ -343,7 +343,7 @@ stateDiagram-v2
 
 ---
 
-## Annexe E — Épics backlog *(synthèse)*
+## Annexe E  Épics backlog *(synthèse)*
 
 - Storytelling landing & CTAs §9.
 - Catalogue écoles / formations enrichi §7.1–7.2.
@@ -356,7 +356,7 @@ stateDiagram-v2
 
 ---
 
-## Annexe F — Historique document
+## Annexe F  Historique document
 
 | Version | Date | Notes |
 |---------|------|--------|

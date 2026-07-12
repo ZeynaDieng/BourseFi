@@ -90,7 +90,7 @@ async function seedCmsFromDisk() {
 const ECOLES_DATA = [
   {
     slug: 'imtech-nelson-mandela',
-    nom: 'IMTECH — Institut de Management et de Technologie Nelson Mandela',
+    nom: 'IMTECH  Institut de Management et de Technologie Nelson Mandela',
     ville: 'Dakar',
     adresse: 'Rond-point Castor x Avenue Bourguiba, Dakar',
     site: 'imtech-nelsonmandela.com',
@@ -106,7 +106,7 @@ const ECOLES_DATA = [
   },
   {
     slug: 'isdb-dakar',
-    nom: 'ISDB — Institut Supérieur Dakar Banlieue',
+    nom: 'ISDB  Institut Supérieur Dakar Banlieue',
     ville: 'Dakar',
     adresse: 'Parcelles Assainies Unité 6 N°518, à côté du Lycée des Parcelles Assainies (LPA) et station Shell, Dakar',
     site: 'isdb.sn',
@@ -122,7 +122,7 @@ const ECOLES_DATA = [
   },
   {
     slug: 'estg-dakar',
-    nom: 'ESTG — École Supérieure des Techniques de Gestion',
+    nom: 'ESTG  École Supérieure des Techniques de Gestion',
     ville: 'Dakar',
     adresse: 'Sicap/Liberté 4, Lot 5001, Dakar (côté camp des sapeurs-pompiers)',
     site: 'estg.sn',
@@ -138,7 +138,7 @@ const ECOLES_DATA = [
   },
   {
     slug: 'hecm-dakar',
-    nom: 'HECM — Espace HECM – Hautes Études de Coaching et de Management',
+    nom: 'HECM  Espace HECM – Hautes Études de Coaching et de Management',
     ville: 'Dakar',
     adresse: 'Liberté 4, Allées Khalifa Ababacar Sy, villa 5015, Dakar (près du camp des sapeurs-pompiers)',
     site: 'hecm-dakar.com',
@@ -154,7 +154,7 @@ const ECOLES_DATA = [
   },
   {
     slug: 'abs-school-dakar',
-    nom: 'ABS School — African Business School',
+    nom: 'ABS School  African Business School',
     ville: 'Dakar',
     adresse: 'Sicap Liberté 2, derrière le rond-point Jet d\'Eau, villa n°1589, Dakar',
     site: 'abs-ao.com',
@@ -170,7 +170,7 @@ const ECOLES_DATA = [
   },
   {
     slug: 'amdi-afrique',
-    nom: 'AMDI — African Millennium Development Institute (AMDI Afrique)',
+    nom: 'AMDI  African Millennium Development Institute (AMDI Afrique)',
     ville: 'Dakar',
     adresse: 'VDN, Liberté 6 Extension villa n°05, en face du cimetière Saint-Lazare de Béthanie, Dakar',
     site: 'amdiafrique.com',
@@ -186,7 +186,7 @@ const ECOLES_DATA = [
   },
   {
     slug: 'isbd-dakar',
-    nom: 'ISBD — International School of Business and Development',
+    nom: 'ISBD  International School of Business and Development',
     ville: 'Dakar',
     adresse: 'Mermoz, ancienne piste, Dakar',
     site: 'isbd-school.com',
@@ -201,7 +201,7 @@ const ECOLES_DATA = [
   },
   {
     slug: 'cefas-senegal',
-    nom: 'CEFAS — Centre de Formation Africain du Sénégal',
+    nom: 'CEFAS  Centre de Formation Africain du Sénégal',
     ville: 'Dakar',
     adresse: 'Cité Keur Damel, en face de Yenguoulène, avant le rond-point 26 des Parcelles Assainies, Dakar',
     site: 'cefas-senegal.com',
@@ -217,7 +217,7 @@ const ECOLES_DATA = [
   },
   {
     slug: 'sup-immo-dakar',
-    nom: 'SUP\'IMMO — Sup\'Immo Dakar – École Supérieure de l\'Immobilier',
+    nom: 'SUP\'IMMO  Sup\'Immo Dakar – École Supérieure de l\'Immobilier',
     ville: 'Dakar',
     adresse: 'Liberté 6 Extension, en face de la pharmacie Leclerc, Dakar',
     site: 'groupesupimmo.com',
@@ -233,7 +233,7 @@ const ECOLES_DATA = [
   },
   {
     slug: 'ipd-thomas-sankara',
-    nom: 'IPD Thomas Sankara — Institut Polytechnique de Dakar « Thomas Sankara »',
+    nom: 'IPD Thomas Sankara  Institut Polytechnique de Dakar « Thomas Sankara »',
     ville: 'Dakar',
     adresse: 'N°8477, Sud Foire, Dakar (près du SAMU municipal)',
     site: 'ipd.sn',
@@ -249,7 +249,7 @@ const ECOLES_DATA = [
   },
   {
     slug: 'esup-dakar',
-    nom: 'ESUP Dakar — Groupe ESUP Dakar (Commerce et Gestion / Tech / Santé)',
+    nom: 'ESUP Dakar  Groupe ESUP Dakar (Commerce et Gestion / Tech / Santé)',
     ville: 'Dakar',
     adresse: 'Sacré-Cœur III, villas N°9256/9255, VDN, Dakar',
     site: 'esupdakar.sn',
@@ -265,7 +265,7 @@ const ECOLES_DATA = [
   },
   {
     slug: 'ifaa-dakar',
-    nom: 'IFAA — Institut de Formation en Administration des Affaires',
+    nom: 'IFAA  Institut de Formation en Administration des Affaires',
     ville: 'Dakar',
     adresse: 'Cité SIPRES 2, face VDN, villa n°2, Dakar (annexe Parcelles Assainies)',
     site: 'ifaa.sn',
@@ -281,7 +281,7 @@ const ECOLES_DATA = [
   },
   {
     slug: 'ensup-afrique-dakar',
-    nom: 'ENSUP Afrique — Enseignement Supérieur de la Gestion, des Finances et de l\'Administration',
+    nom: 'ENSUP Afrique  Enseignement Supérieur de la Gestion, des Finances et de l\'Administration',
     ville: 'Dakar',
     adresse: 'Liberté 6 Extension, villa n°205, en face du Camp Leclerc, Dakar',
     site: 'ensupafrique.com',
@@ -297,7 +297,7 @@ const ECOLES_DATA = [
   },
   {
     slug: 'elite-sante',
-    nom: 'Élite Santé — Institut Élite Santé (IES)',
+    nom: 'Élite Santé  Institut Élite Santé (IES)',
     ville: 'Keur Massar',
     adresse: 'Keur Massar (Aïnoumadi) ; campus à Pikine/Guédiawaye, Avenue Bourguiba, Thiès, Kaolack, Touba',
     site: 'groupelitesante.com',
@@ -313,7 +313,7 @@ const ECOLES_DATA = [
   },
   {
     slug: 'img-rufisque',
-    nom: 'IMG (Rufisque) — Institut de Management et de Gestion',
+    nom: 'IMG (Rufisque)  Institut de Management et de Gestion',
     ville: 'Rufisque',
     adresse: 'Rufisque, Cité Santé Yalla, près du rond-point Socabeg, Lot 9591',
     site: 'groupe-img.com',
@@ -328,7 +328,7 @@ const ECOLES_DATA = [
   },
   {
     slug: 'afpa-dakar',
-    nom: 'AFPA — Africaine des Formations Professionnelles en Alternance',
+    nom: 'AFPA  Africaine des Formations Professionnelles en Alternance',
     ville: 'Colobane',
     adresse: 'Colobane, Dakar',
     site: 'afpa.sn',
@@ -343,7 +343,7 @@ const ECOLES_DATA = [
   },
   {
     slug: 'isca-dakar',
-    nom: 'ISCA — Institut Supérieur de Commerce et d\'Administration des Affaires',
+    nom: 'ISCA  Institut Supérieur de Commerce et d\'Administration des Affaires',
     ville: 'Dakar',
     adresse: 'Avenue Bourguiba, à 25m du Crédit Mutuel de Castors, face au jardin de Dieuppeul II, Dakar',
     site: 'isca.sn',
@@ -359,7 +359,7 @@ const ECOLES_DATA = [
   },
   {
     slug: 'ipg-isti-dakar',
-    nom: 'IPG/ISTI — Groupe Institut Privé de Gestion / Institut Supérieur de Technologie Industrielle',
+    nom: 'IPG/ISTI  Groupe Institut Privé de Gestion / Institut Supérieur de Technologie Industrielle',
     ville: 'Dakar',
     adresse: 'Sicap Sacré-Cœur 2, Immeuble IPG-ISTI, BP 10155, Dakar (2ᵉ site Almadies)',
     site: 'ipg-isti.sn',
@@ -375,7 +375,7 @@ const ECOLES_DATA = [
   },
   {
     slug: 'smi-thies',
-    nom: 'SMI — Sup\'Management Intelligentsia',
+    nom: 'SMI  Sup\'Management Intelligentsia',
     ville: 'Thiès',
     adresse: 'Cité Malick Sy, derrière la station Titan Oil, Thiès (siège aussi Dakar Point E ; campus Ziguinchor)',
     site: 'smi.sn',
@@ -391,7 +391,7 @@ const ECOLES_DATA = [
   },
   {
     slug: 'essem-sante-mbour',
-    nom: 'Essem / ESEM Santé (Mbour) — Institut de formation santé',
+    nom: 'Essem / ESEM Santé (Mbour)  Institut de formation santé',
     ville: 'Mbour',
     adresse: 'Croisement Saly, Mbour',
     site: null,
@@ -406,7 +406,7 @@ const ECOLES_DATA = [
   },
   {
     slug: 'img-mbour',
-    nom: 'IM / IMG (Mbour) — Institut de Management et de Gestion — Campus Mbour',
+    nom: 'IM / IMG (Mbour)  Institut de Management et de Gestion  Campus Mbour',
     ville: 'Mbour',
     adresse: 'Après l\'agence Free de Mbour, intersection LDD (ex-IMG)',
     site: 'imgmbour.com',
@@ -423,7 +423,7 @@ const ECOLES_DATA = [
   },
   {
     slug: 'ensup-afrique-mbour',
-    nom: 'ENSUP Afrique (Mbour) — ENSUP Afrique — antenne Mbour',
+    nom: 'ENSUP Afrique (Mbour)  ENSUP Afrique  antenne Mbour',
     ville: 'Mbour',
     adresse: 'Croisement Saly, Mbour',
     site: 'ensupafrique.com',

@@ -111,7 +111,7 @@ export default defineEventHandler(async (event) => {
           userId: s.id,
           type: 'new_scholarship',
           title: 'Nouvelle bourse disponible',
-          body: `${row.titre} — postulez avant la date limite.`,
+          body: `${row.titre}  postulez avant la date limite.`,
           bourseId: row.id,
         }),
       ),

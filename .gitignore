@@ -23,7 +23,7 @@ logs
 .env.*
 !.env.example
 
-# Fichiers uploadés (CNI, attestations) — ne pas versionner
+# Fichiers uploadés (CNI, attestations)  ne pas versionner
 uploads/**/*
 !uploads/.gitkeep
 # Legacy (anciennes installations)

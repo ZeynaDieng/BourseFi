@@ -107,13 +107,13 @@ export default defineEventHandler(async (event) => {
     },
     topProgrammes: topProgrammes.map((p) => ({
       programmeId: p.programmeId,
-      titre: progMap[p.programmeId]?.titre ?? '—',
+      titre: progMap[p.programmeId]?.titre ?? '',
       slug: progMap[p.programmeId]?.slug ?? '',
       count: p._count,
     })),
     topPartners: topPartners.map((p) => ({
       partnerId: p.partnerId,
-      name: partMap[p.partnerId]?.name ?? '—',
+      name: partMap[p.partnerId]?.name ?? '',
       slug: partMap[p.partnerId]?.slug ?? '',
       count: p._count,
     })),

@@ -214,15 +214,15 @@ defineExpose({ buildPayload })
     <!-- home_hero -->
     <template v-else-if="contentKey === 'home_hero'">
       <p class="text-sm text-slate-600">
-        Carrousel d’images en arrière-plan (slides 1, 2, 4, 5 et 6 —
+        Carrousel d’images en arrière-plan (slides 1, 2, 4, 5 et 6 
         <code class="rounded bg-slate-100 px-1">slide-3</code>
         volontairement exclu). Si vous renseignez une URL ci-dessous : une image fixe remplace le carrousel.
       </p>
       <label class="admin-label">Image de fond (URL optionnelle)</label>
       <input v-model="state.bannerImageUrl as string" type="text" class="admin-input font-mono text-xs" placeholder="Laisser vide pour le carrousel (sans slide 3)" />
-      <label class="admin-label">Titre H1 — partie 1 (bleu)</label>
+      <label class="admin-label">Titre H1  partie 1 (bleu)</label>
       <input v-model="state.headlinePrimary as string" class="admin-input" placeholder="Votre avenir," />
-      <label class="admin-label">Titre H1 — partie 2 (or)</label>
+      <label class="admin-label">Titre H1  partie 2 (or)</label>
       <input v-model="state.headlineAccent as string" class="admin-input" placeholder="notre priorité." />
       <label class="admin-label">Phrase d’accroche (optionnel)</label>
       <textarea v-model="state.subtitle as string" rows="3" class="admin-input min-h-[72px]" />
@@ -247,7 +247,7 @@ defineExpose({ buildPayload })
       <label class="admin-label">Lien bouton secondaire</label>
       <input v-model="state.ctaSecondaryHref as string" class="admin-input font-mono text-xs" placeholder="/bourses" />
       <label class="admin-label">Méta titre (optionnel)</label>
-      <input v-model="state.title as string" class="admin-input" placeholder="Pour balises ou SEO — non affiché dans le hero." />
+      <input v-model="state.title as string" class="admin-input" placeholder="Pour balises ou SEO  non affiché dans le hero." />
     </template>
 
     <!-- home_stats -->
@@ -310,7 +310,7 @@ defineExpose({ buildPayload })
               <option value="primary">Accent</option>
             </select>
             <select v-model="card.imageKey" class="admin-input bg-white font-mono text-xs">
-              <option value="">— Choisir —</option>
+              <option value=""> Choisir </option>
               <option v-for="vk in VISUAL_ASSET_KEYS" :key="vk" :value="vk">{{ vk }}</option>
             </select>
           </div>
@@ -354,7 +354,7 @@ defineExpose({ buildPayload })
       <textarea v-model="state.subtitle as string" rows="2" class="admin-input min-h-[52px]" />
       <label class="admin-label">Image bandeau (clé)</label>
       <select v-model="state.bannerImageKey as string" class="admin-input bg-white font-mono text-xs">
-        <option value="">— Choisir —</option>
+        <option value=""> Choisir </option>
         <option v-for="vk in VISUAL_ASSET_KEYS" :key="vk" :value="vk">{{ vk }}</option>
       </select>
       <p class="text-sm font-semibold text-primary">Arguments</p>
@@ -501,7 +501,7 @@ defineExpose({ buildPayload })
       <textarea v-model="state.heroSubtitle as string" rows="3" class="admin-input min-h-[72px]" />
       <label class="admin-label">Image hero (clé)</label>
       <select v-model="state.heroImageKey as string" class="admin-input bg-white font-mono text-xs">
-        <option value="">— Choisir —</option>
+        <option value=""> Choisir </option>
         <option v-for="vk in VISUAL_ASSET_KEYS" :key="vk" :value="vk">{{ vk }}</option>
       </select>
       <label class="admin-label">Titre guides métiers</label>
@@ -514,7 +514,7 @@ defineExpose({ buildPayload })
       <textarea v-model="state.comparisonSubtitle as string" rows="2" class="admin-input min-h-[52px]" />
       <label class="admin-label">Image comparaison (clé)</label>
       <select v-model="state.comparisonImageKey as string" class="admin-input bg-white font-mono text-xs">
-        <option value="">— Choisir —</option>
+        <option value=""> Choisir </option>
         <option v-for="vk in VISUAL_ASSET_KEYS" :key="vk" :value="vk">{{ vk }}</option>
       </select>
       <label class="admin-label">Libellé bouton comparaison</label>
@@ -537,7 +537,7 @@ defineExpose({ buildPayload })
       <textarea v-model="state.footnote as string" rows="2" class="admin-input min-h-[52px]" />
       <label class="admin-label">Image hero (clé)</label>
       <select v-model="state.heroImageKey as string" class="admin-input bg-white font-mono text-xs">
-        <option value="">— Choisir —</option>
+        <option value=""> Choisir </option>
         <option v-for="vk in VISUAL_ASSET_KEYS" :key="vk" :value="vk">{{ vk }}</option>
       </select>
     </template>

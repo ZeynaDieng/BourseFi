@@ -17,7 +17,7 @@ async function markAllRead() {
 const unread = computed(() => (data.value?.items ?? []).filter((n) => !n.readAt))
 const read = computed(() => (data.value?.items ?? []).filter((n) => n.readAt))
 
-useSeoMeta({ title: 'Notifications — BourseFi' })
+useSeoMeta({ title: 'Notifications  BourseFi' })
 </script>
 
 <template>

@@ -65,7 +65,7 @@ const issued = computed(() =>
         <h2 class="mb-3 font-headline text-base font-bold text-primary md:text-lg">Attestations publiées</h2>
         <ul class="space-y-3">
           <li v-for="d in issued" :key="d.id" class="portal-dash-card p-4">
-            <p class="font-semibold text-primary">{{ d.fullName }} — {{ d.programmeTitre }}</p>
+            <p class="font-semibold text-primary">{{ d.fullName }}  {{ d.programmeTitre }}</p>
             <a
               :href="d.documentUrl!"
               target="_blank"

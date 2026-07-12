@@ -367,7 +367,7 @@ function formatFcfa(value: number) {
 }
 
 useSeoMeta({
-  title: () => (bourse.value ? `Postuler — ${bourse.value.titre}` : 'Postuler — BourseFi'),
+  title: () => (bourse.value ? `Postuler  ${bourse.value.titre}` : 'Postuler  BourseFi'),
 })
 </script>
 
@@ -398,7 +398,7 @@ useSeoMeta({
     >
       <span class="material-symbols-outlined mt-0.5 text-[20px] text-emerald-600">check_circle</span>
       <div>
-        <p class="font-semibold">Compte prêt — vous pouvez continuer votre candidature.</p>
+        <p class="font-semibold">Compte prêt  vous pouvez continuer votre candidature.</p>
         <p class="mt-0.5 text-emerald-800/80">Vos informations sont conservées sur cette page.</p>
       </div>
     </div>
@@ -426,7 +426,7 @@ useSeoMeta({
               <h2 class="font-headline text-lg font-bold text-primary">Votre espace candidat</h2>
               <p class="mt-1 text-sm text-slate-500">
                 Créez votre espace pour enregistrer votre dossier et recevoir votre attestation par email.
-                Environ 30 secondes — vos données sont sécurisées.
+                Environ 30 secondes  vos données sont sécurisées.
               </p>
             </div>
 
@@ -561,8 +561,8 @@ useSeoMeta({
               </p>
             </div>
             <div class="grid gap-4 sm:grid-cols-2">
-              <CandidatureDocumentDropzone v-model="form.identityCardRecto" label="Carte d’identité — Recto" />
-              <CandidatureDocumentDropzone v-model="form.identityCardVerso" label="Carte d’identité — Verso" />
+              <CandidatureDocumentDropzone v-model="form.identityCardRecto" label="Carte d’identité  Recto" />
+              <CandidatureDocumentDropzone v-model="form.identityCardVerso" label="Carte d’identité  Verso" />
             </div>
 
             <div class="border-t border-slate-100 pt-5">

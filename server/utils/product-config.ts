@@ -1,6 +1,6 @@
 import { createError } from 'h3'
 
-/** MVP : portail partenaire désactivé — réactivation future via ce flag. */
+/** MVP : portail partenaire désactivé  réactivation future via ce flag. */
 export const PARTNER_PORTAL_ENABLED = false
 
 export function assertPartnerPortalEnabled() {

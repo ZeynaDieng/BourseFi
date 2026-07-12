@@ -43,7 +43,7 @@ summary::-webkit-details-marker {
   display: none;
 }
 
-/* ——— Admin back-office (tableaux & formulaires) ——— */
+/*  Admin back-office (tableaux & formulaires)  */
 @layer components {
   .admin-page-title {
     @apply mb-2 font-headline text-3xl font-extrabold text-primary;
@@ -118,7 +118,7 @@ summary::-webkit-details-marker {
   }
 }
 
-/* Dashboard admin — apparition douce des cartes */
+/* Dashboard admin  apparition douce des cartes */
 @keyframes admin-dash-rise {
   from {
     opacity: 0;
@@ -147,13 +147,13 @@ summary::-webkit-details-marker {
   animation: admin-dash-rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-/* Accueil — photo plein écran (évite un léger flou GPU sur certains navigateurs) ; pas de filtres CSS sur le fond pour garder fidélité à la source. */
+/* Accueil  photo plein écran (évite un léger flou GPU sur certains navigateurs) ; pas de filtres CSS sur le fond pour garder fidélité à la source. */
 .hero-bg-photo {
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }
 
-/* Accueil — carrousel hero (crossfade très doux) */
+/* Accueil  carrousel hero (crossfade très doux) */
 .hero-carousel-crossfade {
   transition: opacity 1.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -164,7 +164,7 @@ summary::-webkit-details-marker {
   }
 }
 
-/* Accueil — apparition successive du bloc texte candidat */
+/* Accueil  apparition successive du bloc texte candidat */
 @keyframes home-hero-rise {
   from {
     opacity: 0;
@@ -209,7 +209,7 @@ summary::-webkit-details-marker {
   }
 }
 
-/* Landing — cartes & sections */
+/* Landing  cartes & sections */
 .card-interactive {
   will-change: transform;
 }
@@ -280,7 +280,7 @@ summary::-webkit-details-marker {
   }
 }
 
-/* Maquette espace étudiant — barre de progression animée */
+/* Maquette espace étudiant  barre de progression animée */
 .dashboard-progress-fill {
   width: 0;
   transition: width 1.25s cubic-bezier(0.22, 1, 0.36, 1);

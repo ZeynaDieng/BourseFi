@@ -37,7 +37,7 @@ function formatBourses(count: number) {
     <div class="relative aspect-[16/10] w-full shrink-0 overflow-hidden bg-slate-100">
       <img
         :src="coverSrc"
-        :alt="`Campus — ${ecole.nom}`"
+        :alt="`Campus  ${ecole.nom}`"
         class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
         width="640"
         height="400"

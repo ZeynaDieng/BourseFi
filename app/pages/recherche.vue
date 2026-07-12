@@ -63,7 +63,7 @@ function setTab(t: string) {
 }
 
 useSiteSeo({
-  title: () => (q.value ? `Recherche : ${q.value} — BourseFi` : 'Recherche — BourseFi'),
+  title: () => (q.value ? `Recherche : ${q.value}  BourseFi` : 'Recherche  BourseFi'),
   description: () =>
     q.value
       ? `Résultats pour « ${q.value} » sur BourseFi.`

@@ -73,7 +73,7 @@ export function renderEmail(opts: { title: string; bodyHtml: string; ctaLabel?: 
           </table>
         </td></tr>
         <tr><td style="padding:18px 28px;background:#f8fafc;border-top:1px solid #e2e8f0;font-size:12px;color:#94a3b8;">
-          BourseFi — Plateforme de bourses au Sénégal.<br>
+          BourseFi  Plateforme de bourses au Sénégal.<br>
           Cet email vous est envoyé automatiquement, merci de ne pas y répondre.
         </td></tr>
       </table>
