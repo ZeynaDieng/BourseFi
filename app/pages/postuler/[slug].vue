@@ -665,7 +665,7 @@ useSeoMeta({
             <h3 class="mt-2 font-headline text-xl font-extrabold leading-snug">{{ bourse.programmeTitre }}</h3>
             <p class="mt-1 text-sm text-white/70">{{ bourse.etablissement }}</p>
             <span class="mt-4 inline-flex rounded-full bg-white/15 px-3 py-1 text-sm font-bold">
-              {{ bourse.coveragePercent }} % {{ bourse.coveragePercent === 100 ? 'Bourse complète' : 'Demi-bourse' }}
+              {{ bourse.coveragePercent === 100 ? 'Bourse complète' : 'Demi-bourse' }}
             </span>
           </div>
           <dl class="space-y-4 p-6 text-sm">
