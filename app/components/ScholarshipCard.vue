@@ -55,7 +55,7 @@ function formatDate(iso: string) {
     </p>
 
     <span :class="[badgeCoverage, 'mt-4 w-fit']">
-      {{ bourse.coveragePercent }} % {{ bourse.coveragePercent === 100 ? 'Bourse complète' : 'Demi-bourse' }}
+      {{ bourse.coveragePercent === 100 ? 'Bourse complète' : 'Demi-bourse' }}
     </span>
 
     <p class="mt-3 font-headline text-lg font-bold text-primary">
