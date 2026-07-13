@@ -86,14 +86,45 @@ export default defineEventHandler(async (event) => {
     }
   })
 
+  // Créer automatiquement une bourse liée au programme
+  const bourseSlug = `bourse-${slug}`
+  const bourseTitre = `Bourse ${row.titre}`
+  const dateLimite = new Date()
+  dateLimite.setFullYear(dateLimite.getFullYear() + 1) // Date limite 1 an par défaut
+
+  const bourse = await prisma.bourse.create({
+    data: {
+      slug: bourseSlug,
+      titre: bourseTitre,
+      programmeId: row.id,
+      partnerId: body.partnerId,
+      coveragePercent: 50, // 50% de couverture par défaut
+      montantMax: null,
+      quota: 10, // 10 places par défaut
+      dateLimite,
+      conditions: null,
+      documentsRequis: null,
+      isActive: false, // Désactivée par défaut
+    }
+  })
+
   await writeAuditLog({
     actorId: user.id,
     actorRole: user.role,
     action: 'PROGRAMME_CREATE',
     entityType: 'Programme',
     entityId: row.id,
-    metadata: { slug: row.slug, titre: row.titre }
+    metadata: { slug: row.slug, titre: row.titre, bourseId: bourse.id }
   })
 
-  return row
+  await writeAuditLog({
+    actorId: user.id,
+    actorRole: user.role,
+    action: 'BOURSE_CREATE',
+    entityType: 'Bourse',
+    entityId: bourse.id,
+    metadata: { slug: bourse.slug, titre: bourse.titre, programmeId: row.id, autoCreated: true }
+  })
+
+  return { ...row, bourse }
 })
