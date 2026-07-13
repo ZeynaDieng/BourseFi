@@ -12,13 +12,7 @@ defineProps<{
     aria-label="Chiffres clés BourseFi"
   >
     <div class="mx-auto max-w-7xl px-4 sm:px-6 md:px-8">
-      <p
-        v-if="dossiersValides && dossiersValides > 0"
-        class="mb-4 text-center text-xs font-medium text-slate-500 md:text-sm"
-      >
-        <span class="material-symbols-outlined mr-1 align-middle text-base text-secondary">verified</span>
-        {{ dossiersValides.toLocaleString('fr-FR') }} dossiers validés sur la plateforme
-      </p>
+      
       <div class="grid grid-cols-2 gap-3 md:grid-cols-2 md:gap-6">
         <div
           v-for="(item, i) in items"
