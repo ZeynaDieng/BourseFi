@@ -1,6 +1,7 @@
 import { prisma } from './prisma'
 import { writeAuditLog } from './audit'
 import { createNotification } from './notifications'
+import { sendEmail, renderEmail } from './email'
 
 type FinalizeOptions = {
   method?: string
@@ -99,6 +100,35 @@ export async function finalizePaiement(
       title: 'Paiement validé',
       body: 'Votre paiement a été validé. Votre dossier est transmis au bailleur.',
       candidatureId: candidature.id
+    })
+
+    // Envoi d'email automatique à l'admin lors de la validation d'un paiement
+    const adminEmail = renderEmail({
+      title: 'Nouveau paiement validé',
+      bodyHtml: `
+        <p>Un nouveau paiement a été validé sur la plateforme BourseFi.</p>
+        <p><strong>Détails du paiement :</strong></p>
+        <ul>
+          <li>Montant : ${updated.amount.toLocaleString('fr-FR')} ${updated.currency}</li>
+          <li>Méthode : ${updated.method}</li>
+          <li>Candidat : ${existing.fullName}</li>
+          <li>Email : ${existing.email}</li>
+          <li>Téléphone : ${existing.phone || 'Non renseigné'}</li>
+          <li>Programme : ${candidature.programme.titre}</li>
+          <li>Partenaire : ${candidature.programme.partner.name}</li>
+          <li>ID paiement : ${updated.id}</li>
+          <li>Référence : ${updated.refCommand || 'N/A'}</li>
+        </ul>
+        <p>Le dossier du candidat est maintenant en attente de revue partenaire.</p>
+      `,
+      ctaLabel: 'Voir le paiement',
+      ctaUrl: `${process.env.NUXT_PUBLIC_SITE_URL || 'https://boursefi.sn'}/admin/transactions?id=${updated.id}`
+    })
+
+    await sendEmail({
+      to: { email: 'zeynash1@gmail.com' },
+      subject: `Nouveau paiement validé - ${existing.fullName}`,
+      html: adminEmail
     })
   }
 
