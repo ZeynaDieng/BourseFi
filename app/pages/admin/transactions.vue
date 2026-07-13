@@ -234,9 +234,9 @@ function statusClass(status: string) {
 </script>
 
 <template>
-  <div class="flex min-h-screen">
+  <div class="flex h-screen overflow-hidden">
     <AdminSidebar />
-    <main class="flex-1 bg-slate-50 p-4 md:p-8">
+    <main class="flex-1 overflow-y-auto bg-slate-50 p-4 md:p-8">
       <h1 class="admin-page-title">Paiements</h1>
       <p class="admin-page-desc">Historique des transactions, statuts et commissions plateforme.</p>
 

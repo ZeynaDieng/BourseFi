@@ -1,5 +1,5 @@
 <template>
-  <aside class="sticky top-0 h-screen w-64 shrink-0 overflow-y-auto border-r border-slate-200 bg-white p-4">
+  <aside class="sticky top-0 h-screen w-64 shrink-0 border-r border-slate-200 bg-white p-4">
     <div class="mb-8">
       <AppBrandLogo to="/admin/dashboard" img-class="h-12 w-auto max-h-14 object-contain object-left" />
       <p class="mt-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">Administration</p>
