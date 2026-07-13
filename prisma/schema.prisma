@@ -191,7 +191,7 @@ model Paiement {
   amountPartner  Int          @default(0)
   amountPlatform Int          @default(0)
   currency       String
-  status         String       @default("Valide")
+  status         String       @default("EN_ATTENTE")
   createdAt      DateTime     @default(now())
   provider       String?      @default("paytech")
   refCommand     String?      @unique
