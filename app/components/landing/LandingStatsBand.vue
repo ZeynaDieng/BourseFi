@@ -12,7 +12,6 @@ defineProps<{
     aria-label="Chiffres clés BourseFi"
   >
     <div class="mx-auto max-w-7xl px-4 sm:px-6 md:px-8">
-      
       <div class="grid grid-cols-2 gap-3 md:grid-cols-2 md:gap-6">
         <div
           v-for="(item, i) in items"

@@ -51,7 +51,7 @@ type TransactionsResponse = {
   items: TransactionRow[]
 }
 
-const { data } = await useFetch<TransactionsResponse>('/api/admin/transactions')
+const { data, refresh } = await useFetch<TransactionsResponse>('/api/admin/transactions')
 
 const search = ref('')
 const statusFilter = ref('')
@@ -61,6 +61,7 @@ const drawerOpen = ref(false)
 const selectedId = ref<string | null>(null)
 const detail = ref<TransactionDetail | null>(null)
 const detailLoading = ref(false)
+const deleting = ref(false)
 
 function formatStatus(status: string) {
   const map: Record<string, string> = {
@@ -202,6 +203,26 @@ async function copyRef(text: string) {
   if (await copyToClipboard(text)) alert('Référence copiée.')
 }
 
+async function deleteTransaction() {
+  if (!selectedId.value || !detail.value) return
+  if (detail.value.status === 'Valide' && detail.value.candidatureId) {
+    alert('Impossible de supprimer un paiement validé lié à une candidature.')
+    return
+  }
+  if (!confirm(`Supprimer le paiement de ${detail.value.amount.toLocaleString('fr-FR')} ${detail.value.currency} de ${detail.value.fullName} ?`)) return
+
+  deleting.value = true
+  try {
+    await $fetch(`/api/admin/transactions/${selectedId.value}`, { method: 'DELETE' as any })
+    await refresh()
+    onDrawerClose()
+  } catch (e: unknown) {
+    alert(getAdminErrorMessage(e))
+  } finally {
+    deleting.value = false
+  }
+}
+
 function statusClass(status: string) {
   const s = status.toLowerCase()
   if (s.includes('valid') || s.includes('completed')) return 'bg-emerald-100 text-emerald-800'
@@ -209,6 +230,7 @@ function statusClass(status: string) {
   if (s.includes('fail') || s.includes('echec')) return 'bg-red-100 text-red-800'
   return 'bg-slate-100 text-slate-700'
 }
+
 </script>
 
 <template>
@@ -432,6 +454,18 @@ function statusClass(status: string) {
           <p class="mt-2 text-sm text-slate-500">Aucun dossier de candidature associé.</p>
         </section>
       </div>
+
+      <template v-if="detail && !detailLoading" #footer>
+        <button
+          type="button"
+          class="rounded-lg border border-red-200 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-50"
+          :disabled="deleting || (detail.status === 'Valide' && !!detail.candidatureId)"
+          :title="detail.status === 'Valide' && detail.candidatureId ? 'Suppression impossible : paiement validé lié à une candidature' : undefined"
+          @click="deleteTransaction"
+        >
+          {{ deleting ? 'Suppression…' : 'Supprimer le paiement' }}
+        </button>
+      </template>
     </AdminDrawer>
   </div>
 </template>
