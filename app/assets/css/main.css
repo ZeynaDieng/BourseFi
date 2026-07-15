@@ -290,3 +290,14 @@ summary::-webkit-details-marker {
   width: 72%;
 }
 
+/* Animation d'erreur (shake + fade in) */
+@keyframes error-shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-4px); }
+  40%, 80% { transform: translateX(4px); }
+}
+
+.error-alert-container {
+  animation: error-shake 0.4s ease-in-out;
+}
+

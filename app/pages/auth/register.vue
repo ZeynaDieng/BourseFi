@@ -130,7 +130,10 @@ async function submitRegister() {
           </label>
         </div>
 
-        <p v-if="errorMessage" class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700">{{ errorMessage }}</p>
+        <div v-if="errorMessage" class="error-alert-container flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50/60 p-3.5 text-sm text-red-800 shadow-sm backdrop-blur-sm transition duration-300">
+          <span class="material-symbols-outlined shrink-0 text-red-600 select-none text-[18px]">gpp_bad</span>
+          <span class="font-medium leading-normal">{{ errorMessage }}</span>
+        </div>
         <button :disabled="isLoading" type="submit" class="w-full rounded-lg bg-primary px-4 py-3 font-semibold text-white disabled:opacity-60">
           {{ isLoading ? 'Inscription…' : "S'inscrire" }}
         </button>

@@ -682,7 +682,10 @@ useSeoMeta({
             </div>
           </div>
 
-          <p v-if="errorMessage" class="mt-4 text-sm font-medium text-red-600">{{ errorMessage }}</p>
+          <div v-if="errorMessage" class="error-alert-container mt-4 flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50/60 p-3.5 text-sm text-red-800 shadow-sm backdrop-blur-sm transition duration-300">
+            <span class="material-symbols-outlined shrink-0 text-red-600 select-none text-[18px]">gpp_bad</span>
+            <span class="font-medium leading-normal text-left">{{ errorMessage }}</span>
+          </div>
 
           <!-- Navigation -->
           <div v-if="currentStepName !== 'Compte'" class="mt-6 flex flex-wrap gap-3">

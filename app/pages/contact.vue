@@ -131,9 +131,10 @@ useSiteSeo({
             <div v-if="successMessage" class="rounded-xl border border-emerald-500/30 bg-emerald-50 p-4 text-emerald-700 font-medium">
               {{ successMessage }}
             </div>
-             <div v-if="errorMessage" class="rounded-xl border border-red-500/30 bg-red-50 p-4 text-red-700 font-medium">
-              {{ errorMessage }}
-            </div>
+             <div v-if="errorMessage" class="error-alert-container flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50/60 p-3.5 text-sm text-red-800 shadow-sm backdrop-blur-sm transition duration-300">
+               <span class="material-symbols-outlined shrink-0 text-red-600 select-none text-[18px]">gpp_bad</span>
+               <span class="font-medium leading-normal text-left">{{ errorMessage }}</span>
+             </div>
 
             <button :disabled="isSubmitting" type="submit" class="group relative w-full overflow-hidden rounded-2xl bg-primary py-5 font-bold text-white shadow-xl transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50">
               <span v-if="isSubmitting" class="flex items-center justify-center gap-3">
