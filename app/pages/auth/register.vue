@@ -22,6 +22,7 @@ const form = reactive({
   firstName: '',
   lastName: '',
   email: '',
+  phone: '',
   password: '',
   acceptTerms: false,
   acceptMarketing: false,
@@ -45,6 +46,7 @@ async function submitRegister() {
       firstName: form.firstName.trim(),
       lastName: form.lastName.trim(),
       email: form.email.trim(),
+      phone: form.phone.trim(),
       password: form.password,
       acceptTerms: form.acceptTerms,
       acceptMarketing: form.acceptMarketing,
@@ -109,6 +111,7 @@ async function submitRegister() {
           <input v-model="form.lastName" required class="w-full rounded-lg border-slate-200 px-4 py-3" placeholder="Nom" />
         </div>
         <input v-model="form.email" type="email" required class="w-full rounded-lg border-slate-200 px-4 py-3" placeholder="Email" />
+        <input v-model="form.phone" type="tel" required class="w-full rounded-lg border-slate-200 px-4 py-3" placeholder="Numéro de téléphone (ex: 77 123 45 67)" />
         <input v-model="form.password" type="password" minlength="4" required class="w-full rounded-lg border-slate-200 px-4 py-3" placeholder="Mot de passe (4 caractères minimum)" />
         <p class="text-xs text-slate-500">Le mot de passe doit contenir au moins 4 caractères</p>
 

@@ -16,6 +16,7 @@ const registerSchema = z
     firstName: z.string().min(1).max(80).optional(),
     lastName: z.string().min(1).max(80).optional(),
     email: z.email(),
+    phone: z.string().min(7, 'Le numéro de téléphone doit contenir au moins 7 chiffres'),
     password: passwordSchema,
     acceptTerms: z.boolean().refine(val => val === true, 'Vous devez accepter les conditions d\'utilisation et la politique de confidentialité'),
     acceptMarketing: z.boolean().optional(),
@@ -42,7 +43,7 @@ export default defineEventHandler(async (event) => {
   });
 }
 
-  const { email, password, acceptMarketing } = parsed.data
+  const { email, password, phone, acceptMarketing } = parsed.data
   const firstName = parsed.data.firstName?.trim() ?? ''
   const lastName = parsed.data.lastName?.trim() ?? ''
   const name =
@@ -62,6 +63,7 @@ export default defineEventHandler(async (event) => {
       firstName: firstName || null,
       lastName: lastName || null,
       email,
+      phone: phone || null,
       passwordHash,
       emailVerificationToken,
       emailVerified: false,

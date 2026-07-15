@@ -25,6 +25,7 @@ const registerForm = reactive({
   firstName: '',
   lastName: '',
   email: '',
+  phone: '',
   password: '',
   acceptTerms: false,
   acceptMarketing: false,
@@ -265,6 +266,7 @@ async function submitRegister() {
   firstName: registerForm.firstName.trim(),
   lastName: registerForm.lastName.trim(),
   email: registerForm.email.trim(),
+  phone: registerForm.phone.trim(),
   password: registerForm.password,
   acceptTerms: registerForm.acceptTerms,
   acceptMarketing: registerForm.acceptMarketing,
@@ -484,6 +486,10 @@ useSeoMeta({
               <label class="block">
                 <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Email</span>
                 <input v-model="registerForm.email" type="email" required class="mt-1 w-full rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-sm" />
+              </label>
+              <label class="block">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Téléphone</span>
+                <input v-model="registerForm.phone" type="tel" required class="mt-1 w-full rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-sm" placeholder="Ex: 77 123 45 67" />
               </label>
               <label class="block">
                 <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Mot de passe</span>
