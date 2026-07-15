@@ -96,6 +96,8 @@ model User {
   passwordHash         String
   role                 Role           @default(STUDENT)
   partnerId            String?
+  emailVerified        Boolean        @default(false)
+  emailVerificationToken String?       @unique
   createdAt            DateTime       @default(now())
   updatedAt            DateTime       @updatedAt
   address              String?

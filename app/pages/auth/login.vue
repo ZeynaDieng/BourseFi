@@ -47,8 +47,21 @@ async function submitLogin() {
       body: form,
     })
     await navigateTo(resolvePostLoginPath(response.user.role))
-  } catch {
-    errorMessage.value = 'Connexion impossible. Verifiez vos identifiants.'
+  } catch (error: unknown) {
+    const data =
+      error && typeof error === 'object' && 'data' in error
+        ? (error as {
+            data?: {
+              message?: string
+              statusMessage?: string
+            }
+          }).data
+        : undefined
+
+    errorMessage.value =
+      data?.message ??
+      data?.statusMessage ??
+      'Connexion impossible. Vérifiez vos identifiants.'
   } finally {
     isLoading.value = false
   }

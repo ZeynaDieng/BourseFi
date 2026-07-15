@@ -26,6 +26,8 @@ const registerForm = reactive({
   lastName: '',
   email: '',
   password: '',
+  acceptTerms: false,
+  acceptMarketing: false,
 })
 
 const loginForm = reactive({
@@ -260,11 +262,13 @@ async function submitRegister() {
     await $fetch('/api/auth/register', {
       method: 'POST',
       body: {
-        firstName: registerForm.firstName.trim(),
-        lastName: registerForm.lastName.trim(),
-        email: registerForm.email.trim(),
-        password: registerForm.password,
-      },
+  firstName: registerForm.firstName.trim(),
+  lastName: registerForm.lastName.trim(),
+  email: registerForm.email.trim(),
+  password: registerForm.password,
+  acceptTerms: registerForm.acceptTerms,
+  acceptMarketing: registerForm.acceptMarketing,
+},
     })
     await afterAuthSuccess()
   } catch (e: unknown) {
@@ -295,8 +299,21 @@ async function submitLogin() {
       return
     }
     await afterAuthSuccess()
-  } catch {
-    errorMessage.value = 'Email ou mot de passe incorrect.'
+  } catch (error: unknown) {
+    const data =
+      error && typeof error === 'object' && 'data' in error
+        ? (error as {
+            data?: {
+              message?: string
+              statusMessage?: string
+            }
+          }).data
+        : undefined
+
+    errorMessage.value =
+      data?.message ??
+      data?.statusMessage ??
+      'Email ou mot de passe incorrect.'
   } finally {
     authLoading.value = false
   }
@@ -466,8 +483,47 @@ useSeoMeta({
               </label>
               <label class="block">
                 <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Mot de passe</span>
-                <input v-model="registerForm.password" type="password" minlength="8" required class="mt-1 w-full rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-sm" placeholder="8 caractères minimum" />
+                <input v-model="registerForm.password" type="password" minlength="4" required class="mt-1 w-full rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-sm" placeholder="4 caractères minimum" />
               </label>
+                         <div class="space-y-3">
+  <label class="flex items-start gap-3">
+    <input
+      v-model="registerForm.acceptTerms"
+      type="checkbox"
+      required
+      class="mt-1 rounded border-slate-300"
+    />
+
+    <span class="text-sm text-slate-600">
+      J'accepte les
+      <NuxtLink
+        to="/legal/terms"
+        class="text-primary hover:underline"
+      >
+        Conditions Générales d'Utilisation
+      </NuxtLink>
+      et la
+      <NuxtLink
+        to="/legal/privacy"
+        class="text-primary hover:underline"
+      >
+        Politique de confidentialité
+      </NuxtLink>.
+    </span>
+  </label>
+
+  <label class="flex items-start gap-3">
+    <input
+      v-model="registerForm.acceptMarketing"
+      type="checkbox"
+      class="mt-1 rounded border-slate-300"
+    />
+
+    <span class="text-sm text-slate-600">
+      J'accepte de recevoir les actualités et offres de BourseFi.
+    </span>
+  </label>
+</div>
               <button
                 type="submit"
                 class="w-full rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:opacity-95 disabled:opacity-50"
@@ -486,6 +542,7 @@ useSeoMeta({
                 <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Mot de passe</span>
                 <input v-model="loginForm.password" type="password" required class="mt-1 w-full rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-sm" />
               </label>
+   
               <button
                 type="submit"
                 class="w-full rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:opacity-95 disabled:opacity-50"

@@ -24,8 +24,9 @@
       </div>
       <div class="space-y-4">
         <h4 class="font-bold text-yellow-500">Juridique</h4>
-        <NuxtLink class="block text-slate-300 underline-offset-4 transition hover:text-white hover:underline" to="/confidentialite">Confidentialité</NuxtLink>
-        <NuxtLink class="block text-slate-300 underline-offset-4 transition hover:text-white hover:underline" to="/conditions">Conditions d'utilisation</NuxtLink>
+        <NuxtLink class="block text-slate-300 underline-offset-4 transition hover:text-white hover:underline" to="/legal/privacy">Politique de confidentialité</NuxtLink>
+        <NuxtLink class="block text-slate-300 underline-offset-4 transition hover:text-white hover:underline" to="/legal/terms">Conditions d'utilisation</NuxtLink>
+        <NuxtLink class="block text-slate-300 underline-offset-4 transition hover:text-white hover:underline" to="/legal/mentions">Mentions légales</NuxtLink>
       </div>
       <div class="space-y-4">
         <h4 class="font-bold text-yellow-500">Assistance</h4>

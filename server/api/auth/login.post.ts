@@ -5,6 +5,7 @@ import { createSession } from '../../utils/auth'
 import { writeAuditLog } from '../../utils/audit'
 import { rateLimit } from '../../utils/rate-limit'
 import { PARTNER_PORTAL_ENABLED } from '../../utils/product-config'
+import { requireCsrf } from '../../utils/csrf'
 
 const loginSchema = z.object({
   email: z.email(),
@@ -12,6 +13,7 @@ const loginSchema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
+  requireCsrf(event)
   rateLimit(event, 'auth-login', 10, 15 * 60 * 1000)
   const body = await readBody(event)
   const parsed = loginSchema.safeParse(body)
@@ -29,6 +31,13 @@ export default defineEventHandler(async (event) => {
   const isPasswordValid = await compare(password, user.passwordHash)
   if (!isPasswordValid) {
     throw createError({ statusCode: 401, statusMessage: 'Email ou mot de passe incorrect.' })
+  }
+
+  if (!user.emailVerified) {
+    throw createError({
+      statusCode: 403,
+      statusMessage: 'Veuillez vérifier votre email avant de vous connecter. Un lien de vérification a été envoyé lors de votre inscription.'
+    })
   }
 
   if (user.role === 'PARTNER' && !PARTNER_PORTAL_ENABLED) {
