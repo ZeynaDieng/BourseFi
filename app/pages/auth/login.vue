@@ -41,10 +41,13 @@ async function submitLogin() {
   errorMessage.value = ''
   isLoading.value = true
 
+  const { addCsrfToHeaders } = useCsrf()
+
   try {
     const response = await $fetch<{ user: { role: string } }>('/api/auth/login', {
       method: 'POST',
       body: form,
+      headers: addCsrfToHeaders(),
     })
     await navigateTo(resolvePostLoginPath(response.user.role))
   } catch (error: unknown) {

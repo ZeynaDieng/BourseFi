@@ -285,6 +285,9 @@ async function submitRegister() {
 async function submitLogin() {
   errorMessage.value = ''
   authLoading.value = true
+
+  const { addCsrfToHeaders } = useCsrf()
+
   try {
     const res = await $fetch<{ user: { role: string } }>('/api/auth/login', {
       method: 'POST',
@@ -292,6 +295,7 @@ async function submitLogin() {
         email: loginForm.email.trim(),
         password: loginForm.password,
       },
+      headers: addCsrfToHeaders(),
     })
     if (res.user.role !== 'STUDENT') {
       errorMessage.value = 'Ce compte ne peut pas déposer de candidature étudiante.'
