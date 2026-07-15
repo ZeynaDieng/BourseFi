@@ -15,7 +15,7 @@
             <div class="rounded-xl border border-slate-200 bg-slate-50 p-5 space-y-2 text-slate-700">
               <p><strong>Entreprise :</strong> MATKAM</p>
               <p><strong>Adresse :</strong> Ouakam, Dakar, Sénégal</p>
-              <p><strong>Téléphone :</strong> +221 76 016 48 84</p>
+              <p><strong>Téléphone :</strong> +221 77 113 39 26</p>
               <p><strong>Email :</strong> <a href="mailto:contact@boursefi.sn" class="text-primary hover:underline">contact@boursefi.sn</a></p>
               <p><strong>Site web :</strong> <a href="https://boursefi.sn" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">https://boursefi.sn</a></p>
               <p><strong>RCCM :</strong> SN.DKR.2026.A.21376</p>

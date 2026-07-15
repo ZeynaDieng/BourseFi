@@ -80,7 +80,7 @@ useSiteSeo({
               <div>
                 <h3 class="text-xl font-bold text-primary">Téléphone</h3>
                 <p class="mt-1 text-slate-500">Disponible 24h/24, 7j/7</p>
-                <p class="mt-2 font-semibold text-primary">+221 77 778 04 56</p>
+                <p class="mt-2 font-semibold text-primary">+221 77 113 39 26</p>
               </div>
             </div>
           </div>
