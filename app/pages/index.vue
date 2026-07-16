@@ -329,7 +329,7 @@ useJsonLd(
           decoding="async"
           class="hero-bg-photo hero-carousel-crossfade absolute inset-0 size-full max-h-none object-cover object-[center_top] sm:object-center"
           :class="[
-            i === activeHeroSlide ? 'z-[2] opacity-100' : 'z-[1] opacity-0',
+            i === activeHeroSlide ? 'z-[2] opacity-100 animate-ken-burns' : 'z-[1] opacity-0',
           ]"
         />
         <div class="absolute inset-0 z-[3] bg-black/18" aria-hidden="true" />
