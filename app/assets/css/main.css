@@ -169,7 +169,7 @@ summary::-webkit-details-marker {
 }
 
 .animate-ken-burns {
-  animation: kenburns-zoom 7.8s ease-out forwards;
+  animation: kenburns-zoom 5.8s ease-out forwards;
 }
 
 @media (prefers-reduced-motion: reduce) {

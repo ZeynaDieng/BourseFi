@@ -55,7 +55,7 @@ onMounted(() => {
       activeHeroSlide.value =
         (activeHeroSlide.value + 1) % heroSlides.value.length;
     }
-  }, 7500);
+  }, 5500);
 });
 
 watch(
