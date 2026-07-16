@@ -19,14 +19,13 @@ const hero = computed(
   () => (site.value?.content?.home_hero ?? {}) as Record<string, unknown>,
 );
 
-/** Carrousel d’accueil : bannière métier puis visuels 1, 2, 4, 5 et 6  sans `slide-3.png`. Champ CMS `bannerImageUrl` plein → image fixe (remplace le carrousel). */
+/** Les 5 visuels actuels de la bannière */
 const HERO_SLIDES_DEFAULT = [
-  "/hero/slide-accueil-banniere.png",
-  "/hero/slide-1.png",
-  "/hero/slide-2.png",
-  "/hero/slide-4.png",
-  "/hero/slide-5.png",
-  "/hero/slide-6.png",
+  "/hero/slide-accueil-banniere.png", // Slide 1 (Deux femmes)
+  "/hero/slide-1.png",                // Slide 2 (Bibliothèque)
+  "/hero/slide-2.png",                // Slide 3 (Père et fille)
+  "/hero/slide-3.png",                // Slide 4 (Attestation)
+  "/hero/slide-4.png",                // Slide 5 (Bureau)
 ] as const;
 
 const heroSlides = computed(() => {
