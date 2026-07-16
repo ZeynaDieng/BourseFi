@@ -4,7 +4,7 @@ import { candidatureBadge } from '~/utils/student-dossier'
 definePageMeta({ layout: 'student-app', middleware: 'student-auth' })
 
 const route = useRoute()
-const { data: candidatures } = await useFetch('/api/candidatures')
+const { data: candidatures, pending } = await useFetch('/api/candidatures', { lazy: true, server: false })
 
 const filterStatus = computed(() => (route.query.status as string) || '')
 
@@ -40,62 +40,69 @@ useSeoMeta({ title: 'Mes candidatures  BourseFi' })
         </NuxtLink>
       </div>
 
-      <ul class="space-y-4">
-        <li
-          v-for="c in filtered"
-          :key="c.id"
-          class="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-premium"
-        >
-          <div class="p-4">
-            <div class="flex items-start justify-between gap-3">
-              <div class="min-w-0">
-                <p class="font-semibold text-primary">{{ c.programmeTitre }}</p>
-                <p class="text-sm text-slate-500">{{ c.etablissementNom }}</p>
-                <p class="text-xs text-slate-400">{{ c.partnerName }}</p>
-              </div>
-              <ApplicationStatusBadge :status="c.status" />
-            </div>
-            <p class="mt-2 text-xs text-slate-500">{{ c.statusLabel }}</p>
-          </div>
-          <div class="flex flex-wrap gap-2 border-t border-slate-50 bg-slate-50/50 p-3">
-            <NuxtLink
-              v-if="c.status === 'EN_ATTENTE_PAIEMENT' && c.fraisDossier > 0"
-              :to="`/paiement?candidatureId=${c.id}`"
-              class="flex min-h-10 flex-1 items-center justify-center rounded-xl bg-secondary-container px-3 text-xs font-bold text-on-secondary-container active:scale-[0.98] sm:flex-none"
-            >
-              Payer {{ c.fraisDossier.toLocaleString('fr-FR') }} {{ c.devise }}
-            </NuxtLink>
-            <a
-              v-if="c.documentUrl"
-              :href="c.documentUrl"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="flex min-h-10 items-center justify-center rounded-xl border border-primary px-3 text-xs font-semibold text-primary active:scale-[0.98]"
-            >
-              Attestation
-            </a>
-            <NuxtLink
-              :to="c.bourseSlug ? `/bourses/${c.bourseSlug}` : '/bourses'"
-              class="flex min-h-10 items-center justify-center rounded-xl border border-slate-200 px-3 text-xs font-semibold text-slate-600 active:scale-[0.98]"
-            >
-              Voir la bourse
-            </NuxtLink>
-          </div>
-        </li>
-      </ul>
+      <!-- Skeletons en cours de chargement -->
+      <div v-if="pending" class="space-y-4">
+        <AppSkeleton type="card" :count="2" />
+      </div>
 
-      <div
-        v-if="!filtered.length"
-        class="mt-8 rounded-2xl border border-dashed border-slate-200 bg-white px-6 py-12 text-center"
-      >
-        <span class="material-symbols-outlined text-[40px] text-slate-300">inbox</span>
-        <p class="mt-3 text-slate-500">Aucune candidature pour ce filtre.</p>
-        <NuxtLink
-          to="/bourses"
-          class="mt-4 inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-6 text-sm font-semibold text-white active:scale-[0.98]"
+      <div v-else>
+        <ul v-if="filtered.length" class="space-y-4">
+          <li
+            v-for="c in filtered"
+            :key="c.id"
+            class="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-premium animate-fade-in-up"
+          >
+            <div class="p-4">
+              <div class="flex items-start justify-between gap-3">
+                <div class="min-w-0">
+                  <p class="font-semibold text-primary">{{ c.programmeTitre }}</p>
+                  <p class="text-sm text-slate-500">{{ c.etablissementNom }}</p>
+                  <p class="text-xs text-slate-400">{{ c.partnerName }}</p>
+                </div>
+                <ApplicationStatusBadge :status="c.status" />
+              </div>
+              <p class="mt-2 text-xs text-slate-500">{{ c.statusLabel }}</p>
+            </div>
+            <div class="flex flex-wrap gap-2 border-t border-slate-50 bg-slate-50/50 p-3">
+              <NuxtLink
+                v-if="c.status === 'EN_ATTENTE_PAIEMENT' && c.fraisDossier > 0"
+                :to="`/paiement?candidatureId=${c.id}`"
+                class="flex min-h-10 flex-1 items-center justify-center rounded-xl bg-secondary-container px-3 text-xs font-bold text-on-secondary-container active:scale-[0.98] sm:flex-none"
+              >
+                Payer {{ c.fraisDossier.toLocaleString('fr-FR') }} {{ c.devise }}
+              </NuxtLink>
+              <a
+                v-if="c.documentUrl"
+                :href="c.documentUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="flex min-h-10 items-center justify-center rounded-xl border border-primary px-3 text-xs font-semibold text-primary active:scale-[0.98]"
+              >
+                Attestation
+              </a>
+              <NuxtLink
+                :to="c.bourseSlug ? `/bourses/${c.bourseSlug}` : '/bourses'"
+                class="flex min-h-10 items-center justify-center rounded-xl border border-slate-200 px-3 text-xs font-semibold text-slate-600 active:scale-[0.98]"
+              >
+                Voir la bourse
+              </NuxtLink>
+            </div>
+          </li>
+        </ul>
+
+        <div
+          v-else
+          class="mt-8 rounded-2xl border border-dashed border-slate-200 bg-white px-6 py-12 text-center animate-fade-in-up"
         >
-          Trouver une bourse
-        </NuxtLink>
+          <span class="material-symbols-outlined text-[40px] text-slate-300">inbox</span>
+          <p class="mt-3 text-slate-500">Aucune candidature pour ce filtre.</p>
+          <NuxtLink
+            to="/bourses"
+            class="mt-4 inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-6 text-sm font-semibold text-white active:scale-[0.98]"
+          >
+            Trouver une bourse
+          </NuxtLink>
+        </div>
       </div>
     </StudentPageShell>
   </main>
