@@ -339,7 +339,7 @@ useJsonLd(
       </div>
 
       <div
-        class="pointer-events-none absolute inset-y-0 left-0 z-[5] w-full bg-gradient-to-r from-gray-100/92 from-3% via-white/80 to-transparent md:max-w-[min(94%,62rem)] md:via-white/70 lg:max-w-[min(94%,68rem)]"
+        class="pointer-events-none absolute inset-y-0 left-0 z-[5] w-full bg-gradient-to-r from-slate-950/85 from-3% via-slate-950/50 to-transparent md:max-w-[min(94%,62rem)] md:via-slate-950/40 lg:max-w-[min(94%,68rem)]"
         aria-hidden="true"
       />
       <div
@@ -358,7 +358,7 @@ useJsonLd(
                 id="home-hero-title"
                 class="mt-2 font-headline text-[1.75rem] font-extrabold leading-[1.15] sm:text-4xl md:mt-3 md:text-5xl md:leading-[1.1]"
               >
-                <span class="text-primary">{{ heroHeadlinePrimary }}</span>
+                <span class="text-white drop-shadow-sm">{{ heroHeadlinePrimary }}</span>
                 <span class="text-secondary-fixed md:hidden">
                   {{ " " }}{{ heroHeadlineAccent }}
                 </span>
@@ -371,16 +371,16 @@ useJsonLd(
             <div class="home-hero-stagger-item">
               <p
                 v-if="heroSubtitleCms"
-                class="max-w-none text-sm sm:text-base md:text-lg leading-relaxed text-slate-600"
+                class="max-w-none text-sm sm:text-base md:text-lg leading-relaxed text-white drop-shadow-sm"
               >
                 {{ heroSubtitleCms }}
               </p>
               <p
                 v-else
-                class="max-w-none text-sm sm:text-base md:text-lg leading-relaxed text-slate-600"
+                class="max-w-none text-sm sm:text-base md:text-lg leading-relaxed text-white drop-shadow-sm"
               >
                 Trouvez les bourses d'études faites pour les
-                <strong class="font-semibold text-primary"
+                <strong class="font-semibold text-secondary-fixed"
                   >étudiants sénégalais</strong
                 >.
               </p>
