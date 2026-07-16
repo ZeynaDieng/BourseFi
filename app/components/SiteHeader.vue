@@ -60,6 +60,12 @@ const headerBarClass = computed(() =>
     ? 'min-h-[5rem] py-2.5 md:min-h-[5.25rem]'
     : 'min-h-[4rem] py-2 md:min-h-[4.5rem]',
 )
+
+function openSearch() {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('open-global-search'))
+  }
+}
 </script>
 
 <template>
@@ -91,6 +97,18 @@ const headerBarClass = computed(() =>
         </NuxtLink>
       </nav>
       <div class="flex items-center gap-2 sm:gap-3">
+        <!-- Bouton Recherche Globale (Spotlight Trigger) -->
+        <button
+          type="button"
+          class="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50/50 px-3 py-1.5 text-xs font-semibold text-slate-500 transition hover:border-slate-300 hover:bg-white hover:text-slate-700"
+          aria-label="Rechercher"
+          @click="openSearch"
+        >
+          <span class="material-symbols-outlined text-[18px]">search</span>
+          <span class="hidden sm:inline">Rechercher</span>
+          <span class="hidden md:inline rounded bg-slate-100 px-1 py-0.5 font-mono text-[10px] text-slate-400">⌘K</span>
+        </button>
+        
         <NuxtLink
           v-if="isStudent"
           to="/etudiant/notifications"

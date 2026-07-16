@@ -37,6 +37,12 @@ async function logout() {
 function onLogoError(e: Event) {
   ;(e.target as HTMLImageElement).style.display = 'none'
 }
+
+function openSearch() {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('open-global-search'))
+  }
+}
 </script>
 
 <template>
@@ -51,6 +57,18 @@ function onLogoError(e: Event) {
       </NuxtLink>
 
       <div class="flex items-center gap-1.5">
+        <!-- Bouton Recherche Globale (Spotlight Trigger) -->
+        <button
+          type="button"
+          class="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50/50 px-2.5 py-1.5 text-xs font-semibold text-slate-500 transition hover:border-slate-300 hover:bg-white hover:text-slate-700"
+          aria-label="Rechercher"
+          @click="openSearch"
+        >
+          <span class="material-symbols-outlined text-[18px]">search</span>
+          <span class="hidden sm:inline">Rechercher</span>
+          <span class="hidden md:inline rounded bg-slate-100 px-1 py-0.5 font-mono text-[10px] text-slate-400">⌘K</span>
+        </button>
+
         <NuxtLink
           to="/"
           class="hidden items-center gap-1 rounded-lg px-3 py-2 text-sm font-semibold text-slate-500 transition hover:text-primary md:inline-flex"
