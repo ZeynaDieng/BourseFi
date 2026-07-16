@@ -87,6 +87,24 @@ watch([searchQ, partnerFilter, cityFilter, levelFilter, coverageMin], () => {
   displayLimit.value = 12
 })
 
+const isMobileFilterOpen = ref(false)
+
+const activeFiltersCount = computed(() => {
+  let count = 0
+  if (partnerFilter.value) count += 1
+  if (cityFilter.value) count += 1
+  if (levelFilter.value) count += 1
+  if (coverageMin.value > 0) count += 1
+  return count
+})
+
+function resetFilters() {
+  partnerFilter.value = ''
+  cityFilter.value = ''
+  levelFilter.value = ''
+  coverageMin.value = 0
+}
+
 const loadMoreSentinel = ref<HTMLElement | null>(null)
 let observer: IntersectionObserver | null = null
 
@@ -136,10 +154,10 @@ useSiteSeo({
       </p>
     </header>
 
-    <!-- Filtres Multicritères Ultra-Premium -->
-    <div class="mb-8 grid gap-4 rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm sm:grid-cols-2 md:grid-cols-5">
+    <!-- Filtres Multicritères Ultra-Premium (Desktop version) -->
+    <div class="mb-8 hidden md:grid gap-4 rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm md:grid-cols-5 animate-scale-up">
       <!-- Recherche -->
-      <div class="relative sm:col-span-2 md:col-span-1">
+      <div class="relative md:col-span-1">
         <span class="material-symbols-outlined absolute left-3.5 top-3 text-[18px] text-slate-400 select-none">search</span>
         <input
           v-model="searchQ"
@@ -177,6 +195,124 @@ useSiteSeo({
       </select>
     </div>
 
+    <!-- Barre de Recherche Compacte & Bouton Filtres (Mobile version) -->
+    <div class="mb-6 flex gap-2 md:hidden">
+      <div class="relative flex-1">
+        <span class="material-symbols-outlined absolute left-3 top-3 text-[18px] text-slate-400 select-none">search</span>
+        <input
+          v-model="searchQ"
+          type="search"
+          placeholder="Rechercher une bourse, école..."
+          class="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-9 pr-4 text-sm placeholder:text-slate-400 focus:border-primary/30 focus:outline-none focus:ring-2 focus:ring-primary/5"
+        />
+      </div>
+      
+      <!-- Bouton déclencheur des filtres -->
+      <button
+        type="button"
+        class="flex-none flex items-center justify-center h-10 w-10 rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50 relative active:scale-95"
+        @click="isMobileFilterOpen = true"
+      >
+        <span class="material-symbols-outlined text-[20px] select-none">tune</span>
+        <!-- Badge des filtres actifs -->
+        <span
+          v-if="activeFiltersCount > 0"
+          class="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[9px] font-bold text-white"
+        >
+          {{ activeFiltersCount }}
+        </span>
+      </button>
+    </div>
+
+    <!-- Tiroir de filtres du bas pour Mobile (Bottom Sheet Drawer) -->
+    <Teleport to="body">
+      <Transition name="drawer-fade">
+        <div v-if="isMobileFilterOpen" class="fixed inset-0 z-[120] md:hidden" role="dialog" aria-modal="true">
+          <!-- Backdrop sombre flouté -->
+          <div class="absolute inset-0 bg-slate-900/45 backdrop-blur-[2px]" @click="isMobileFilterOpen = false" />
+          
+          <!-- Conteneur Bottom Sheet -->
+          <Transition name="sheet-slide">
+            <div class="absolute bottom-0 inset-x-0 rounded-t-2xl bg-white p-6 shadow-2xl max-h-[85vh] overflow-y-auto flex flex-col">
+              <!-- Poignée de glissement visuelle -->
+              <div class="mx-auto w-12 h-1.5 rounded-full bg-slate-200 mb-5 flex-none" />
+              
+              <div class="flex items-center justify-between mb-5 flex-none">
+                <h3 class="font-headline text-lg font-bold text-primary">Filtrer les bourses</h3>
+                <button
+                  type="button"
+                  class="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                  @click="isMobileFilterOpen = false"
+                >
+                  <span class="material-symbols-outlined">close</span>
+                </button>
+              </div>
+
+              <!-- Filtres empilés proprement -->
+              <div class="space-y-4 flex-1">
+                <!-- Partenaire -->
+                <div class="space-y-1">
+                  <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Partenaire</label>
+                  <select v-model="partnerFilter" class="w-full rounded-lg border border-slate-200 bg-slate-50/50 px-3.5 py-3 text-sm text-slate-700 focus:bg-white focus:outline-none">
+                    <option value="">Tous les partenaires</option>
+                    <option v-for="p in partners" :key="p.slug" :value="p.slug">{{ p.name }}</option>
+                  </select>
+                </div>
+
+                <!-- Ville -->
+                <div class="space-y-1">
+                  <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Ville</label>
+                  <select v-model="cityFilter" class="w-full rounded-lg border border-slate-200 bg-slate-50/50 px-3.5 py-3 text-sm text-slate-700 focus:bg-white focus:outline-none">
+                    <option value="">Toutes les villes</option>
+                    <option v-for="c in cities" :key="c" :value="c">{{ c }}</option>
+                  </select>
+                </div>
+
+                <!-- Niveau -->
+                <div class="space-y-1">
+                  <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Niveau d'études</label>
+                  <select v-model="levelFilter" class="w-full rounded-lg border border-slate-200 bg-slate-50/50 px-3.5 py-3 text-sm text-slate-700 focus:bg-white focus:outline-none">
+                    <option value="">Tous les niveaux</option>
+                    <option v-for="l in levels" :key="l" :value="l">{{ l }}</option>
+                  </select>
+                </div>
+
+                <!-- Couverture -->
+                <div class="space-y-1">
+                  <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Couverture de la bourse</label>
+                  <select v-model.number="coverageMin" class="w-full rounded-lg border border-slate-200 bg-slate-50/50 px-3.5 py-3 text-sm text-slate-700 focus:bg-white focus:outline-none">
+                    <option :value="0">Toute couverture</option>
+                    <option :value="25">≥ 25 % de prise en charge</option>
+                    <option :value="50">≥ 50 % de prise en charge</option>
+                    <option :value="75">≥ 75 % de prise en charge</option>
+                    <option :value="100">100 % de prise en charge</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Actions du tiroir -->
+              <div class="mt-6 pt-4 border-t border-slate-100 flex gap-3 flex-none">
+                <button
+                  type="button"
+                  class="flex-1 rounded-lg border border-slate-200 py-3 text-sm font-semibold text-slate-500 hover:bg-slate-50"
+                  @click="resetFilters"
+                >
+                  Réinitialiser
+                </button>
+                <button
+                  type="button"
+                  class="flex-1 rounded-lg bg-primary py-3 text-sm font-semibold text-white hover:opacity-95"
+                  @click="isMobileFilterOpen = false"
+                >
+                  Appliquer
+                </button>
+              </div>
+            </div>
+          </Transition>
+        </div>
+      </Transition>
+    </Teleport>
+
     <div v-if="displayedBourses.length" class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
       <ScholarshipCard v-for="b in displayedBourses" :key="b.id" :bourse="b" />
     </div>
@@ -191,3 +327,23 @@ useSiteSeo({
     </div>
   </main>
 </template>
+
+<style scoped>
+.drawer-fade-enter-active,
+.drawer-fade-leave-active {
+  transition: opacity 0.22s ease;
+}
+.drawer-fade-enter-from,
+.drawer-fade-leave-to {
+  opacity: 0;
+}
+
+.sheet-slide-enter-active,
+.sheet-slide-leave-active {
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.sheet-slide-enter-from,
+.sheet-slide-leave-to {
+  transform: translateY(100%);
+}
+</style>
