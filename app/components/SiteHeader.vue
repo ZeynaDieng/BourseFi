@@ -96,16 +96,16 @@ function openSearch() {
           {{ link.label }}
         </NuxtLink>
       </nav>
-      <div class="flex items-center gap-2 sm:gap-3">
+      <div class="flex items-center gap-1 sm:gap-2">
         <!-- Bouton Recherche Globale (Spotlight Trigger) -->
         <button
           type="button"
-          class="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50/50 px-3 py-1.5 text-xs font-semibold text-slate-500 transition hover:border-slate-300 hover:bg-white hover:text-slate-700"
+          class="relative inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-600 transition hover:bg-slate-100 hover:text-primary md:border md:border-slate-200 md:bg-slate-50/50 md:rounded-lg md:w-auto md:h-auto md:px-3 md:py-1.5"
           aria-label="Rechercher"
           @click="openSearch"
         >
-          <span class="material-symbols-outlined text-[18px]">search</span>
-          <span class="hidden sm:inline">Rechercher</span>
+          <span class="material-symbols-outlined text-[24px] md:text-[18px]">search</span>
+          <span class="hidden sm:inline md:text-xs md:font-semibold">Rechercher</span>
           <span class="hidden md:inline rounded bg-slate-100 px-1 py-0.5 font-mono text-[10px] text-slate-400">⌘K</span>
         </button>
         
@@ -146,16 +146,15 @@ function openSearch() {
         </NuxtLink>
         <NuxtLink
           to="/bourses"
-          class="rounded-lg bg-secondary-container px-3 py-2 text-sm font-semibold text-on-secondary-container shadow-sm transition hover:opacity-90 active:scale-95 sm:px-5"
+          class="hidden sm:inline-flex rounded-lg bg-secondary-container px-4 py-2 text-sm font-semibold text-on-secondary-container shadow-sm transition hover:opacity-90 active:scale-95"
         >
-          <span class="hidden sm:inline">Obtenir une bourse</span>
-          <span class="sm:hidden">Bourse</span>
+          Obtenir une bourse
         </NuxtLink>
         <details class="relative md:hidden">
           <summary
-            class="list-none rounded-lg border border-slate-200 p-2 text-slate-600"
+            class="list-none flex h-10 w-10 items-center justify-center rounded-full text-slate-600 transition hover:bg-slate-100 hover:text-primary cursor-pointer"
           >
-            <span class="material-symbols-outlined">menu</span>
+            <span class="material-symbols-outlined text-[24px]">menu</span>
           </summary>
           <div
             class="absolute right-0 top-12 w-52 max-w-[calc(100vw-2rem)] rounded-xl border border-slate-200 bg-white p-2 shadow-xl"
