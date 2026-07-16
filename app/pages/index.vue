@@ -320,13 +320,13 @@ useJsonLd(
           :key="`${i}-${src}`"
           :src="src"
           alt=""
-          width="1024"
-          height="546"
+          width="1920"
+          height="1080"
           sizes="100vw"
           :loading="i === 0 ? 'eager' : 'lazy'"
           :fetchpriority="i === 0 ? 'high' : undefined"
           decoding="async"
-          class="hero-bg-photo hero-carousel-crossfade absolute inset-0 size-full max-h-none object-cover object-[center_top] sm:object-center"
+          class="hero-bg-photo hero-carousel-crossfade absolute inset-0 size-full max-h-none object-cover object-right sm:object-center"
           :class="[
             i === activeHeroSlide ? 'z-[2] opacity-100 animate-ken-burns' : 'z-[1] opacity-0',
           ]"
