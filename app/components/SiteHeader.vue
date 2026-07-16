@@ -61,6 +61,15 @@ const headerBarClass = computed(() =>
     : 'min-h-[4rem] py-2 md:min-h-[4.5rem]',
 )
 
+const isMobileMenuOpen = ref(false)
+
+watch(
+  () => route.fullPath,
+  () => {
+    isMobileMenuOpen.value = false
+  },
+)
+
 function openSearch() {
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent('open-global-search'))
@@ -150,14 +159,30 @@ function openSearch() {
         >
           Obtenir une bourse
         </NuxtLink>
-        <details class="relative md:hidden">
-          <summary
-            class="list-none flex h-10 w-10 items-center justify-center rounded-full text-slate-600 transition hover:bg-slate-100 hover:text-primary cursor-pointer"
+        <!-- Menu mobile avec fermeture en cliquant à l'extérieur -->
+        <div class="relative md:hidden">
+          <button
+            type="button"
+            class="flex h-10 w-10 items-center justify-center rounded-full text-slate-600 transition hover:bg-slate-100 hover:text-primary"
+            aria-label="Ouvrir le menu"
+            @click="isMobileMenuOpen = !isMobileMenuOpen"
           >
-            <span class="material-symbols-outlined text-[24px]">menu</span>
-          </summary>
+            <span class="material-symbols-outlined text-[24px] select-none">
+              {{ isMobileMenuOpen ? 'close' : 'menu' }}
+            </span>
+          </button>
+
+          <!-- Overlay transparent de fermeture au clic extérieur -->
           <div
-            class="absolute right-0 top-12 w-52 max-w-[calc(100vw-2rem)] rounded-xl border border-slate-200 bg-white p-2 shadow-xl"
+            v-if="isMobileMenuOpen"
+            class="fixed inset-0 z-40 bg-transparent"
+            @click="isMobileMenuOpen = false"
+          />
+
+          <!-- Dropdown du menu -->
+          <div
+            v-if="isMobileMenuOpen"
+            class="absolute right-0 top-12 z-50 w-52 max-w-[calc(100vw-2rem)] rounded-xl border border-slate-200 bg-white p-2 shadow-xl animate-scale-up"
           >
             <NuxtLink
               v-for="link in links"
@@ -179,13 +204,11 @@ function openSearch() {
               :to="profileHref"
               class="mt-2 flex items-center gap-2 rounded-md border border-slate-100 px-3 py-2 text-sm font-semibold text-primary"
             >
-              <span class="material-symbols-outlined text-[20px]"
-                >account_circle</span
-              >
+              <span class="material-symbols-outlined text-[20px]">account_circle</span>
               {{ profileLabel }}
             </NuxtLink>
           </div>
-        </details>
+        </div>
       </div>
     </div>
   </header>
