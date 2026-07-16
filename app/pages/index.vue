@@ -19,13 +19,16 @@ const hero = computed(
   () => (site.value?.content?.home_hero ?? {}) as Record<string, unknown>,
 );
 
-/** Les 5 visuels actuels de la bannière */
+/** Les visuels de la bannière, avec les 3 nouvelles photos en premier */
 const HERO_SLIDES_DEFAULT = [
-  "/hero/slide-accueil-banniere.png", // Slide 1 (Deux femmes)
-  "/hero/slide-1.png",                // Slide 2 (Bibliothèque)
-  "/hero/slide-2.png",                // Slide 3 (Père et fille)
-  "/hero/slide-3.png",                // Slide 4 (Attestation)
-  "/hero/slide-4.png",                // Slide 5 (Bureau)
+  "/hero/slide-accueil-banniere.png", // Nouveau Slide 1 (Étudiante avec consultant)
+  "/hero/slide-1.png",                // Nouveau Slide 2 (Étudiante avec ordinateur)
+  "/hero/slide-2.jpg",                // Nouveau Slide 3 (Étudiante hall d'accueil & drapeau)
+  "/hero/slide-3.png",                // Ancien Slide 1 (Deux femmes)
+  "/hero/slide-4.png",                // Ancien Slide 2 (Bibliothèque)
+  "/hero/slide-5.png",                // Ancien Slide 3 (Père et fille)
+  "/hero/slide-6.png",                // Ancien Slide 4 (Étudiante joyeuse attestation)
+  "/hero/slide-7.png",                // Ancien Slide 5 (Bureau)
 ] as const;
 
 const heroSlides = computed(() => {
