@@ -7,6 +7,8 @@ const { data: bourses } = await useFetch<BourseDto[]>('/api/bourses')
 
 const searchQ = ref('')
 const partnerFilter = ref('')
+const cityFilter = ref('')
+const levelFilter = ref('')
 const coverageMin = ref(0)
 
 const displayLimit = ref(12)
@@ -17,6 +19,22 @@ const partners = computed(() => {
     set.set(b.partnerSlug, b.partnerName)
   }
   return [...set.entries()].map(([slug, name]) => ({ slug, name }))
+})
+
+const cities = computed(() => {
+  const set = new Set<string>()
+  for (const b of bourses.value ?? []) {
+    if (b.ville) set.add(b.ville)
+  }
+  return [...set].sort()
+})
+
+const levels = computed(() => {
+  const set = new Set<string>()
+  for (const b of bourses.value ?? []) {
+    if (b.programmeNiveau) set.add(b.programmeNiveau)
+  }
+  return [...set].sort()
 })
 
 const fuse = computed(() =>
@@ -39,6 +57,12 @@ const filtered = computed(() => {
   if (partnerFilter.value) {
     list = list.filter((b) => b.partnerSlug === partnerFilter.value)
   }
+  if (cityFilter.value) {
+    list = list.filter((b) => b.ville === cityFilter.value)
+  }
+  if (levelFilter.value) {
+    list = list.filter((b) => b.programmeNiveau === levelFilter.value)
+  }
   if (coverageMin.value > 0) {
     list = list.filter((b) => b.coveragePercent >= coverageMin.value)
   }
@@ -59,7 +83,7 @@ function loadMore() {
   }
 }
 
-watch([searchQ, partnerFilter, coverageMin], () => {
+watch([searchQ, partnerFilter, cityFilter, levelFilter, coverageMin], () => {
   displayLimit.value = 12
 })
 
@@ -112,20 +136,44 @@ useSiteSeo({
       </p>
     </header>
 
-    <div class="mb-8 grid gap-3 rounded-2xl border border-slate-100 bg-white p-4 shadow-premium md:grid-cols-[1fr_auto_auto]">
-      <input
-        v-model="searchQ"
-        type="search"
-        placeholder="Rechercher une bourse, école, partenaire..."
-        class="rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm"
-      />
-     
-      <select v-model.number="coverageMin" class="rounded-xl border border-slate-100 bg-slate-50 px-6 py-3 text-sm">
+    <!-- Filtres Multicritères Ultra-Premium -->
+    <div class="mb-8 grid gap-4 rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm sm:grid-cols-2 md:grid-cols-5">
+      <!-- Recherche -->
+      <div class="relative sm:col-span-2 md:col-span-1">
+        <span class="material-symbols-outlined absolute left-3.5 top-3 text-[18px] text-slate-400 select-none">search</span>
+        <input
+          v-model="searchQ"
+          type="search"
+          placeholder="Nom, école..."
+          class="w-full rounded-lg border border-slate-200 bg-slate-50/50 py-2.5 pl-10 pr-4 text-sm placeholder:text-slate-400 focus:border-primary/30 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/5"
+        />
+      </div>
+
+      <!-- Filtre Partenaire -->
+      <select v-model="partnerFilter" class="rounded-lg border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-sm text-slate-700 focus:border-primary/30 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/5">
+        <option value="">Tous les partenaires</option>
+        <option v-for="p in partners" :key="p.slug" :value="p.slug">{{ p.name }}</option>
+      </select>
+
+      <!-- Filtre Ville -->
+      <select v-model="cityFilter" class="rounded-lg border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-sm text-slate-700 focus:border-primary/30 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/5">
+        <option value="">Toutes les villes</option>
+        <option v-for="c in cities" :key="c" :value="c">{{ c }}</option>
+      </select>
+
+      <!-- Filtre Niveau -->
+      <select v-model="levelFilter" class="rounded-lg border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-sm text-slate-700 focus:border-primary/30 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/5">
+        <option value="">Tous les niveaux</option>
+        <option v-for="l in levels" :key="l" :value="l">{{ l }}</option>
+      </select>
+
+      <!-- Filtre Couverture -->
+      <select v-model.number="coverageMin" class="rounded-lg border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-sm text-slate-700 focus:border-primary/30 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/5">
         <option :value="0">Toute couverture</option>
-        <option :value="25">≥ 25 %</option>
-        <option :value="50">≥ 50 %</option>
-        <option :value="75">≥ 75 %</option>
-        <option :value="100">100 %</option>
+        <option :value="25">≥ 25 % de prise en charge</option>
+        <option :value="50">≥ 50 % de prise en charge</option>
+        <option :value="75">≥ 75 % de prise en charge</option>
+        <option :value="100">100 % de prise en charge</option>
       </select>
     </div>
 

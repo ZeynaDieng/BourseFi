@@ -136,34 +136,17 @@ async function logout() {
 
         <!-- Avec candidature -->
         <div v-if="latest" class="mt-5">
-          <div class="flex items-center justify-between gap-3">
-            <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-bold" :class="statusInfo.className">
-              {{ statusInfo.label }}
-            </span>
-            <span class="font-headline text-lg font-extrabold text-primary">{{ dossier.percent }}%</span>
-          </div>
-
-          <div class="mt-2.5 h-2 overflow-hidden rounded-full bg-slate-100">
-            <div
-              class="h-full rounded-full bg-primary transition-all duration-1000 ease-out"
-              :style="{ width: `${statusPercent}%` }"
-            />
-          </div>
-
-          <div class="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-xs text-slate-500">
-            <span v-if="responseHint" class="flex items-center gap-1.5">
-              <span class="material-symbols-outlined text-[16px] text-slate-400">schedule</span>
-              {{ responseHint }}
-            </span>
-            <span class="flex items-center gap-1.5">
-              <span class="material-symbols-outlined text-[16px] text-slate-400">arrow_forward</span>
-              {{ nextStep }}
-            </span>
-            <span class="flex items-center gap-1.5">
-              <span class="material-symbols-outlined text-[16px] text-slate-400">tag</span>
-              Réf. {{ reference }}
-            </span>
-          </div>
+          <StudentDossierTracker
+            :percent="dossier.percent"
+            :missing-count="dossier.missingCount"
+            :missing-hint="dossier.missingHint"
+            :notification="dossier.notification"
+            :status-label="statusInfo.label"
+            :status-class-name="statusInfo.className"
+            :response-hint="responseHint"
+            :next-step="nextStep"
+            :reference="reference"
+          />
         </div>
 
         <!-- Sans candidature -->
