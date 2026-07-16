@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import Fuse from 'fuse.js'
 import type { BourseDto } from '~/types/bourse'
 
@@ -7,6 +8,8 @@ const { data: bourses } = await useFetch<BourseDto[]>('/api/bourses')
 const searchQ = ref('')
 const partnerFilter = ref('')
 const coverageMin = ref(0)
+
+const displayLimit = ref(12)
 
 const partners = computed(() => {
   const set = new Map<string, string>()
@@ -42,8 +45,58 @@ const filtered = computed(() => {
   return list
 })
 
+const displayedBourses = computed(() => {
+  return filtered.value.slice(0, displayLimit.value)
+})
+
+const hasMore = computed(() => {
+  return displayLimit.value < filtered.value.length
+})
+
+function loadMore() {
+  if (hasMore.value) {
+    displayLimit.value += 12
+  }
+}
+
+watch([searchQ, partnerFilter, coverageMin], () => {
+  displayLimit.value = 12
+})
+
+const loadMoreSentinel = ref<HTMLElement | null>(null)
+let observer: IntersectionObserver | null = null
+
+onMounted(() => {
+  observer = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting) {
+      loadMore()
+    }
+  }, {
+    rootMargin: '200px',
+  })
+
+  if (loadMoreSentinel.value) {
+    observer.observe(loadMoreSentinel.value)
+  }
+})
+
+watch(loadMoreSentinel, (newEl) => {
+  if (observer) {
+    observer.disconnect()
+    if (newEl) {
+      observer.observe(newEl)
+    }
+  }
+})
+
+onUnmounted(() => {
+  if (observer) {
+    observer.disconnect()
+  }
+})
+
 useSiteSeo({
-  title: 'Bourses disponibles  BourseFi',
+  title: 'Bourses disponibles | BourseFi',
   description:
     "Parcourez les bourses d'études disponibles au Sénégal : couverture, écoles partenaires et dates limites.",
 })
@@ -76,11 +129,17 @@ useSiteSeo({
       </select>
     </div>
 
-    <div v-if="filtered.length" class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-      <ScholarshipCard v-for="b in filtered" :key="b.id" :bourse="b" />
+    <div v-if="displayedBourses.length" class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <ScholarshipCard v-for="b in displayedBourses" :key="b.id" :bourse="b" />
     </div>
+    
     <p v-else class="rounded-2xl border border-slate-100 bg-white p-12 text-center text-slate-500 shadow-premium">
       Aucune bourse ne correspond à votre recherche.
     </p>
+
+    <!-- Sentinel element to trigger next batch load -->
+    <div v-if="hasMore" ref="loadMoreSentinel" class="py-12 flex justify-center">
+      <div class="h-7 w-7 animate-spin rounded-full border-[3px] border-slate-200 border-t-primary"></div>
+    </div>
   </main>
 </template>

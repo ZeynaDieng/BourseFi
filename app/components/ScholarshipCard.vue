@@ -41,7 +41,7 @@ function formatDate(iso: string) {
 </script>
 
 <template>
-  <article :class="[cardBase, cardInteractive, 'group flex flex-col p-6']">
+  <article :class="[cardBase, cardInteractive, 'group flex flex-col p-6 animate-fade-in-up']">
    <!-- <div v-if="showPopular" class="mb-3 flex flex-wrap gap-1.5">
       <span :class="badgePopular">Bourse disponible</span>
     </div> -->
