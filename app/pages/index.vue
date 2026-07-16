@@ -368,16 +368,16 @@ useJsonLd(
               </h1>
             </div>
 
-            <div class="home-hero-stagger-item hidden md:block">
+            <div class="home-hero-stagger-item">
               <p
                 v-if="heroSubtitleCms"
-                class="max-w-none text-lg leading-relaxed text-on-surface-variant md:text-xl md:leading-relaxed"
+                class="max-w-none text-sm sm:text-base md:text-lg leading-relaxed text-slate-700 font-medium"
               >
                 {{ heroSubtitleCms }}
               </p>
               <p
                 v-else
-                class="max-w-none text-lg leading-relaxed text-on-surface-variant md:text-xl md:leading-relaxed"
+                class="max-w-none text-sm sm:text-base md:text-lg leading-relaxed text-slate-700 font-medium"
               >
                 Trouvez les bourses d'études faites pour les
                 <strong class="font-semibold text-primary"
