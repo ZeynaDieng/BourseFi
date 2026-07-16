@@ -331,21 +331,14 @@ useJsonLd(
             i === activeHeroSlide ? 'z-[2] opacity-100 animate-ken-burns' : 'z-[1] opacity-0',
           ]"
         />
-        <div class="absolute inset-0 z-[3] bg-black/18" aria-hidden="true" />
+        <div class="absolute inset-0 z-[3] bg-black/28" aria-hidden="true" />
         <div
           class="absolute inset-0 z-[4] bg-gradient-to-br from-white/10 via-transparent to-primary/[0.08]"
           aria-hidden="true"
         />
       </div>
 
-      <div
-        class="pointer-events-none absolute inset-y-0 left-0 z-[5] w-full bg-gradient-to-r from-slate-950/85 from-3% via-slate-950/50 to-transparent md:max-w-[min(94%,62rem)] md:via-slate-950/40 lg:max-w-[min(94%,68rem)]"
-        aria-hidden="true"
-      />
-      <div
-        class="pointer-events-none absolute inset-y-0 right-0 z-[5] w-[min(42%,380px)] bg-gradient-to-l from-transparent via-transparent to-white/20 md:to-transparent lg:w-[28%]"
-        aria-hidden="true"
-      />
+
 
       <div class="relative z-10 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-12">
         <div
