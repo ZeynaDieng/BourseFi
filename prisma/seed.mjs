@@ -539,8 +539,8 @@ async function main() {
   await Promise.all([
     upsertUser({
       name: 'Admin BourseFi',
-      email: 'zeynash1@gmail.com',
-      password: 'Fekam5460@',
+      email: 'admin@boursefi.sn',
+      password: 'Admin1234!',
       role: 'ADMIN'
     }),
     upsertUser({

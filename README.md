@@ -66,6 +66,6 @@ npm run preview
 
 ## Comptes demo seedes
 
-- Admin: `zeynash1@gmail.com` / `Fekam5460@`
+- Admin: `admin@boursefi.sn` / `Admin1234!`
 - Partenaire: `partenaire@boursefi.sn` / `Partner1234!`
 - Etudiant: `etudiant@boursefi.sn` / `Student1234!`
