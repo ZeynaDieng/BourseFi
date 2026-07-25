@@ -9,8 +9,8 @@ async function upsertUser({ name, email, password, role, partnerId = null }) {
   const passwordHash = await hash(password, 10)
   return prisma.user.upsert({
     where: { email },
-    update: { name, passwordHash, role, partnerId },
-    create: { name, email, passwordHash, role, partnerId }
+    update: { name, passwordHash, role, partnerId, emailVerified: true },
+    create: { name, email, passwordHash, role, partnerId, emailVerified: true }
   })
 }
 
@@ -539,8 +539,8 @@ async function main() {
   await Promise.all([
     upsertUser({
       name: 'Admin BourseFi',
-      email: 'admin@boursefi.sn',
-      password: 'Admin1234!',
+      email: 'zeynash1@gmail.com',
+      password: 'Fekam5460@',
       role: 'ADMIN'
     }),
     upsertUser({
