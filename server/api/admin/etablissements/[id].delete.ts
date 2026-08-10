@@ -1,4 +1,3 @@
-import { Prisma } from '@prisma/client'
 import { createError, getRouterParam } from 'h3'
 import { prisma } from '../../../utils/prisma'
 import { requireRole } from '../../../utils/auth'
@@ -11,33 +10,26 @@ export default defineEventHandler(async (event) => {
 
   const existing = await prisma.etablissement.findUnique({
     where: { id },
-    select: { id: true, slug: true, nom: true }
+    select: { id: true, slug: true, nom: true },
   })
   if (!existing) {
     throw createError({ statusCode: 404, statusMessage: 'Établissement introuvable.' })
   }
 
-  try {
-    await prisma.etablissement.delete({ where: { id } })
-  } catch (e) {
-    if (e instanceof Prisma.PrismaClientKnownRequestError && (e.code === 'P2003' || e.code === 'P2014')) {
-      throw createError({
-        statusCode: 409,
-        statusMessage:
-          'Impossible de supprimer : des programmes liés ont des candidatures. Supprimez ou réaffectez les candidatures d’abord.'
-      })
-    }
-    throw e
-  }
+  // Archivage logique non-destructif pour préserver l'historique
+  const row = await prisma.etablissement.update({
+    where: { id },
+    data: { status: 'ARCHIVED', updatedBy: user.email },
+  })
 
   await writeAuditLog({
     actorId: user.id,
     actorRole: user.role,
-    action: 'ETABLISSEMENT_DELETE',
+    action: 'ETABLISSEMENT_ARCHIVE',
     entityType: 'Etablissement',
     entityId: id,
-    metadata: { slug: existing.slug, nom: existing.nom }
+    metadata: { slug: existing.slug, nom: existing.nom },
   })
 
-  return { ok: true }
+  return { ok: true, status: row.status }
 })

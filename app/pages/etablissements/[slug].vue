@@ -2,7 +2,7 @@
 import type { BourseDto } from '~/types/bourse'
 
 const route = useRoute()
-const { data: ecoles } = await useFetch('/api/etablissements')
+const { data: ecoles } = await useFetch<any[]>('/api/etablissements')
 const { data: allBourses } = await useFetch<BourseDto[]>('/api/bourses')
 
 const ecole = computed(() => ecoles.value?.find((item: { slug: string }) => item.slug === route.params.slug))
@@ -19,6 +19,12 @@ const initials = computed(() => {
     .map((w: string) => w[0]?.toUpperCase() ?? '')
     .join('')
     .slice(0, 3) || 'BF'
+})
+
+const cleanWhatsappUrl = computed(() => {
+  if (!ecole.value?.whatsapp) return ''
+  const cleaned = ecole.value.whatsapp.replace(/\D/g, '')
+  return `https://wa.me/${cleaned}`
 })
 </script>
 
@@ -43,7 +49,18 @@ const initials = computed(() => {
         />
         <span v-else class="text-3xl font-extrabold text-primary md:text-4xl">{{ initials }}</span>
       </div>
-      <p class="mb-2 text-xs font-bold uppercase tracking-widest text-slate-400">Établissement partenaire</p>
+
+      <div class="mb-2 flex items-center gap-2">
+        <span class="text-xs font-bold uppercase tracking-widest text-slate-400">Établissement partenaire</span>
+        <span
+          v-if="ecole.contactStatus === 'VERIFIED'"
+          class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 ring-1 ring-emerald-200"
+        >
+          <span class="material-symbols-outlined text-xs">verified</span>
+          Vérifié
+        </span>
+      </div>
+
       <h1 class="font-headline text-3xl font-extrabold uppercase tracking-tight text-primary md:text-5xl">
         {{ ecole.nom }}
       </h1>
@@ -58,13 +75,58 @@ const initials = computed(() => {
     </header>
 
     <div class="space-y-12">
+      <!-- Section À propos -->
       <section v-if="ecole.resume" class="text-center">
         <h2 class="mb-4 text-xs font-bold uppercase tracking-widest text-slate-400">À propos</h2>
         <p class="mx-auto max-w-2xl text-lg leading-relaxed italic text-slate-600">
-           {{ ecole.resume }} 
+          {{ ecole.resume }}
         </p>
       </section>
 
+      <!-- Section Contact / Besoin d'informations -->
+      <section v-if="ecole.phone || ecole.whatsapp || ecole.site" class="rounded-3xl border border-slate-100 bg-white p-6 shadow-premium md:p-8 text-center">
+        <div class="mx-auto max-w-2xl">
+          <h2 class="font-headline text-xl font-bold text-primary mb-2">Besoin d'informations ?</h2>
+          <p class="text-sm leading-relaxed text-slate-500 mb-6">
+            Les frais de scolarité, les conditions d'inscription et certaines modalités peuvent évoluer. Pour obtenir les informations les plus récentes, contactez directement l'établissement.
+          </p>
+
+          <div class="flex flex-wrap items-center justify-center gap-3">
+            <a
+              v-if="ecole.phone"
+              :href="`tel:${ecole.phone}`"
+              class="inline-flex items-center gap-2 rounded-2xl bg-primary px-5 py-3 text-sm font-bold text-white shadow-md transition hover:bg-primary/90 active:scale-95"
+            >
+              <span class="material-symbols-outlined text-lg">call</span>
+              Appeler ({{ ecole.phone }})
+            </a>
+
+            <a
+              v-if="ecole.whatsapp"
+              :href="cleanWhatsappUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center gap-2 rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white shadow-md transition hover:bg-emerald-700 active:scale-95"
+            >
+              <span class="material-symbols-outlined text-lg">chat</span>
+              WhatsApp
+            </a>
+
+            <a
+              v-if="ecole.site"
+              :href="ecole.site"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center gap-2 rounded-2xl bg-slate-100 px-5 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-200 active:scale-95"
+            >
+              <span class="material-symbols-outlined text-lg">language</span>
+              Visiter le site
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section Bourses disponibles -->
       <section>
         <div class="mb-8 flex items-center justify-between border-b border-slate-100 pb-4">
           <h2 class="font-headline text-xl font-bold text-primary">Bourses disponibles</h2>

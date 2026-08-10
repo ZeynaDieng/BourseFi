@@ -1,5 +1,29 @@
 import { computeScholarshipEconomy } from '../../app/utils/scholarship-math'
 
+type TarifItem = {
+  id: string
+  anneeAcademique: string
+  montant: number
+  frequence: string
+  devise: string
+  label: string | null
+  isDefault: boolean
+  isVerified: boolean
+  status: string
+}
+
+type ContactItem = {
+  id: string
+  type: string
+  valeur: string
+  label: string | null
+  isPrincipal: boolean
+  isWhatsapp: boolean
+  status: string
+  source: string | null
+  isActive: boolean
+}
+
 type BourseRow = {
   id: string
   slug: string
@@ -14,6 +38,7 @@ type BourseRow = {
   conditions: string | null
   documentsRequis: string | null
   isActive: boolean
+  status: string
   programme: {
     slug: string
     titre: string
@@ -26,20 +51,44 @@ type BourseRow = {
     brochureUrl: string | null
     perspectives: string | null
     fraisDossier: number
-    fraisDossierEtranger: number
+    fraisDossierEtranger: number | null
     devise: string
-    etablissement: { slug: string; nom: string; logoUrl: string | null; coverImageUrl: string | null }
+    status: string
+    tarifs?: TarifItem[]
+    etablissement: {
+      slug: string
+      nom: string
+      logoUrl: string | null
+      coverImageUrl: string | null
+      site: string | null
+      phone: string | null
+      phoneSecondary: string | null
+      whatsapp: string | null
+      email: string | null
+      contactStatus: string
+      contactVerifiedAt: Date | null
+      status: string
+      contacts?: ContactItem[]
+    }
   }
   partner: { name: string; slug: string; logoUrl: string | null }
 }
 
 export function serializeBourse(b: BourseRow) {
+  // Sélectionner le tarif par défaut / actif le plus récent
+  const activeTarifs = (b.programme.tarifs || []).filter((t) => t.status === 'ACTIVE')
+  const currentTarif = activeTarifs.find((t) => t.isDefault) || activeTarifs[0] || null
+
   const economy = computeScholarshipEconomy(
     b.programme.fraisDossier,
     b.coveragePercent,
+    currentTarif ? currentTarif.montant : null,
+    currentTarif ? currentTarif.anneeAcademique : null,
     b.montantMax,
     b.programme.devise,
   )
+
+  const etab = b.programme.etablissement
 
   return {
     id: b.id,
@@ -49,10 +98,18 @@ export function serializeBourse(b: BourseRow) {
     partnerId: b.partnerId,
     programmeSlug: b.programme.slug,
     programmeTitre: b.programme.titre,
-    etablissement: b.programme.etablissement.nom,
-    etablissementSlug: b.programme.etablissement.slug,
-    etablissementLogoUrl: b.programme.etablissement.logoUrl,
-    etablissementCoverImageUrl: b.programme.etablissement.coverImageUrl,
+    etablissement: etab.nom,
+    etablissementSlug: etab.slug,
+    etablissementLogoUrl: etab.logoUrl,
+    etablissementCoverImageUrl: etab.coverImageUrl,
+    etablissementPhone: etab.phone,
+    etablissementPhoneSecondary: etab.phoneSecondary,
+    etablissementWhatsapp: etab.whatsapp,
+    etablissementEmail: etab.email,
+    etablissementSite: etab.site,
+    etablissementContactStatus: etab.contactStatus,
+    etablissementContactVerifiedAt: etab.contactVerifiedAt ? etab.contactVerifiedAt.toISOString() : null,
+    etablissementContacts: (etab.contacts || []).filter((c) => c.isActive),
     partnerName: b.partner.name,
     partnerSlug: b.partner.slug,
     partnerLogoUrl: b.partner.logoUrl,
@@ -66,23 +123,38 @@ export function serializeBourse(b: BourseRow) {
     programmeBrochureUrl: b.programme.brochureUrl,
     coveragePercent: b.coveragePercent,
     montantMax: b.montantMax,
+    hasTuitionFee: economy.hasTuitionFee,
+    tuitionFee: economy.tuitionFee,
+    anneeAcademique: economy.anneeAcademique,
     montantBourse: economy.montantBourse,
     resteACharge: economy.resteACharge,
     fraisDossier: b.programme.fraisDossier,
-    fraisDossierEtranger: b.programme.fraisDossierEtranger,
+    fraisDossierEtranger: b.programme.fraisDossierEtranger ?? b.programme.fraisDossier,
     devise: b.programme.devise,
     quota: b.quota,
     dateLimite: b.dateLimite.toISOString(),
     conditions: b.conditions,
     documentsRequis: b.documentsRequis,
-    isActive: b.isActive,
+    isActive: b.isActive && b.status === 'ACTIVE' && b.programme.status === 'ACTIVE' && etab.status === 'ACTIVE',
+    status: b.status,
+    tarifs: activeTarifs,
   }
 }
 
 export const bourseInclude = {
   programme: {
     include: {
-      etablissement: true,
+      etablissement: {
+        include: {
+          contacts: {
+            where: { isActive: true },
+          },
+        },
+      },
+      tarifs: {
+        where: { status: 'ACTIVE' },
+        orderBy: { createdAt: 'desc' },
+      },
     },
   },
   partner: true,

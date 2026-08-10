@@ -1,9 +1,21 @@
 import { prisma } from '../utils/prisma'
 
-export default defineEventHandler(async () => {
+export default defineEventHandler(async (event) => {
+  const query = getQuery(event)
+  const activeOnly = query.active !== 'false'
+
   const ecoles = await prisma.etablissement.findMany({
+    where: {
+      ...(activeOnly ? { status: 'ACTIVE' } : {}),
+    },
     include: {
+      contacts: {
+        where: { isActive: true },
+      },
       programmes: {
+        where: {
+          ...(activeOnly ? { status: 'ACTIVE' } : {}),
+        },
         select: {
           slug: true,
           titre: true,
@@ -15,7 +27,9 @@ export default defineEventHandler(async () => {
           placement: true,
           partner: { select: { name: true, slug: true } },
           bourses: {
-            where: { isActive: true },
+            where: {
+              ...(activeOnly ? { isActive: true, status: 'ACTIVE' } : {}),
+            },
             select: { id: true },
           },
         },
@@ -42,11 +56,21 @@ export default defineEventHandler(async () => {
       [...partnerFreq.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? null
 
     return {
+      id: e.id,
       slug: e.slug,
       nom: e.nom,
       ville: e.ville,
+      adresse: e.adresse,
       accreditation: e.accreditation,
       site: e.site,
+      phone: e.phone,
+      phoneSecondary: e.phoneSecondary,
+      whatsapp: e.whatsapp,
+      email: e.email,
+      status: e.status,
+      contactStatus: e.contactStatus,
+      contactVerifiedAt: e.contactVerifiedAt ? e.contactVerifiedAt.toISOString() : null,
+      source: e.source,
       resume: e.resume,
       coverImageUrl: e.coverImageUrl,
       logoUrl: e.logoUrl,
@@ -55,6 +79,7 @@ export default defineEventHandler(async () => {
       boursesCount,
       tauxInsertion,
       partenairePrincipal,
+      contacts: e.contacts,
       programmes: e.programmes.map((p) => ({
         slug: p.slug,
         titre: p.titre,

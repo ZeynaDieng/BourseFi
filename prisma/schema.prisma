@@ -7,13 +7,46 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum EntityStatus {
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+enum ContactVerificationStatus {
+  VERIFIED
+  TO_VERIFY
+  UNVERIFIED
+}
+
+enum ContactType {
+  PHONE
+  WHATSAPP
+  EMAIL
+  WEBSITE
+}
+
+enum ContactSource {
+  OFFICIAL_WEBSITE
+  ESTABLISHMENT
+  DIRECTORY
+  OTHER
+}
+
+enum TarifSource {
+  OFFICIAL_WEBSITE
+  ESTABLISHMENT
+  DOCUMENT
+  PARTNER
+  OTHER
+}
+
 model Partner {
   id                  String        @id @default(cuid())
   name                String
   slug                String        @unique
   logoUrl             String?
   contactEmail        String?
-  /// Part du montant total (0-100) attribuee au partenaire bailleur
   partnerSharePercent Int           @default(75)
   createdAt           DateTime      @default(now())
   conditions          String?
@@ -25,43 +58,96 @@ model Partner {
 }
 
 model Etablissement {
-  id            String      @id @default(cuid())
-  slug          String      @unique
-  nom           String
-  ville         String
-  accreditation String?
-  site          String?
-  resume        String?
-  /// Photo d’en-tête (carte + hero fiche école)
-  coverImageUrl String?
-  /// Logo affiché en pastille sur la photo
-  logoUrl       String?
-  /// Libellé métier du référentiel (ex. École d’ingénieur)
-  typeLabel     String?
-  programmes    Programme[]
+  id                String                    @id @default(cuid())
+  slug              String                    @unique
+  nom               String
+  ville             String
+  accreditation     String?
+  site              String?
+  resume            String?
+  coverImageUrl     String?
+  logoUrl           String?
+  typeLabel         String?
+  adresse           String?
+  phone             String?
+  phoneSecondary    String?
+  whatsapp          String?
+  email             String?
+  status            EntityStatus              @default(ACTIVE)
+  source            ContactSource?
+  contactStatus     ContactVerificationStatus @default(TO_VERIFY)
+  contactVerifiedAt DateTime?
+  updatedBy         String?
+  createdAt         DateTime                  @default(now())
+  updatedAt         DateTime                  @updatedAt
+  programmes        Programme[]
+  contacts          EtablissementContact[]
+}
+
+model EtablissementContact {
+  id              String                    @id @default(cuid())
+  etablissementId String
+  type            ContactType
+  valeur          String
+  label           String?
+  isPrincipal     Boolean                   @default(false)
+  isWhatsapp      Boolean                   @default(false)
+  status          ContactVerificationStatus @default(TO_VERIFY)
+  source          ContactSource?
+  isActive        Boolean                   @default(true)
+  createdAt       DateTime                  @default(now())
+  updatedAt       DateTime                  @updatedAt
+  etablissement   Etablissement             @relation(fields: [etablissementId], references: [id], onDelete: Restrict)
+
+  @@index([etablissementId])
 }
 
 model Programme {
-  id              String        @id @default(cuid())
-  slug            String        @unique
-  etablissementId String
-  partnerId       String
-  titre           String
-  ville           String
-  duree           String
-  fraisDossier    Int           @default(0)
-  fraisDossierEtranger   Int?
-  devise          String        @default("FCFA")
-  niveau          String
-  placement       String?
-  description     String
-  eligibilite     String?
-  brochureUrl     String?
-  perspectives    String?
-  bourses         Bourse[]
-  candidatures    Candidature[]
-  etablissement   Etablissement @relation(fields: [etablissementId], references: [id], onDelete: Cascade)
-  partner         Partner       @relation(fields: [partnerId], references: [id])
+  id                   String        @id @default(cuid())
+  slug                 String        @unique
+  etablissementId      String
+  partnerId            String
+  titre                String
+  ville                String
+  duree                String
+  fraisDossier         Int           @default(20000)
+  fraisDossierEtranger Int?          @default(30000)
+  devise               String        @default("FCFA")
+  niveau               String
+  placement            String?
+  description          String
+  eligibilite          String?
+  brochureUrl          String?
+  perspectives         String?
+  status               EntityStatus  @default(ACTIVE)
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+  bourses              Bourse[]
+  candidatures         Candidature[]
+  tarifs               Tarif[]
+  etablissement        Etablissement @relation(fields: [etablissementId], references: [id], onDelete: Cascade)
+  partner              Partner       @relation(fields: [partnerId], references: [id])
+}
+
+model Tarif {
+  id              String       @id @default(cuid())
+  programmeId     String
+  anneeAcademique String
+  montant         Int
+  frequence       String       @default("ANNUEL")
+  devise          String       @default("FCFA")
+  label           String?
+  isDefault       Boolean      @default(true)
+  source          TarifSource?
+  isVerified      Boolean      @default(false)
+  verifiedAt      DateTime?
+  status          EntityStatus @default(ACTIVE)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  updatedBy       String?
+  programme       Programme    @relation(fields: [programmeId], references: [id], onDelete: Cascade)
+
+  @@index([programmeId, anneeAcademique])
 }
 
 model Bourse {
@@ -78,6 +164,7 @@ model Bourse {
   conditions      String?
   documentsRequis String?
   isActive        Boolean       @default(true)
+  status          EntityStatus  @default(ACTIVE)
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
   partner         Partner       @relation(fields: [partnerId], references: [id])
@@ -87,33 +174,34 @@ model Bourse {
   @@index([programmeId])
   @@index([partnerId])
   @@index([isActive])
+  @@index([status])
 }
 
 model User {
-  id                   String         @id @default(cuid())
-  name                 String
-  email                String         @unique
-  passwordHash         String
-  role                 Role           @default(STUDENT)
-  partnerId            String?
-  emailVerified        Boolean        @default(false)
-  emailVerificationToken String?       @unique
-  createdAt            DateTime       @default(now())
-  updatedAt            DateTime       @updatedAt
-  address              String?
-  firstName            String?
-  identityCardRectoUrl String?
-  identityCardVersoUrl String?
-   bfemAttestationUrl String?
-  bacTranscriptUrl   String?
-  lastName             String?
-  phone                String?
-  auditLogs            AuditLog[]
-  candidatures         Candidature[]
-  notifications        Notification[]
-  paiements            Paiement[]
-  sessions             Session[]
-  partner              Partner?       @relation(fields: [partnerId], references: [id])
+  id                     String         @id @default(cuid())
+  name                   String
+  email                  String         @unique
+  passwordHash           String
+  role                   Role           @default(STUDENT)
+  partnerId              String?
+  emailVerified          Boolean        @default(false)
+  emailVerificationToken String?        @unique
+  createdAt              DateTime       @default(now())
+  updatedAt              DateTime       @updatedAt
+  address                String?
+  firstName              String?
+  identityCardRectoUrl   String?
+  identityCardVersoUrl   String?
+  bfemAttestationUrl     String?
+  bacTranscriptUrl       String?
+  lastName               String?
+  phone                  String?
+  auditLogs              AuditLog[]
+  candidatures           Candidature[]
+  notifications          Notification[]
+  paiements              Paiement[]
+  sessions               Session[]
+  partner                Partner?       @relation(fields: [partnerId], references: [id])
 }
 
 model Session {
@@ -219,7 +307,6 @@ model AuditLog {
   @@index([action])
 }
 
-/// Blocs JSON éditables (hero, sections landing, visuels globaux, etc.)
 model SiteContent {
   key       String   @id
   payload   Json
@@ -247,7 +334,6 @@ model TestimonialItem {
   partenaireNom String?
 }
 
-/// Fiches guide métier  (remplace le contenu statique côté affichage)
 model MetierPage {
   id               String   @id @default(cuid())
   slug             String   @unique

@@ -20,38 +20,63 @@ export default defineEventHandler(async (event) => {
     slug?: string
     nom?: string
     ville?: string
+    adresse?: string | null
     accreditation?: string | null
     site?: string | null
+    phone?: string | null
+    phoneSecondary?: string | null
+    whatsapp?: string | null
+    email?: string | null
     resume?: string | null
     coverImageUrl?: string | null
     logoUrl?: string | null
     typeLabel?: string | null
+    status?: 'ACTIVE' | 'INACTIVE' | 'ARCHIVED'
+    source?: 'OFFICIAL_WEBSITE' | 'ESTABLISHMENT' | 'DIRECTORY' | 'OTHER' | null
+    contactStatus?: 'VERIFIED' | 'TO_VERIFY' | 'UNVERIFIED'
   }>(event)
 
   if (body.slug !== undefined) {
     const s = normalizeSlug(body.slug)
     if (!s) throw createError({ statusCode: 400, statusMessage: 'Slug invalide.' })
     const clash = await prisma.etablissement.findFirst({
-      where: { slug: s, NOT: { id } }
+      where: { slug: s, NOT: { id } },
     })
     if (clash) {
       throw createError({ statusCode: 409, statusMessage: 'Ce slug est déjà utilisé.' })
     }
   }
 
+  const updateData: Record<string, any> = {
+    ...(body.slug !== undefined ? { slug: normalizeSlug(body.slug) } : {}),
+    ...(body.nom !== undefined ? { nom: body.nom.trim() } : {}),
+    ...(body.ville !== undefined ? { ville: body.ville.trim() } : {}),
+    ...(body.adresse !== undefined ? { adresse: body.adresse?.trim() || null } : {}),
+    ...(body.accreditation !== undefined ? { accreditation: body.accreditation?.trim() || null } : {}),
+    ...(body.site !== undefined ? { site: body.site?.trim() || null } : {}),
+    ...(body.phone !== undefined ? { phone: body.phone?.trim() || null } : {}),
+    ...(body.phoneSecondary !== undefined ? { phoneSecondary: body.phoneSecondary?.trim() || null } : {}),
+    ...(body.whatsapp !== undefined ? { whatsapp: body.whatsapp?.trim() || null } : {}),
+    ...(body.email !== undefined ? { email: body.email?.trim() || null } : {}),
+    ...(body.resume !== undefined ? { resume: body.resume?.trim() || null } : {}),
+    ...(body.coverImageUrl !== undefined ? { coverImageUrl: body.coverImageUrl?.trim() || null } : {}),
+    ...(body.logoUrl !== undefined ? { logoUrl: body.logoUrl?.trim() || null } : {}),
+    ...(body.typeLabel !== undefined ? { typeLabel: body.typeLabel?.trim() || null } : {}),
+    ...(body.status !== undefined ? { status: body.status } : {}),
+    ...(body.source !== undefined ? { source: body.source } : {}),
+    updatedBy: user.email,
+  }
+
+  if (body.contactStatus !== undefined) {
+    updateData.contactStatus = body.contactStatus
+    if (body.contactStatus === 'VERIFIED') {
+      updateData.contactVerifiedAt = new Date()
+    }
+  }
+
   const row = await prisma.etablissement.update({
     where: { id },
-    data: {
-      ...(body.slug !== undefined ? { slug: normalizeSlug(body.slug) } : {}),
-      ...(body.nom !== undefined ? { nom: body.nom.trim() } : {}),
-      ...(body.ville !== undefined ? { ville: body.ville.trim() } : {}),
-      ...(body.accreditation !== undefined ? { accreditation: body.accreditation?.trim() || null } : {}),
-      ...(body.site !== undefined ? { site: body.site?.trim() || null } : {}),
-      ...(body.resume !== undefined ? { resume: body.resume?.trim() || null } : {}),
-      ...(body.coverImageUrl !== undefined ? { coverImageUrl: body.coverImageUrl?.trim() || null } : {}),
-      ...(body.logoUrl !== undefined ? { logoUrl: body.logoUrl?.trim() || null } : {}),
-      ...(body.typeLabel !== undefined ? { typeLabel: body.typeLabel?.trim() || null } : {})
-    }
+    data: updateData,
   })
 
   await writeAuditLog({
@@ -60,7 +85,7 @@ export default defineEventHandler(async (event) => {
     action: 'ETABLISSEMENT_UPDATE',
     entityType: 'Etablissement',
     entityId: row.id,
-    metadata: { slug: row.slug }
+    metadata: { slug: row.slug, status: row.status, contactStatus: row.contactStatus },
   })
 
   return row

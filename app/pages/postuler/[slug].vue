@@ -36,16 +36,39 @@ const loginForm = reactive({
   password: '',
 })
 
+const educationLevels = [
+  'Troisième (3ème)',
+  'Seconde',
+  'Première',
+  'Terminale',
+  'Bac+1',
+  'Bac+2 (BTS, DTS, DUT...)',
+  'Bac+3 (Licence, Bachelor...)',
+  'Bac+4 / Bac+5 (Master, Ingénieur...)',
+  'Autre',
+]
+
+const diplomaOptions = [
+  'BFEM',
+  'BAC',
+  'BTS',
+  'DTS',
+  'Licence',
+  'Master',
+  'Aucun diplôme',
+  'Autre',
+]
+
 const hasIdentityDocs = computed(() =>
   Boolean(me.value?.user?.identityCardRectoUrl && me.value?.user?.identityCardVersoUrl),
 )
 
 const hasEducationDocs = computed(() =>
-  Boolean(me.value?.user?.bfemAttestationUrl && me.value?.user?.bacTranscriptUrl),
+  Boolean(me.value?.user?.bfemAttestationUrl || me.value?.user?.bacTranscriptUrl),
 )
 
 const applicationSteps = computed(() =>
-  hasIdentityDocs.value && hasEducationDocs.value && hasEducationDocs.value ? ['Informations', 'Validation'] : ['Informations', 'Documents', 'Validation'],
+  hasIdentityDocs.value && hasEducationDocs.value ? ['Informations', 'Validation'] : ['Informations', 'Documents', 'Validation'],
 )
 
 const STEPS = computed(() =>
@@ -174,7 +197,6 @@ watchEffect(() => {
   }
   const u = me.value?.user
   if (u) {
-    // Identité issue du compte (non modifiable ici : on ne postule que pour soi).
     if (!form.firstName) form.firstName = u.firstName || ''
     if (!form.lastName) form.lastName = u.lastName || ''
     if (!form.firstName && !form.lastName) splitNameFromUser(u.name ?? '')
@@ -200,20 +222,16 @@ function validateStep(s: number): boolean {
       errorMessage.value = 'Indiquez un numéro de téléphone valide.'
       return false
     }
-    if (form.address.trim().length < 5) {
-      errorMessage.value = 'Indiquez votre adresse complète (rue, ville…).'
+    if (form.address.trim().length < 3) {
+      errorMessage.value = 'Indiquez votre adresse (ville, quartier...).'
       return false
     }
     if (!form.lastEducationLevel.trim()) {
-      errorMessage.value = 'Indiquez votre dernier niveau d’études (ex. Terminale, Bac+2…).'
+      errorMessage.value = 'Sélectionnez votre dernier niveau d’études.'
       return false
     }
     if (!form.lastDiploma.trim()) {
-      errorMessage.value = 'Indiquez votre dernier diplôme obtenu ou en cours.'
-      return false
-    }
-    if (!form.gpa.trim()) {
-      errorMessage.value = 'Indiquez votre dernière moyenne ou note.'
+      errorMessage.value = 'Sélectionnez votre dernier diplôme.'
       return false
     }
   }
@@ -226,13 +244,16 @@ function validateStep(s: number): boolean {
       errorMessage.value = 'Ajoutez la photo verso de votre carte d’identité.'
       return false
     }
-    if (!form.bfemAttestation) {
-      errorMessage.value = "Ajoutez l'attestation de diplôme BFEM."
-      return false
-    }
-    if (!form.bacTranscript) {
-      errorMessage.value = 'Ajoutez le relevé du Bac.'
-      return false
+    if (form.lastDiploma === 'BFEM') {
+      if (!form.bfemAttestation) {
+        errorMessage.value = "Ajoutez l'attestation de diplôme BFEM."
+        return false
+      }
+    } else {
+      if (!form.bacTranscript && !form.bfemAttestation) {
+        errorMessage.value = 'Ajoutez le relevé du Bac ou votre dernier diplôme.'
+        return false
+      }
     }
   }
   return true
@@ -263,14 +284,14 @@ async function submitRegister() {
     await $fetch('/api/auth/register', {
       method: 'POST',
       body: {
-  firstName: registerForm.firstName.trim(),
-  lastName: registerForm.lastName.trim(),
-  email: registerForm.email.trim(),
-  phone: registerForm.phone.trim(),
-  password: registerForm.password,
-  acceptTerms: registerForm.acceptTerms,
-  acceptMarketing: registerForm.acceptMarketing,
-},
+        firstName: registerForm.firstName.trim(),
+        lastName: registerForm.lastName.trim(),
+        email: registerForm.email.trim(),
+        phone: registerForm.phone.trim(),
+        password: registerForm.password,
+        acceptTerms: registerForm.acceptTerms,
+        acceptMarketing: registerForm.acceptMarketing,
+      },
     })
     await afterAuthSuccess()
   } catch (e: unknown) {
@@ -336,9 +357,9 @@ async function submit() {
     step.value = infoIdx
     return
   }
-  if (!hasIdentityDocs.value && hasEducationDocs.value) {
+  if (!hasIdentityDocs.value && !hasEducationDocs.value) {
     const docIdx = STEPS.value.indexOf('Documents')
-    if (!validateStep(docIdx)) {
+    if (docIdx !== -1 && !validateStep(docIdx)) {
       step.value = docIdx
       return
     }
@@ -363,7 +384,7 @@ async function submit() {
         lastEducationLevel: form.lastEducationLevel.trim(),
         lastDiploma: form.lastDiploma.trim(),
         graduationDate: form.graduationDate.trim(),
-        gpa: form.gpa.trim(),
+        gpa: '',
         ...(hasIdentityDocs.value && hasEducationDocs.value
           ? {}
           : { identityCardRecto: form.identityCardRecto, identityCardVerso: form.identityCardVerso, bfemAttestation: form.bfemAttestation, bacTranscript: form.bacTranscript }),
@@ -390,7 +411,7 @@ function formatFcfa(value: number) {
 }
 
 useSeoMeta({
-  title: () => (bourse.value ? `Postuler  ${bourse.value.titre}` : 'Postuler  BourseFi'),
+  title: () => (bourse.value ? `Postuler — ${bourse.value.titre}` : 'Postuler — BourseFi'),
 })
 </script>
 
@@ -421,7 +442,7 @@ useSeoMeta({
     >
       <span class="material-symbols-outlined mt-0.5 text-[20px] text-emerald-600">check_circle</span>
       <div>
-        <p class="font-semibold">Compte prêt  vous pouvez continuer votre candidature.</p>
+        <p class="font-semibold">Compte prêt — vous pouvez continuer votre candidature.</p>
         <p class="mt-0.5 text-emerald-800/80">Vos informations sont conservées sur cette page.</p>
       </div>
     </div>
@@ -429,7 +450,7 @@ useSeoMeta({
     <div class="mt-6 grid gap-6 lg:grid-cols-12">
       <!-- Colonne formulaire -->
       <section class="lg:col-span-7">
-        <!-- Recap repliee mobile -->
+        <!-- Recap repliée mobile -->
         <details class="mb-4 rounded-2xl border border-slate-100 bg-white p-4 shadow-premium lg:hidden">
           <summary class="flex cursor-pointer items-center justify-between text-sm font-semibold text-primary">
             Résumé de la bourse
@@ -449,7 +470,7 @@ useSeoMeta({
               <h2 class="font-headline text-lg font-bold text-primary">Votre espace candidat</h2>
               <p class="mt-1 text-sm text-slate-500">
                 Créez votre espace pour enregistrer votre dossier et recevoir votre attestation par email.
-                Environ 30 secondes  vos données sont sécurisées.
+                Environ 30 secondes — vos données sont sécurisées.
               </p>
             </div>
 
@@ -495,45 +516,32 @@ useSeoMeta({
                 <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Mot de passe</span>
                 <input v-model="registerForm.password" type="password" minlength="4" required class="mt-1 w-full rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-sm" placeholder="4 caractères minimum" />
               </label>
-                         <div class="space-y-3">
-  <label class="flex items-start gap-3">
-    <input
-      v-model="registerForm.acceptTerms"
-      type="checkbox"
-      required
-      class="mt-1 rounded border-slate-300"
-    />
-
-    <span class="text-sm text-slate-600">
-      J'accepte les
-      <NuxtLink
-        to="/legal/terms"
-        class="text-primary hover:underline"
-      >
-        Conditions Générales d'Utilisation
-      </NuxtLink>
-      et la
-      <NuxtLink
-        to="/legal/privacy"
-        class="text-primary hover:underline"
-      >
-        Politique de confidentialité
-      </NuxtLink>.
-    </span>
-  </label>
-
-  <label class="flex items-start gap-3">
-    <input
-      v-model="registerForm.acceptMarketing"
-      type="checkbox"
-      class="mt-1 rounded border-slate-300"
-    />
-
-    <span class="text-sm text-slate-600">
-      J'accepte de recevoir les actualités et offres de BourseFi.
-    </span>
-  </label>
-</div>
+              <div class="space-y-3">
+                <label class="flex items-start gap-3">
+                  <input
+                    v-model="registerForm.acceptTerms"
+                    type="checkbox"
+                    required
+                    class="mt-1 rounded border-slate-300"
+                  />
+                  <span class="text-sm text-slate-600">
+                    J'accepte les
+                    <NuxtLink to="/legal/terms" class="text-primary hover:underline">Conditions Générales d'Utilisation</NuxtLink>
+                    et la
+                    <NuxtLink to="/legal/privacy" class="text-primary hover:underline">Politique de confidentialité</NuxtLink>.
+                  </span>
+                </label>
+                <label class="flex items-start gap-3">
+                  <input
+                    v-model="registerForm.acceptMarketing"
+                    type="checkbox"
+                    class="mt-1 rounded border-slate-300"
+                  />
+                  <span class="text-sm text-slate-600">
+                    J'accepte de recevoir les actualités et offres de BourseFi.
+                  </span>
+                </label>
+              </div>
               <button
                 type="submit"
                 class="w-full rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:opacity-95 disabled:opacity-50"
@@ -552,7 +560,6 @@ useSeoMeta({
                 <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Mot de passe</span>
                 <input v-model="loginForm.password" type="password" required class="mt-1 w-full rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-sm" />
               </label>
-   
               <button
                 type="submit"
                 class="w-full rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:opacity-95 disabled:opacity-50"
@@ -563,7 +570,7 @@ useSeoMeta({
             </form>
           </div>
 
-          <!-- Etape Informations -->
+          <!-- Étape Informations -->
           <div v-else-if="currentStepName === 'Informations'" class="space-y-5">
             <div>
               <div class="flex items-center justify-between gap-2">
@@ -593,8 +600,8 @@ useSeoMeta({
                   <input v-model="form.phone" type="tel" class="mt-1 w-full rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-sm" placeholder="+221 ..." />
                 </label>
                 <label class="block sm:col-span-2">
-                  <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Adresse</span>
-                  <input v-model="form.address" class="mt-1 w-full rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-sm" />
+                  <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Adresse (ville, quartier)</span>
+                  <input v-model="form.address" class="mt-1 w-full rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-sm" placeholder="Ex: Dakar, Sicap Liberté 4" />
                 </label>
               </div>
             </div>
@@ -602,23 +609,25 @@ useSeoMeta({
             <div class="border-t border-slate-100 pt-5">
               <h2 class="font-headline text-lg font-bold text-primary">Parcours scolaire</h2>
               <div class="mt-3 grid gap-4 sm:grid-cols-2">
-                <label class="block sm:col-span-2">
+                <label class="block">
                   <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Dernier niveau d’études</span>
-                  <input v-model="form.lastEducationLevel" class="mt-1 w-full rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-sm" placeholder="Ex. Terminale, Bac+2…" />
+                  <select v-model="form.lastEducationLevel" class="mt-1 w-full rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-sm focus:border-primary focus:bg-white focus:outline-none">
+                    <option value="" disabled>Sélectionnez votre niveau</option>
+                    <option v-for="lvl in educationLevels" :key="lvl" :value="lvl">{{ lvl }}</option>
+                  </select>
                 </label>
                 <label class="block">
                   <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Dernier diplôme</span>
-                  <input v-model="form.lastDiploma" class="mt-1 w-full rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-sm" placeholder="Ex. BAC" />
-                </label>
-                <label class="block">
-                  <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Moyenne</span>
-                  <input v-model="form.gpa" class="mt-1 w-full rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-sm" placeholder="14/20" />
+                  <select v-model="form.lastDiploma" class="mt-1 w-full rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-sm focus:border-primary focus:bg-white focus:outline-none">
+                    <option value="" disabled>Sélectionnez votre diplôme</option>
+                    <option v-for="d in diplomaOptions" :key="d" :value="d">{{ d }}</option>
+                  </select>
                 </label>
               </div>
             </div>
           </div>
 
-          <!-- Etape 2 : Documents (seulement si les documents ne sont pas déjà sur le compte) -->
+          <!-- Étape 2 : Documents -->
           <div v-else-if="currentStepName === 'Documents'" class="space-y-5">
             <div>
               <h2 class="font-headline text-lg font-bold text-primary">Pièces d’identité</h2>
@@ -628,24 +637,31 @@ useSeoMeta({
               </p>
             </div>
             <div class="grid gap-4 sm:grid-cols-2">
-              <CandidatureDocumentDropzone v-model="form.identityCardRecto" label="Carte d’identité  Recto" />
-              <CandidatureDocumentDropzone v-model="form.identityCardVerso" label="Carte d’identité  Verso" />
+              <CandidatureDocumentDropzone v-model="form.identityCardRecto" label="Carte d’identité — Recto" />
+              <CandidatureDocumentDropzone v-model="form.identityCardVerso" label="Carte d’identité — Verso" />
             </div>
 
             <div class="border-t border-slate-100 pt-5">
               <h2 class="font-headline text-lg font-bold text-primary">Documents scolaires</h2>
               <p class="mt-1 text-sm text-slate-500">
-                Ajoutez vos documents scolaires pour la bourse (JPG, PNG, WebP ou PDF, max 5 Mo).
-                Ils seront enregistrés sur votre compte et réutilisés pour vos prochaines candidatures.
+                Ajoutez vos documents scolaires (JPG, PNG, WebP ou PDF, max 5 Mo).
               </p>
             </div>
             <div class="grid gap-4 sm:grid-cols-2">
-              <CandidatureDocumentDropzone v-model="form.bfemAttestation" label="Attestation de diplôme BFEM" />
-              <CandidatureDocumentDropzone v-model="form.bacTranscript" label="Relevé du Bac" />
+              <CandidatureDocumentDropzone
+                v-if="form.lastDiploma === 'BFEM'"
+                v-model="form.bfemAttestation"
+                label="Attestation de diplôme BFEM"
+              />
+              <CandidatureDocumentDropzone
+                v-else
+                v-model="form.bacTranscript"
+                label="Relevé de notes du BAC / Dernier diplôme"
+              />
             </div>
           </div>
 
-          <!-- Etape 3 : Validation -->
+          <!-- Étape 3 : Validation -->
           <div v-else class="space-y-4">
             <h2 class="font-headline text-lg font-bold text-primary">Validation</h2>
             <p class="text-sm text-slate-500">
@@ -664,20 +680,20 @@ useSeoMeta({
             <div class="rounded-2xl border border-slate-100 bg-slate-50/60 p-4">
               <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Parcours</p>
               <ul class="mt-2 space-y-1.5 text-sm text-slate-700">
-                <li class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-emerald-600">check</span>{{ form.lastEducationLevel }}</li>
-                <li class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-emerald-600">check</span>{{ form.lastDiploma }}</li>
-                <li class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-emerald-600">check</span>{{ form.gpa }}</li>
+                <li class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-emerald-600">check</span>Niveau d'études : {{ form.lastEducationLevel }}</li>
+                <li class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-emerald-600">check</span>Dernier diplôme : {{ form.lastDiploma }}</li>
               </ul>
             </div>
 
             <div class="rounded-2xl border border-slate-100 bg-slate-50/60 p-4">
-              <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Carte d’identité</p>
+              <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Carte d’identité & Documents</p>
               <ul v-if="hasIdentityDocs" class="mt-2 space-y-1.5 text-sm text-slate-700">
-                <li class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-emerald-600">check</span>Réutilisée depuis votre compte</li>
+                <li class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-emerald-600">check</span>Réutilisés depuis votre compte</li>
               </ul>
               <ul v-else class="mt-2 space-y-1.5 text-sm text-slate-700">
-                <li class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-emerald-600">check</span>Recto téléchargé</li>
-                <li class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-emerald-600">check</span>Verso téléchargé</li>
+                <li class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-emerald-600">check</span>Recto & Verso téléchargés</li>
+                <li v-if="form.lastDiploma === 'BFEM'" class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-emerald-600">check</span>Attestation BFEM téléchargée</li>
+                <li v-else class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-emerald-600">check</span>Relevé BAC / Diplôme téléchargé</li>
               </ul>
             </div>
           </div>
@@ -727,7 +743,7 @@ useSeoMeta({
         </div>
       </section>
 
-      <!-- Colonne recap sticky desktop -->
+      <!-- Colonne récap sticky desktop -->
       <aside class="hidden lg:col-span-5 lg:block">
         <div class="sticky top-6 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-premium">
           <div class="bg-gradient-to-br from-primary to-primary/80 p-6 text-white">
@@ -735,7 +751,7 @@ useSeoMeta({
             <h3 class="mt-2 font-headline text-xl font-extrabold leading-snug">{{ bourse.programmeTitre }}</h3>
             <p class="mt-1 text-sm text-white/70">{{ bourse.etablissement }}</p>
             <span class="mt-4 inline-flex rounded-full bg-white/15 px-3 py-1 text-sm font-bold">
-              {{ bourse.coveragePercent === 100 ? 'Bourse complète' : 'Demi-bourse' }}
+              {{ bourse.coveragePercent }} % de prise en charge
             </span>
           </div>
           <dl class="space-y-4 p-6 text-sm">

@@ -20,16 +20,16 @@ const candidatureSchema = z.object({
   field: z.string().max(300).optional().default(''),
   level: z.string().max(80).optional().default('Non precise'),
   lastEducationLevel: z.string().min(2).max(120).trim(),
-  lastDiploma: z.string().min(2).max(200).trim(),
+  lastDiploma: z.string().min(1).max(200).trim(),
   graduationDate: z.string().max(40).optional().default(''),
-  gpa: z.string().min(1).max(30).trim(),
+  gpa: z.string().max(30).optional().default(''),
   // Profil (utilisé en repli si le compte n'est pas encore complété)
   phone: z.string().min(8).max(32).trim().optional(),
   address: z.string().min(5).max(600).trim().optional(),
   identityCardRecto: documentDataUrl.optional(),
   identityCardVerso: documentDataUrl.optional(),
   bfemAttestation: documentDataUrl.optional(),
-  bacTranscript: documentDataUrl.optional()
+  bacTranscript: documentDataUrl.optional(),
 })
 
 export default defineEventHandler(async (event) => {
@@ -39,12 +39,12 @@ export default defineEventHandler(async (event) => {
   if (!parsed.success) {
     throw createError({
       statusCode: 400,
-      statusMessage: 'Informations candidature invalides ou incomplètes.'
+      statusMessage: 'Informations candidature invalides ou incomplètes.',
     })
   }
 
   const programme = await prisma.programme.findUnique({
-    where: { id: parsed.data.programmeId }
+    where: { id: parsed.data.programmeId },
   })
 
   if (!programme) {
@@ -73,8 +73,6 @@ export default defineEventHandler(async (event) => {
     initialStatus = 'EN_REVUE_PARTENAIRE'
   }
 
-  // Identité issue du COMPTE candidat (empêche de postuler pour autrui : on
-  // n'utilise jamais un nom/email saisi librement, mais celui du compte connecté).
   const nameParts = (user.name || '').trim().split(/\s+/).filter(Boolean)
   const firstName = (user.firstName || nameParts[0] || '').trim()
   const lastName = (user.lastName || nameParts.slice(1).join(' ') || nameParts[0] || '').trim()
@@ -86,8 +84,6 @@ export default defineEventHandler(async (event) => {
   let bfemUrl = user.bfemAttestationUrl
   let bacUrl = user.bacTranscriptUrl
 
-  // Si les documents ne sont pas encore enregistrés sur le compte mais fournis ici,
-  // on les enregistre une fois pour toutes au niveau du compte (réutilisable).
   const profilePatch: {
     firstName?: string
     lastName?: string
@@ -120,15 +116,17 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: msg })
   }
 
-  if (!firstName || !lastName || !phone || !address || !rectoUrl || !versoUrl || !bfemUrl || !bacUrl) {
+  // Document scolaire requis : si le dernier diplôme est BFEM, il faut l'attestation BFEM (ou bac). Sinon le relevé Bac (ou BFEM).
+  const hasSchoolDoc = Boolean(bfemUrl || bacUrl)
+
+  if (!firstName || !lastName || !phone || !address || !rectoUrl || !versoUrl || !hasSchoolDoc) {
     throw createError({
       statusCode: 400,
       statusMessage:
-        'Complétez votre profil (nom, téléphone, adresse, carte d\'identité, attestation BFEM et relevé Bac) avant de postuler.'
+        'Complétez votre profil (nom, téléphone, adresse, carte d\'identité et document scolaire) avant de postuler.',
     })
   }
 
-  // Mémorise sur le compte les infos nouvellement fournies pour les prochaines candidatures.
   if (!user.firstName) profilePatch.firstName = firstName
   if (!user.lastName) profilePatch.lastName = lastName
   if (!user.phone) profilePatch.phone = phone
@@ -157,17 +155,15 @@ export default defineEventHandler(async (event) => {
       lastEducationLevel: parsed.data.lastEducationLevel,
       lastDiploma: parsed.data.lastDiploma,
       graduationDate: parsed.data.graduationDate,
-      gpa: parsed.data.gpa,
+      gpa: parsed.data.gpa || 'N/A',
       targetProgram: programme.titre,
       status: initialStatus,
-      // Documents réutilisés depuis le compte (pas de duplication de fichiers)
       identityCardRectoUrl: rectoUrl,
       identityCardVersoUrl: versoUrl,
-      bfemAttestationUrl: bfemUrl,
-      bacTranscriptUrl: bacUrl
-    }
+      bfemAttestationUrl: bfemUrl || null,
+      bacTranscriptUrl: bacUrl || null,
+    },
   })
-
 
   await createNotification({
     userId: user.id,
@@ -182,7 +178,7 @@ export default defineEventHandler(async (event) => {
   const needsPayment = initialStatus === 'EN_ATTENTE_PAIEMENT'
   await sendEmail({
     to: { email, name: fullName },
-    subject: 'Votre candidature a bien été reçue  BourseFi',
+    subject: 'Votre candidature a bien été reçue — BourseFi',
     html: renderEmail({
       title: 'Candidature enregistrée',
       bodyHtml: `<p>Bonjour ${firstName},</p>
@@ -193,8 +189,8 @@ export default defineEventHandler(async (event) => {
             : `<p>Votre dossier est transmis pour analyse. Vous serez notifié dès qu'il y a du nouveau.</p>`
         }`,
       ctaLabel: needsPayment ? 'Régler les frais de dossier' : 'Suivre ma candidature',
-      ctaUrl: needsPayment ? `${siteUrl}/paiement?candidatureId=${candidature.id}` : `${siteUrl}/etudiant/candidatures`
-    })
+      ctaUrl: needsPayment ? `${siteUrl}/paiement?candidatureId=${candidature.id}` : `${siteUrl}/etudiant/candidatures`,
+    }),
   })
 
   await writeAuditLog({
@@ -206,8 +202,8 @@ export default defineEventHandler(async (event) => {
     metadata: {
       programmeId: programme.id,
       partnerId: programme.partnerId,
-      status: initialStatus
-    }
+      status: initialStatus,
+    },
   })
 
   return {
@@ -216,7 +212,7 @@ export default defineEventHandler(async (event) => {
       id: candidature.id,
       status: initialStatus,
       fraisDossier: programme.fraisDossier,
-      devise: programme.devise
-    }
+      devise: programme.devise,
+    },
   }
 })

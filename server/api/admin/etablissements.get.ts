@@ -5,8 +5,11 @@ export default defineEventHandler(async (event) => {
   await requireRole(event, ['ADMIN'])
   return prisma.etablissement.findMany({
     include: {
-      _count: { select: { programmes: true } }
+      contacts: {
+        orderBy: { createdAt: 'desc' },
+      },
+      _count: { select: { programmes: true } },
     },
-    orderBy: { nom: 'asc' }
+    orderBy: { nom: 'asc' },
   })
 })

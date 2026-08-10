@@ -1,4 +1,4 @@
-import { createError } from 'h3'
+import { createError, getRouterParam } from 'h3'
 import { prisma } from '../../../utils/prisma'
 import { requireRole } from '../../../utils/auth'
 import { writeAuditLog } from '../../../utils/audit'
@@ -13,16 +13,23 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, statusMessage: 'Bourse introuvable.' })
   }
 
-  await prisma.bourse.delete({ where: { id } })
+  // Archivage non-destructif pour préserver l'historique
+  const row = await prisma.bourse.update({
+    where: { id },
+    data: {
+      status: 'ARCHIVED',
+      isActive: false,
+    },
+  })
 
   await writeAuditLog({
     actorId: user.id,
     actorRole: user.role,
-    action: 'BOURSE_DELETE',
+    action: 'BOURSE_ARCHIVE',
     entityType: 'Bourse',
     entityId: id,
     metadata: { slug: existing.slug },
   })
 
-  return { ok: true }
+  return { ok: true, status: row.status }
 })

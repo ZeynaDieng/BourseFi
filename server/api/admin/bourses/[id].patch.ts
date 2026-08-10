@@ -24,6 +24,7 @@ export default defineEventHandler(async (event) => {
     conditions?: string | null
     documentsRequis?: string | null
     isActive?: boolean
+    status?: 'ACTIVE' | 'INACTIVE' | 'ARCHIVED'
   }>(event)
 
   const data: Record<string, unknown> = {}
@@ -34,7 +35,7 @@ export default defineEventHandler(async (event) => {
   if (body.coveragePercent !== undefined) {
     const pct = Number(body.coveragePercent)
     if (!Number.isFinite(pct) || pct < 0 || pct > 100) {
-      throw createError({ statusCode: 400, statusMessage: 'Couverture invalide.' })
+      throw createError({ statusCode: 400, statusMessage: 'Couverture invalide (0-100%).' })
     }
     data.coveragePercent = Math.round(pct)
   }
@@ -56,7 +57,15 @@ export default defineEventHandler(async (event) => {
   if (body.documentsRequis !== undefined) {
     data.documentsRequis = body.documentsRequis?.trim() || null
   }
-  if (body.isActive !== undefined) data.isActive = body.isActive
+
+  // Synchronisation stricte de status et isActive
+  if (body.status !== undefined) {
+    data.status = body.status
+    data.isActive = body.status === 'ACTIVE'
+  } else if (body.isActive !== undefined) {
+    data.isActive = body.isActive
+    data.status = body.isActive ? 'ACTIVE' : 'INACTIVE'
+  }
 
   const row = await prisma.bourse.update({ where: { id }, data })
 
@@ -66,7 +75,7 @@ export default defineEventHandler(async (event) => {
     action: 'BOURSE_UPDATE',
     entityType: 'Bourse',
     entityId: row.id,
-    metadata: { slug: row.slug },
+    metadata: { slug: row.slug, status: row.status, isActive: row.isActive },
   })
 
   return row

@@ -1,36 +1,58 @@
 export type ScholarshipEconomy = {
-  referentiel: number
-  montantBourse: number
-  resteACharge: number
+  hasTuitionFee: boolean
+  tuitionFee: number | null
+  anneeAcademique?: string | null
+  montantBourse: number | null
+  resteACharge: number | null
+  fraisDossier: number
   coveragePercent: number
-  economiePercent: number
   devise: string
 }
 
 export function computeScholarshipEconomy(
   fraisDossier: number,
   coveragePercent: number,
+  tuitionFee?: number | null,
+  anneeAcademique?: string | null,
   montantMax?: number | null,
   devise = 'FCFA',
 ): ScholarshipEconomy {
   const pct = Math.min(100, Math.max(0, coveragePercent))
-  
-  // Les frais de dossier ne sont pas financés par la bourse
-  // Ils restent fixes : 20000 FCFA (local) ou 30000 FCFA (étranger)
-  const montantBourse = 0
-  const resteACharge = fraisDossier
-  const economiePercent = 0
+
+  if (tuitionFee !== undefined && tuitionFee !== null && tuitionFee > 0) {
+    let montantBourse = Math.round((tuitionFee * pct) / 100)
+    if (montantMax && montantMax > 0 && montantBourse > montantMax) {
+      montantBourse = montantMax
+    }
+    const resteACharge = Math.max(0, tuitionFee - montantBourse)
+
+    return {
+      hasTuitionFee: true,
+      tuitionFee,
+      anneeAcademique: anneeAcademique || null,
+      montantBourse,
+      resteACharge,
+      fraisDossier,
+      coveragePercent: pct,
+      devise,
+    }
+  }
 
   return {
-    referentiel: fraisDossier,
-    montantBourse,
-    resteACharge,
+    hasTuitionFee: false,
+    tuitionFee: null,
+    anneeAcademique: anneeAcademique || null,
+    montantBourse: null,
+    resteACharge: null,
+    fraisDossier,
     coveragePercent: pct,
-    economiePercent,
     devise,
   }
 }
 
-export function formatFcfa(amount: number, devise = 'FCFA'): string {
+export function formatFcfa(amount: number | null | undefined, devise = 'FCFA'): string {
+  if (amount === null || amount === undefined) {
+    return 'À confirmer auprès de l\'établissement'
+  }
   return `${amount.toLocaleString('fr-FR')} ${devise}`
 }
