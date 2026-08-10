@@ -4,6 +4,9 @@ type TarifItem = {
   id: string
   anneeAcademique: string
   montant: number
+  fraisInscription?: number | null
+  mensualite?: number | null
+  nombreMois?: number | null
   frequence: string
   devise: string
   label: string | null

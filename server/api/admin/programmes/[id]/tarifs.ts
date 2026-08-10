@@ -20,6 +20,9 @@ export default defineEventHandler(async (event) => {
     const body = await readBody<{
       anneeAcademique: string
       montant: number
+      fraisInscription?: number | null
+      mensualite?: number | null
+      nombreMois?: number | null
       frequence?: string
       devise?: string
       label?: string | null
@@ -34,7 +37,6 @@ export default defineEventHandler(async (event) => {
     }
 
     if (body.isDefault) {
-      // Si ce nouveau tarif est le tarif par défaut, désactiver isDefault sur les autres tarifs du programme
       await prisma.tarif.updateMany({
         where: { programmeId: id },
         data: { isDefault: false },
@@ -46,6 +48,9 @@ export default defineEventHandler(async (event) => {
         programmeId: id,
         anneeAcademique: body.anneeAcademique.trim(),
         montant: Number(body.montant),
+        fraisInscription: body.fraisInscription ? Number(body.fraisInscription) : null,
+        mensualite: body.mensualite ? Number(body.mensualite) : null,
+        nombreMois: body.nombreMois ? Number(body.nombreMois) : 10,
         frequence: body.frequence || 'ANNUEL',
         devise: body.devise || 'FCFA',
         label: body.label?.trim() || null,

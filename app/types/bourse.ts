@@ -1,3 +1,18 @@
+export type TarifDto = {
+  id: string
+  anneeAcademique: string
+  montant: number
+  fraisInscription?: number | null
+  mensualite?: number | null
+  nombreMois?: number | null
+  frequence: string
+  devise: string
+  label?: string | null
+  isDefault: boolean
+  isVerified: boolean
+  status: string
+}
+
 export type BourseDto = {
   id: string
   slug: string
@@ -20,10 +35,13 @@ export type BourseDto = {
   partnerSlug: string
   partnerLogoUrl: string | null
   ville: string
+  hasTuitionFee?: boolean
+  tuitionFee?: number | null
+  anneeAcademique?: string | null
   coveragePercent: number
   montantMax: number | null
-  montantBourse: number
-  resteACharge: number
+  montantBourse: number | null
+  resteACharge: number | null
   fraisDossier: number
   fraisDossierEtranger: number
   devise: string
@@ -32,4 +50,5 @@ export type BourseDto = {
   conditions: string | null
   documentsRequis: string | null
   isActive: boolean
+  tarifs?: TarifDto[]
 }

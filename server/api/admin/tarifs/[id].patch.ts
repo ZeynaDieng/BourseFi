@@ -10,6 +10,9 @@ export default defineEventHandler(async (event) => {
   const body = await readBody<{
     anneeAcademique?: string
     montant?: number
+    fraisInscription?: number | null
+    mensualite?: number | null
+    nombreMois?: number | null
     frequence?: string
     devise?: string
     label?: string | null
@@ -32,6 +35,9 @@ export default defineEventHandler(async (event) => {
   const updateData: Record<string, any> = {
     ...(body.anneeAcademique !== undefined ? { anneeAcademique: body.anneeAcademique.trim() } : {}),
     ...(body.montant !== undefined ? { montant: Number(body.montant) } : {}),
+    ...(body.fraisInscription !== undefined ? { fraisInscription: body.fraisInscription ? Number(body.fraisInscription) : null } : {}),
+    ...(body.mensualite !== undefined ? { mensualite: body.mensualite ? Number(body.mensualite) : null } : {}),
+    ...(body.nombreMois !== undefined ? { nombreMois: body.nombreMois ? Number(body.nombreMois) : 10 } : {}),
     ...(body.frequence !== undefined ? { frequence: body.frequence } : {}),
     ...(body.devise !== undefined ? { devise: body.devise } : {}),
     ...(body.label !== undefined ? { label: body.label?.trim() || null } : {}),

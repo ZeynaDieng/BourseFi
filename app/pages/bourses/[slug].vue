@@ -147,6 +147,27 @@ useSiteSeo({
             <dd class="font-bold text-slate-800">{{ bourse.fraisDossier.toLocaleString('fr-FR') }} {{ bourse.devise }}</dd>
           </div>
         </dl>
+
+        <!-- Décomposition détaillée des tarifs par année (Inscription, Mensualité, Durée) -->
+        <div v-if="bourse.tarifs && bourse.tarifs.length > 0" class="mt-6 border-t border-slate-100 pt-5">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Décomposition des tarifs par année</h3>
+          <div class="grid gap-3 sm:grid-cols-3">
+            <div v-for="t in bourse.tarifs" :key="t.id" class="rounded-2xl border border-slate-100 bg-slate-50/80 p-4 text-xs space-y-2">
+              <div class="flex items-center justify-between border-b border-slate-200/60 pb-2">
+                <span class="font-bold text-primary">{{ t.label || t.anneeAcademique }}</span>
+                <span class="font-extrabold text-slate-800">{{ t.montant.toLocaleString('fr-FR') }} {{ bourse.devise }}</span>
+              </div>
+              <div v-if="t.fraisInscription" class="flex justify-between text-slate-500">
+                <span>Inscription :</span>
+                <span class="font-semibold text-slate-700">{{ t.fraisInscription.toLocaleString('fr-FR') }} {{ bourse.devise }}</span>
+              </div>
+              <div v-if="t.mensualite" class="flex justify-between text-slate-500">
+                <span>Mensualité :</span>
+                <span class="font-semibold text-slate-700">{{ t.mensualite.toLocaleString('fr-FR') }} {{ bourse.devise }} × {{ t.nombreMois || 10 }} mois</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div v-else class="rounded-2xl bg-slate-50 p-5 text-sm">

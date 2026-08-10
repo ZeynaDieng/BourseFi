@@ -130,22 +130,25 @@ model Programme {
 }
 
 model Tarif {
-  id              String       @id @default(cuid())
-  programmeId     String
-  anneeAcademique String
-  montant         Int
-  frequence       String       @default("ANNUEL")
-  devise          String       @default("FCFA")
-  label           String?
-  isDefault       Boolean      @default(true)
-  source          TarifSource?
-  isVerified      Boolean      @default(false)
-  verifiedAt      DateTime?
-  status          EntityStatus @default(ACTIVE)
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
-  updatedBy       String?
-  programme       Programme    @relation(fields: [programmeId], references: [id], onDelete: Cascade)
+  id               String       @id @default(cuid())
+  programmeId      String
+  anneeAcademique  String
+  montant          Int
+  fraisInscription Int?
+  mensualite       Int?
+  nombreMois       Int?         @default(10)
+  frequence        String       @default("ANNUEL")
+  devise           String       @default("FCFA")
+  label            String?
+  isDefault        Boolean      @default(true)
+  source           TarifSource?
+  isVerified       Boolean      @default(false)
+  verifiedAt       DateTime?
+  status           EntityStatus @default(ACTIVE)
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  updatedBy        String?
+  programme        Programme    @relation(fields: [programmeId], references: [id], onDelete: Cascade)
 
   @@index([programmeId, anneeAcademique])
 }
