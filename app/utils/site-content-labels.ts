@@ -1,5 +1,6 @@
 /** Libellés lisibles pour les clés de contenu site */
 export const SITE_CONTENT_LABELS: Record<string, string> = {
+  boursefi_contact: 'Coordonnées de contact BourseFi',
   visual_assets: 'Bibliothèque d’images (URLs)',
   home_hero: 'Accueil  Hero principal',
   home_stats: 'Accueil  Chiffres clés',
@@ -47,6 +48,13 @@ export function ensureSiteContentDraft(key: string, d: Record<string, unknown>) 
   const arr = <T>(v: unknown, fb: T[]) => (Array.isArray(v) ? (v as T[]) : fb.slice())
 
   switch (key) {
+    case 'boursefi_contact': {
+      d.phone = str(d.phone, '+221 77 113 39 26')
+      d.whatsapp = str(d.whatsapp, '+221 77 113 39 26')
+      d.email = str(d.email, 'contact@boursefi.sn')
+      d.address = str(d.address, 'Ouakam, Dakar - Siège BourseFi')
+      break
+    }
     case 'visual_assets': {
       for (const k of VISUAL_ASSET_KEYS) {
         if (typeof d[k] !== 'string') d[k] = ''

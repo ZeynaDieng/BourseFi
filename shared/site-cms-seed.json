@@ -1,5 +1,11 @@
 {
   "siteContent": {
+    "boursefi_contact": {
+      "phone": "+221 77 113 39 26",
+      "whatsapp": "+221 77 113 39 26",
+      "email": "contact@boursefi.sn",
+      "address": "Ouakam, Dakar - Siège BourseFi"
+    },
     "visual_assets": {
       "heroHome": "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1920&q=80",
       "heroOrientation": "https://images.unsplash.com/photo-1571260899304-425eee4c7efc?auto=format&fit=crop&w=1400&q=80",

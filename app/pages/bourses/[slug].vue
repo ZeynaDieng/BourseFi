@@ -15,11 +15,7 @@ function formatDate(iso: string) {
   })
 }
 
-const cleanWhatsappUrl = computed(() => {
-  if (!bourse.value?.etablissementWhatsapp) return ''
-  const cleaned = bourse.value.etablissementWhatsapp.replace(/\D/g, '')
-  return `https://wa.me/${cleaned}`
-})
+const { whatsappUrl } = useBoursefiContact()
 
 useSiteSeo({
   title: () => (bourse.value ? `${bourse.value.titre} — BourseFi` : 'Bourse — BourseFi'),
@@ -193,32 +189,27 @@ useSiteSeo({
       </p>
     </section>
 
-    <!-- Bloc Compact Contact Établissement -->
-    <section v-if="bourse.etablissementPhone || bourse.etablissementWhatsapp || bourse.etablissementSite" class="mb-8 rounded-3xl border border-slate-100 bg-white p-6 shadow-premium md:p-8">
-      <h2 class="font-headline text-lg font-bold text-primary mb-2">BESOIN D'INFORMATIONS ?</h2>
-      <p class="text-xs leading-relaxed text-slate-500 mb-5">
-        Les frais de scolarité, les conditions d'inscription et certaines modalités peuvent évoluer. Pour obtenir les informations les plus récentes, contactez directement l'établissement.
+    <!-- Bloc Aide & Support BourseFi -->
+    <section class="mb-8 rounded-3xl border border-slate-100 bg-white p-6 shadow-premium md:p-8">
+      <h2 class="font-headline text-lg font-bold text-primary mb-2">Besoin d'aide ?</h2>
+      <p class="text-xs leading-relaxed text-slate-600 mb-3">
+        Une question sur cette bourse, votre candidature ou les démarches à suivre ? Notre équipe BourseFi est là pour vous accompagner.
       </p>
 
-      <div class="flex flex-wrap items-center gap-3">
-        <a
-          v-if="bourse.etablissementPhone"
-          :href="`tel:${bourse.etablissementPhone}`"
-          class="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-bold text-white transition hover:opacity-90"
-        >
-          <span class="material-symbols-outlined text-base">call</span>
-          Appeler l'établissement ({{ bourse.etablissementPhone }})
-        </a>
+      <p class="text-xs font-medium text-slate-500 mb-5 flex items-center gap-1.5">
+        <span class="material-symbols-outlined text-sm text-primary">info</span>
+        Les candidatures à cette bourse se font directement sur BourseFi.
+      </p>
 
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
         <a
-          v-if="bourse.etablissementWhatsapp"
-          :href="cleanWhatsappUrl"
+          :href="whatsappUrl"
           target="_blank"
           rel="noopener noreferrer"
-          class="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-emerald-700"
+          class="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-xs font-bold text-white transition hover:opacity-90 shadow-sm"
         >
-          <span class="material-symbols-outlined text-base">chat</span>
-          WhatsApp
+          <span class="material-symbols-outlined text-base">support_agent</span>
+          Contacter BourseFi
         </a>
 
         <a
@@ -226,12 +217,16 @@ useSiteSeo({
           :href="bourse.etablissementSite"
           target="_blank"
           rel="noopener noreferrer"
-          class="inline-flex items-center gap-2 rounded-xl bg-slate-100 px-4 py-2.5 text-xs font-bold text-slate-700 transition hover:bg-slate-200"
+          class="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-100 px-5 py-3 text-xs font-bold text-slate-700 transition hover:bg-slate-200"
         >
           <span class="material-symbols-outlined text-base">language</span>
-          Site officiel
+          Site officiel de l'établissement
         </a>
       </div>
+
+      <p class="mt-4 text-[11px] leading-normal text-slate-400 italic">
+        Les frais de scolarité, les conditions d'inscription et certaines modalités peuvent évoluer. Consultez le site officiel de l'établissement pour obtenir les informations les plus récentes.
+      </p>
     </section>
 
     <BourseProcessTimeline v-reveal class="mb-8" />

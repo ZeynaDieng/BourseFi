@@ -32,6 +32,13 @@ function pruneStrings(arr: string[]) {
 function buildPayload(): Record<string, unknown> {
   const key = props.contentKey
   switch (key) {
+    case 'boursefi_contact':
+      return {
+        phone: String(state.phone ?? '').trim(),
+        whatsapp: String(state.whatsapp ?? '').trim(),
+        email: String(state.email ?? '').trim(),
+        address: String(state.address ?? '').trim()
+      }
     case 'visual_assets': {
       const out: Record<string, string> = {}
       for (const k of VISUAL_ASSET_KEYS) {
@@ -200,8 +207,26 @@ defineExpose({ buildPayload })
 
 <template>
   <div class="space-y-6">
+    <!-- boursefi_contact -->
+    <template v-if="contentKey === 'boursefi_contact'">
+      <p class="text-sm text-slate-600">
+        Coordonnées officielles de BourseFi utilisées sur tout le site (support, contact, WhatsApp, footer).
+      </p>
+      <label class="admin-label">Téléphone principal BourseFi</label>
+      <input v-model="state.phone as string" class="admin-input" placeholder="+221 77 113 39 26" />
+      
+      <label class="admin-label">Numéro WhatsApp BourseFi</label>
+      <input v-model="state.whatsapp as string" class="admin-input" placeholder="+221 77 113 39 26" />
+      
+      <label class="admin-label">Email support / contact BourseFi</label>
+      <input v-model="state.email as string" type="email" class="admin-input" placeholder="contact@boursefi.sn" />
+      
+      <label class="admin-label">Adresse / Siège BourseFi</label>
+      <input v-model="state.address as string" class="admin-input" placeholder="Ouakam, Dakar - Siège BourseFi" />
+    </template>
+
     <!-- visual_assets -->
-    <template v-if="contentKey === 'visual_assets'">
+    <template v-else-if="contentKey === 'visual_assets'">
       <p class="text-sm text-slate-600">
         Indiquez l’URL complète de chaque visuel (https…). Les champs vides ne sont pas enregistrés.
       </p>
