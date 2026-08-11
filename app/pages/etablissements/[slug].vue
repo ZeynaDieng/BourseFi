@@ -21,11 +21,7 @@ const initials = computed(() => {
     .slice(0, 3) || 'BF'
 })
 
-const cleanWhatsappUrl = computed(() => {
-  if (!ecole.value?.whatsapp) return ''
-  const cleaned = ecole.value.whatsapp.replace(/\D/g, '')
-  return `https://wa.me/${cleaned}`
-})
+const { whatsappUrl } = useBoursefiContact()
 </script>
 
 <template>
@@ -83,33 +79,28 @@ const cleanWhatsappUrl = computed(() => {
         </p>
       </section>
 
-      <!-- Section Contact / Besoin d'informations -->
-      <section v-if="ecole.phone || ecole.whatsapp || ecole.site" class="rounded-3xl border border-slate-100 bg-white p-6 shadow-premium md:p-8 text-center">
-        <div class="mx-auto max-w-2xl">
-          <h2 class="font-headline text-xl font-bold text-primary mb-2">Besoin d'informations ?</h2>
-          <p class="text-sm leading-relaxed text-slate-500 mb-6">
-            Les frais de scolarité, les conditions d'inscription et certaines modalités peuvent évoluer. Pour obtenir les informations les plus récentes, contactez directement l'établissement.
+      <!-- Section Aide & Support BourseFi -->
+      <section class="rounded-3xl border border-slate-100 bg-white p-6 shadow-premium md:p-8">
+        <div class="mx-auto max-w-2xl text-center">
+          <h2 class="font-headline text-xl font-bold text-primary mb-2">Besoin d'aide ?</h2>
+          <p class="text-xs leading-relaxed text-slate-600 mb-3">
+            Une question sur cet établissement, les bourses disponibles ou les démarches à suivre ? Notre équipe BourseFi est là pour vous accompagner.
           </p>
 
-          <div class="flex flex-wrap items-center justify-center gap-3">
-            <a
-              v-if="ecole.phone"
-              :href="`tel:${ecole.phone}`"
-              class="inline-flex items-center gap-2 rounded-2xl bg-primary px-5 py-3 text-sm font-bold text-white shadow-md transition hover:bg-primary/90 active:scale-95"
-            >
-              <span class="material-symbols-outlined text-lg">call</span>
-              Appeler ({{ ecole.phone }})
-            </a>
+          <p class="text-xs font-medium text-slate-500 mb-5 flex items-center justify-center gap-1.5">
+            <span class="material-symbols-outlined text-sm text-primary">info</span>
+            Les candidatures aux bourses de cet établissement se font directement sur BourseFi.
+          </p>
 
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3">
             <a
-              v-if="ecole.whatsapp"
-              :href="cleanWhatsappUrl"
+              :href="whatsappUrl"
               target="_blank"
               rel="noopener noreferrer"
-              class="inline-flex items-center gap-2 rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white shadow-md transition hover:bg-emerald-700 active:scale-95"
+              class="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-xs font-bold text-white transition hover:opacity-90 shadow-sm"
             >
-              <span class="material-symbols-outlined text-lg">chat</span>
-              WhatsApp
+              <span class="material-symbols-outlined text-base">support_agent</span>
+              Contacter BourseFi
             </a>
 
             <a
@@ -117,12 +108,16 @@ const cleanWhatsappUrl = computed(() => {
               :href="ecole.site"
               target="_blank"
               rel="noopener noreferrer"
-              class="inline-flex items-center gap-2 rounded-2xl bg-slate-100 px-5 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-200 active:scale-95"
+              class="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-100 px-5 py-3 text-xs font-bold text-slate-700 transition hover:bg-slate-200"
             >
-              <span class="material-symbols-outlined text-lg">language</span>
-              Visiter le site
+              <span class="material-symbols-outlined text-base">language</span>
+              Site officiel de l'établissement
             </a>
           </div>
+
+          <p class="mt-4 text-[11px] leading-normal text-slate-400 italic">
+            Les frais de scolarité, les conditions d'inscription et certaines modalités peuvent évoluer. Consultez le site officiel de l'établissement pour obtenir les informations les plus récentes.
+          </p>
         </div>
       </section>
 
