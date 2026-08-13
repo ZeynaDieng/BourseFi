@@ -17,6 +17,26 @@ function formatDate(iso: string) {
 
 const { whatsappUrl } = useBoursefiContact()
 
+const parsedCompetences = computed(() => {
+  if (!bourse.value?.programmeCompetences) return []
+  try {
+    const raw = JSON.parse(bourse.value.programmeCompetences)
+    return Array.isArray(raw) ? raw : [bourse.value.programmeCompetences]
+  } catch {
+    return [bourse.value.programmeCompetences]
+  }
+})
+
+const parsedDebouches = computed(() => {
+  if (!bourse.value?.programmeDebouches) return []
+  try {
+    const raw = JSON.parse(bourse.value.programmeDebouches)
+    return Array.isArray(raw) ? raw : [bourse.value.programmeDebouches]
+  } catch {
+    return [bourse.value.programmeDebouches]
+  }
+})
+
 useSiteSeo({
   title: () => (bourse.value ? `${bourse.value.titre} — BourseFi` : 'Bourse — BourseFi'),
   description: () =>
@@ -238,10 +258,62 @@ useSiteSeo({
       </p>
     </section>
 
-    <section v-if="bourse.programmeEligibilite" class="mb-8 rounded-2xl border border-slate-100 bg-white p-6 shadow-premium">
-      <h2 class="font-headline text-lg font-bold text-primary">Éligibilité</h2>
+    <!-- Objectifs de la formation -->
+    <section v-if="bourse.programmeObjectifs" v-reveal class="mb-8 rounded-2xl border border-slate-100 bg-white p-6 shadow-premium md:p-8">
+      <h2 class="font-headline text-lg font-bold text-primary mb-3">Objectifs de la formation</h2>
+      <p class="whitespace-pre-line text-sm leading-relaxed text-slate-600">
+        {{ bourse.programmeObjectifs }}
+      </p>
+    </section>
+
+    <!-- Compétences visées -->
+    <section v-if="parsedCompetences.length > 0" v-reveal class="mb-8 rounded-2xl border border-slate-100 bg-white p-6 shadow-premium md:p-8">
+      <h2 class="font-headline text-lg font-bold text-primary mb-4">Compétences visées</h2>
+      <ul class="grid gap-2.5 sm:grid-cols-2 text-sm text-slate-700">
+        <li v-for="(comp, idx) in parsedCompetences" :key="idx" class="flex items-start gap-2.5 rounded-xl bg-slate-50 p-3">
+          <span class="material-symbols-outlined text-base text-primary shrink-0 mt-0.5">check_circle</span>
+          <span class="leading-normal">{{ comp }}</span>
+        </li>
+      </ul>
+    </section>
+
+    <!-- Débouchés professionnels -->
+    <section v-if="parsedDebouches.length > 0" v-reveal class="mb-8 rounded-2xl border border-slate-100 bg-white p-6 shadow-premium md:p-8">
+      <h2 class="font-headline text-lg font-bold text-primary mb-4">Débouchés professionnels</h2>
+      <div class="flex flex-wrap gap-2.5">
+        <span
+          v-for="(job, idx) in parsedDebouches"
+          :key="idx"
+          class="inline-flex items-center gap-1.5 rounded-xl bg-primary/5 px-3.5 py-2 text-xs font-semibold text-primary ring-1 ring-primary/10"
+        >
+          <span class="material-symbols-outlined text-sm">work</span>
+          {{ job }}
+        </span>
+      </div>
+      <p v-if="bourse.programmeSecteurs" class="mt-4 text-xs text-slate-500 italic">
+        Secteurs d'activité : {{ bourse.programmeSecteurs }}
+      </p>
+    </section>
+
+    <!-- Modalités & Stages -->
+    <section v-if="bourse.programmeModalites || bourse.programmeStage" v-reveal class="mb-8 rounded-2xl border border-slate-100 bg-white p-6 shadow-premium md:p-8">
+      <h2 class="font-headline text-lg font-bold text-primary mb-4">Modalités d'études & Stages</h2>
+      <div class="grid gap-4 sm:grid-cols-2 text-xs">
+        <div v-if="bourse.programmeModalites" class="rounded-xl bg-slate-50 p-4">
+          <p class="font-bold text-slate-700 uppercase tracking-wider mb-1">Modalités de cours</p>
+          <p class="text-slate-600 leading-relaxed">{{ bourse.programmeModalites }}</p>
+        </div>
+        <div v-if="bourse.programmeStage" class="rounded-xl bg-slate-50 p-4">
+          <p class="font-bold text-slate-700 uppercase tracking-wider mb-1">Stage professionnel</p>
+          <p class="text-slate-600 leading-relaxed">{{ bourse.programmeStage }}</p>
+        </div>
+      </div>
+    </section>
+
+    <section v-if="bourse.programmeEligibilite || bourse.programmeConditionsAdmission" class="mb-8 rounded-2xl border border-slate-100 bg-white p-6 shadow-premium">
+      <h2 class="font-headline text-lg font-bold text-primary">Éligibilité & Conditions d'admission</h2>
       <p class="mt-3 whitespace-pre-line text-sm leading-relaxed text-slate-600">
-        {{ bourse.programmeEligibilite }}
+        {{ bourse.programmeConditionsAdmission || bourse.programmeEligibilite }}
       </p>
     </section>
 

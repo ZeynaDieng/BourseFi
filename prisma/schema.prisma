@@ -119,6 +119,23 @@ model Programme {
   eligibilite          String?
   brochureUrl          String?
   perspectives         String?
+  objectifs            String?
+  competences          String?
+  programmePedagogique String?
+  debouches            String?
+  secteurs             String?
+  conditionsAdmission  String?
+  documentsRequis      String?
+  modalites            String?
+  stage                String?
+  examens              String?
+  poursuiteEtudes      String?
+  sourceType           String?
+  sourceUrl            String?
+  verifiedAt           DateTime?
+  metaTitle            String?
+  metaDescription      String?
+  ogImageUrl           String?
   status               EntityStatus  @default(ACTIVE)
   createdAt            DateTime      @default(now())
   updatedAt            DateTime      @updatedAt
@@ -134,9 +151,13 @@ model Tarif {
   programmeId      String
   anneeAcademique  String
   montant          Int
+  montantBourse    Int?
   fraisInscription Int?
   mensualite       Int?
   nombreMois       Int?         @default(10)
+  fraisSoutenance  Int?
+  fraisUniforme    Int?
+  autresFrais      Int?
   frequence        String       @default("ANNUEL")
   devise           String       @default("FCFA")
   label            String?
@@ -144,6 +165,8 @@ model Tarif {
   source           TarifSource?
   isVerified       Boolean      @default(false)
   verifiedAt       DateTime?
+  effectiveFrom    DateTime?
+  effectiveTo      DateTime?
   status           EntityStatus @default(ACTIVE)
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
@@ -163,9 +186,13 @@ model Bourse {
   montantMax      Int?
   quota           Int           @default(0)
   placesRestantes Int           @default(0)
+  dateDebut       DateTime?
   dateLimite      DateTime
   conditions      String?
   documentsRequis String?
+  metaTitle       String?
+  metaDescription String?
+  ogImageUrl      String?
   isActive        Boolean       @default(true)
   status          EntityStatus  @default(ACTIVE)
   createdAt       DateTime      @default(now())

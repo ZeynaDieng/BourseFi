@@ -4,9 +4,13 @@ type TarifItem = {
   id: string
   anneeAcademique: string
   montant: number
+  montantBourse?: number | null
   fraisInscription?: number | null
   mensualite?: number | null
   nombreMois?: number | null
+  fraisSoutenance?: number | null
+  fraisUniforme?: number | null
+  autresFrais?: number | null
   frequence: string
   devise: string
   label: string | null
@@ -37,9 +41,13 @@ type BourseRow = {
   montantMax: number | null
   quota: number
   placesRestantes: number
+  dateDebut?: Date | null
   dateLimite: Date
   conditions: string | null
   documentsRequis: string | null
+  metaTitle?: string | null
+  metaDescription?: string | null
+  ogImageUrl?: string | null
   isActive: boolean
   status: string
   programme: {
@@ -53,6 +61,23 @@ type BourseRow = {
     eligibilite: string | null
     brochureUrl: string | null
     perspectives: string | null
+    objectifs?: string | null
+    competences?: string | null
+    programmePedagogique?: string | null
+    debouches?: string | null
+    secteurs?: string | null
+    conditionsAdmission?: string | null
+    documentsRequis?: string | null
+    modalites?: string | null
+    stage?: string | null
+    examens?: string | null
+    poursuiteEtudes?: string | null
+    sourceType?: string | null
+    sourceUrl?: string | null
+    verifiedAt?: Date | null
+    metaTitle?: string | null
+    metaDescription?: string | null
+    ogImageUrl?: string | null
     fraisDossier: number
     fraisDossierEtranger: number | null
     devise: string
@@ -124,20 +149,37 @@ export function serializeBourse(b: BourseRow) {
     programmePerspectives: b.programme.perspectives,
     programmeEligibilite: b.programme.eligibilite,
     programmeBrochureUrl: b.programme.brochureUrl,
+    programmeObjectifs: b.programme.objectifs,
+    programmeCompetences: b.programme.competences,
+    programmePedagogique: b.programme.programmePedagogique,
+    programmeDebouches: b.programme.debouches,
+    programmeSecteurs: b.programme.secteurs,
+    programmeConditionsAdmission: b.programme.conditionsAdmission,
+    programmeDocumentsRequis: b.programme.documentsRequis,
+    programmeModalites: b.programme.modalites,
+    programmeStage: b.programme.stage,
+    programmeExamens: b.programme.examens,
+    programmePoursuiteEtudes: b.programme.poursuiteEtudes,
+    programmeSourceType: b.programme.sourceType,
+    programmeSourceUrl: b.programme.sourceUrl,
     coveragePercent: b.coveragePercent,
     montantMax: b.montantMax,
     hasTuitionFee: economy.hasTuitionFee,
-    tuitionFee: economy.tuitionFee,
+    tuitionFee: currentTarif?.montant ?? economy.tuitionFee,
     anneeAcademique: economy.anneeAcademique,
-    montantBourse: economy.montantBourse,
-    resteACharge: economy.resteACharge,
+    montantBourse: currentTarif?.montantBourse ?? economy.montantBourse,
+    resteACharge: currentTarif?.montantBourse ?? economy.resteACharge,
     fraisDossier: b.programme.fraisDossier,
     fraisDossierEtranger: b.programme.fraisDossierEtranger ?? b.programme.fraisDossier,
     devise: b.programme.devise,
     quota: b.quota,
+    dateDebut: b.dateDebut ? b.dateDebut.toISOString() : null,
     dateLimite: b.dateLimite.toISOString(),
     conditions: b.conditions,
-    documentsRequis: b.documentsRequis,
+    documentsRequis: b.documentsRequis || b.programme.documentsRequis,
+    metaTitle: b.metaTitle || b.programme.metaTitle,
+    metaDescription: b.metaDescription || b.programme.metaDescription,
+    ogImageUrl: b.ogImageUrl || b.programme.ogImageUrl || etab.coverImageUrl,
     isActive: b.isActive && b.status === 'ACTIVE' && b.programme.status === 'ACTIVE' && etab.status === 'ACTIVE',
     status: b.status,
     tarifs: activeTarifs,
