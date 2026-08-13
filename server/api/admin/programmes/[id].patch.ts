@@ -32,6 +32,22 @@ export default defineEventHandler(async (event) => {
     eligibilite?: string | null
     brochureUrl?: string | null
     perspectives?: string | null
+    objectifs?: string | null
+    competences?: string | null
+    programmePedagogique?: string | null
+    debouches?: string | null
+    secteurs?: string | null
+    conditionsAdmission?: string | null
+    documentsRequis?: string | null
+    modalites?: string | null
+    stage?: string | null
+    examens?: string | null
+    poursuiteEtudes?: string | null
+    sourceType?: string | null
+    sourceUrl?: string | null
+    metaTitle?: string | null
+    metaDescription?: string | null
+    ogImageUrl?: string | null
   }>(event)
 
   if (body.slug !== undefined) {
@@ -82,7 +98,23 @@ export default defineEventHandler(async (event) => {
       ...(body.description !== undefined ? { description: body.description.trim() } : {}),
       ...(body.eligibilite !== undefined ? { eligibilite: body.eligibilite?.trim() || null } : {}),
       ...(body.brochureUrl !== undefined ? { brochureUrl: body.brochureUrl?.trim() || null } : {}),
-      ...(body.perspectives !== undefined ? { perspectives: body.perspectives?.trim() || null } : {})
+      ...(body.perspectives !== undefined ? { perspectives: body.perspectives?.trim() || null } : {}),
+      ...(body.objectifs !== undefined ? { objectifs: body.objectifs?.trim() || null } : {}),
+      ...(body.competences !== undefined ? { competences: body.competences?.trim() || null } : {}),
+      ...(body.programmePedagogique !== undefined ? { programmePedagogique: body.programmePedagogique?.trim() || null } : {}),
+      ...(body.debouches !== undefined ? { debouches: body.debouches?.trim() || null } : {}),
+      ...(body.secteurs !== undefined ? { secteurs: body.secteurs?.trim() || null } : {}),
+      ...(body.conditionsAdmission !== undefined ? { conditionsAdmission: body.conditionsAdmission?.trim() || null } : {}),
+      ...(body.documentsRequis !== undefined ? { documentsRequis: body.documentsRequis?.trim() || null } : {}),
+      ...(body.modalites !== undefined ? { modalites: body.modalites?.trim() || null } : {}),
+      ...(body.stage !== undefined ? { stage: body.stage?.trim() || null } : {}),
+      ...(body.examens !== undefined ? { examens: body.examens?.trim() || null } : {}),
+      ...(body.poursuiteEtudes !== undefined ? { poursuiteEtudes: body.poursuiteEtudes?.trim() || null } : {}),
+      ...(body.sourceType !== undefined ? { sourceType: body.sourceType?.trim() || null } : {}),
+      ...(body.sourceUrl !== undefined ? { sourceUrl: body.sourceUrl?.trim() || null } : {}),
+      ...(body.metaTitle !== undefined ? { metaTitle: body.metaTitle?.trim() || null } : {}),
+      ...(body.metaDescription !== undefined ? { metaDescription: body.metaDescription?.trim() || null } : {}),
+      ...(body.ogImageUrl !== undefined ? { ogImageUrl: body.ogImageUrl?.trim() || null } : {}),
     }
   })
 
