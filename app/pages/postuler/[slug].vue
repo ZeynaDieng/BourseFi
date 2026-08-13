@@ -236,23 +236,27 @@ function validateStep(s: number): boolean {
     }
   }
   if (name === 'Documents') {
-    if (!form.identityCardRecto) {
-      errorMessage.value = 'Ajoutez la photo recto de votre carte d’identité.'
-      return false
-    }
-    if (!form.identityCardVerso) {
-      errorMessage.value = 'Ajoutez la photo verso de votre carte d’identité.'
-      return false
-    }
-    if (form.lastDiploma === 'BFEM') {
-      if (!form.bfemAttestation) {
-        errorMessage.value = "Ajoutez l'attestation de diplôme BFEM."
+    if (!hasIdentityDocs.value) {
+      if (!form.identityCardRecto) {
+        errorMessage.value = 'Ajoutez la photo recto de votre carte d’identité.'
         return false
       }
-    } else {
-      if (!form.bacTranscript && !form.bfemAttestation) {
-        errorMessage.value = 'Ajoutez le relevé du Bac ou votre dernier diplôme.'
+      if (!form.identityCardVerso) {
+        errorMessage.value = 'Ajoutez la photo verso de votre carte d’identité.'
         return false
+      }
+    }
+    if (!hasEducationDocs.value) {
+      if (form.lastDiploma === 'BFEM') {
+        if (!form.bfemAttestation) {
+          errorMessage.value = "Ajoutez l'attestation de diplôme BFEM."
+          return false
+        }
+      } else {
+        if (!form.bacTranscript && !form.bfemAttestation) {
+          errorMessage.value = 'Ajoutez le relevé du Bac ou votre dernier diplôme.'
+          return false
+        }
       }
     }
   }
@@ -357,7 +361,7 @@ async function submit() {
     step.value = infoIdx
     return
   }
-  if (!hasIdentityDocs.value && !hasEducationDocs.value) {
+  if (!hasIdentityDocs.value || !hasEducationDocs.value) {
     const docIdx = STEPS.value.indexOf('Documents')
     if (docIdx !== -1 && !validateStep(docIdx)) {
       step.value = docIdx
@@ -385,9 +389,10 @@ async function submit() {
         lastDiploma: form.lastDiploma.trim(),
         graduationDate: form.graduationDate.trim(),
         gpa: '',
-        ...(hasIdentityDocs.value && hasEducationDocs.value
-          ? {}
-          : { identityCardRecto: form.identityCardRecto, identityCardVerso: form.identityCardVerso, bfemAttestation: form.bfemAttestation, bacTranscript: form.bacTranscript }),
+        ...(form.identityCardRecto ? { identityCardRecto: form.identityCardRecto } : {}),
+        ...(form.identityCardVerso ? { identityCardVerso: form.identityCardVerso } : {}),
+        ...(form.bfemAttestation ? { bfemAttestation: form.bfemAttestation } : {}),
+        ...(form.bacTranscript ? { bacTranscript: form.bacTranscript } : {}),
       },
     })
     const requiresPayment =
@@ -398,9 +403,14 @@ async function submit() {
     } else {
       router.push(STUDENT_HOME)
     }
-  } catch {
+  } catch (e: any) {
+    const msg =
+      e?.data?.statusMessage ||
+      e?.data?.message ||
+      e?.statusMessage ||
+      e?.message
     errorMessage.value =
-      "Impossible d'enregistrer le dossier. Vérifiez les champs et les photos, puis réessayez."
+      msg || "Impossible d'enregistrer le dossier. Vérifiez les champs et les photos, puis réessayez."
   } finally {
     isSubmitting.value = false
   }
