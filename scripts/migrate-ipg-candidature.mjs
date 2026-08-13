@@ -1,9 +1,10 @@
 import { PrismaClient } from '@prisma/client'
+import { ipgBrochureCatalogue } from './inventory-ipg-isti.mjs'
 
 const prisma = new PrismaClient()
 
 async function migrateIpgCandidatures() {
-  console.log('=== MIGRATION SÉCURISÉE DE LA CANDIDATURE HISTORIQUE IPG-ISTI ===\n')
+  console.log('=== MIGRATION SÉCURISÉE DES CANDIDATURES ET NETTOYAGE STRICT IPG-ISTI ===\n')
 
   const targetOfficialProg = await prisma.programme.findFirst({
     where: { slug: 'ipg-isti-dakar-licence-administration-des-affaires' },
@@ -15,31 +16,43 @@ async function migrateIpgCandidatures() {
   }
 
   const targetBourse = targetOfficialProg.bourses[0]
+  const officialSlugs = new Set(ipgBrochureCatalogue.map((i) => i.slug))
 
-  const oldProg = await prisma.programme.findFirst({
-    where: { slug: 'ipg-isti-dakar-licence-affaires' },
-    include: { candidatures: true, bourses: true, tarifs: true },
+  // Trouver tous les programmes rattachés à IPG-ISTI
+  const allProgs = await prisma.programme.findMany({
+    where: { etablissement: { slug: 'ipg-isti-dakar' } },
+    include: { bourses: true, tarifs: true, candidatures: true },
   })
 
-  if (oldProg && oldProg.candidatures.length > 0) {
-    console.log(`Transfert de la candidature de "${oldProg.titre}" vers "${targetOfficialProg.titre}"...`)
-    for (const c of oldProg.candidatures) {
-      await prisma.candidature.update({
-        where: { id: c.id },
-        data: {
-          programmeId: targetOfficialProg.id,
-          bourseId: targetBourse ? targetBourse.id : c.bourseId,
-          targetProgram: targetOfficialProg.titre,
-        },
-      })
-      console.log(`  ✔ Candidature ${c.id} (${c.fullName}) transférée avec succès.`)
-    }
+  let migratedCount = 0
+  let deletedCount = 0
 
-    // Supprimer l'ancienne fiche générique
-    for (const b of oldProg.bourses) await prisma.bourse.delete({ where: { id: b.id } })
-    for (const t of oldProg.tarifs) await prisma.tarif.delete({ where: { id: t.id } })
-    await prisma.programme.delete({ where: { id: oldProg.id } })
-    console.log(`  ✔ Ancienne fiche "Licence Affaires" supprimée de PostgreSQL.`)
+  for (const p of allProgs) {
+    if (!officialSlugs.has(p.slug)) {
+      // S'il y a des candidatures rattachées à cette ancienne fiche, on les migre vers le programme officiel
+      if (p.candidatures.length > 0) {
+        console.log(`Transfert des ${p.candidatures.length} candidature(s) de "${p.titre}" (${p.slug})...`)
+        for (const c of p.candidatures) {
+          await prisma.candidature.update({
+            where: { id: c.id },
+            data: {
+              programmeId: targetOfficialProg.id,
+              bourseId: targetBourse ? targetBourse.id : c.bourseId,
+              targetProgram: targetOfficialProg.titre,
+            },
+          })
+          migratedCount++
+          console.log(`  ✔ Candidature ${c.id} (${c.fullName}) transférée avec succès.`)
+        }
+      }
+
+      // Supprimer l'ancienne fiche et ses dépendances
+      for (const b of p.bourses) await prisma.bourse.delete({ where: { id: b.id } })
+      for (const t of p.tarifs) await prisma.tarif.delete({ where: { id: t.id } })
+      await prisma.programme.delete({ where: { id: p.id } })
+      deletedCount++
+      console.log(`  ✔ Ancienne fiche supprimée : [${p.niveau}] ${p.titre} (${p.slug})`)
+    }
   }
 
   const totalProgrammes = await prisma.programme.count({
@@ -50,8 +63,10 @@ async function migrateIpgCandidatures() {
   })
 
   console.log('\n==========================================')
-  console.log(`- NOMBRE FINAL DE PROGRAMMES IPG-ISTI DAKAR EN BDD : ${totalProgrammes}`)
-  console.log(`- NOMBRE FINAL DE BOURSES IPG-ISTI DAKAR EN BDD     : ${totalBourses}`)
+  console.log(`- Total candidatures migré(e)s            : ${migratedCount}`)
+  console.log(`- Total anciennes fiches supprimées      : ${deletedCount}`)
+  console.log(`- NOMBRE FINAL DE PROGRAMMES IPG-ISTI EN BDD : ${totalProgrammes}`)
+  console.log(`- NOMBRE FINAL DE BOURSES IPG-ISTI EN BDD     : ${totalBourses}`)
   console.log('==========================================')
 }
 
