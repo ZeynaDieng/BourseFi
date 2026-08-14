@@ -536,7 +536,9 @@ async function importEsupComplete() {
     else await prisma.bourse.update({ where: { id: b.id }, data: bourseData })
   }
 
-  // Nettoyage des anciennes fiches génériques ESUP (les 11 anciennes sans candidature)
+  // Nettoyage des bourses externes et anciennes fiches génériques
+  await prisma.bourse.deleteMany({ where: { slug: { startsWith: 'bourse-externe-' } } })
+  await prisma.tarif.deleteMany({ where: { label: { contains: 'Bourse Externe' } } })
   const officialSlugs = new Set([
     ...esupDakarCommerceLicences.map(i => i.slug),
     ...esupDakarCommerceMasters.map(i => i.slug),
