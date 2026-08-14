@@ -1,5 +1,8 @@
 {
   "siteContent": {
+    "display_settings": {
+      "showCoveragePercent": true
+    },
     "boursefi_contact": {
       "phone": "+221 77 113 39 26",
       "whatsapp": "+221 77 113 39 26",

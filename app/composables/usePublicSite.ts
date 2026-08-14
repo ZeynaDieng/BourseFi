@@ -32,3 +32,11 @@ export function usePublicSite() {
     }
   )
 }
+
+export function useShowCoveragePercent() {
+  const { data } = usePublicSite()
+  return computed(() => {
+    const ds = data.value?.content?.display_settings as { showCoveragePercent?: boolean } | undefined
+    return ds?.showCoveragePercent !== false
+  })
+}

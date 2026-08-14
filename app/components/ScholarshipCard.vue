@@ -11,6 +11,8 @@ import {
 const props = defineProps<{
   bourse: BourseDto
 }>()
+
+const showCoveragePercent = useShowCoveragePercent()
 </script>
 
 <template>
@@ -23,7 +25,7 @@ const props = defineProps<{
       {{ bourse.etablissement }}
     </p>
 
-    <span :class="[badgeCoverage, 'mt-4 w-fit']">
+    <span v-if="showCoveragePercent && bourse.coveragePercent > 0" :class="[badgeCoverage, 'mt-4 w-fit']">
       {{ bourse.coveragePercent }} % de prise en charge
     </span>
 

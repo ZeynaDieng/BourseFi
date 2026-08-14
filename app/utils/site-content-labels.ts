@@ -1,5 +1,6 @@
 /** Libellés lisibles pour les clés de contenu site */
 export const SITE_CONTENT_LABELS: Record<string, string> = {
+  display_settings: 'Configuration d’affichage (Pourcentages & Badges)',
   boursefi_contact: 'Coordonnées de contact BourseFi',
   visual_assets: 'Bibliothèque d’images (URLs)',
   home_hero: 'Accueil  Hero principal',
@@ -48,6 +49,10 @@ export function ensureSiteContentDraft(key: string, d: Record<string, unknown>) 
   const arr = <T>(v: unknown, fb: T[]) => (Array.isArray(v) ? (v as T[]) : fb.slice())
 
   switch (key) {
+    case 'display_settings': {
+      if (typeof d.showCoveragePercent !== 'boolean') d.showCoveragePercent = true
+      break
+    }
     case 'boursefi_contact': {
       d.phone = str(d.phone, '+221 77 113 39 26')
       d.whatsapp = str(d.whatsapp, '+221 77 113 39 26')

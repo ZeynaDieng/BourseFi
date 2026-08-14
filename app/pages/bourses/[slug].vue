@@ -2,6 +2,7 @@
 import type { BourseDto } from '~/types/bourse'
 
 const route = useRoute()
+const showCoveragePercent = useShowCoveragePercent()
 
 const { data: bourse, error } = await useFetch<any>(
   () => `/api/bourses/${route.params.slug}`,
@@ -85,7 +86,7 @@ useSiteSeo({
 
       <div class="p-6 md:p-8">
         <div class="flex flex-wrap gap-2">
-          <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-3 py-1 text-xs font-extrabold text-emerald-700 ring-1 ring-emerald-200">
+          <span v-if="showCoveragePercent && bourse.coveragePercent > 0" class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-3 py-1 text-xs font-extrabold text-emerald-700 ring-1 ring-emerald-200">
             <span class="material-symbols-outlined text-sm">verified</span>
             {{ bourse.coveragePercent }} % de prise en charge
           </span>
@@ -102,14 +103,14 @@ useSiteSeo({
         </p>
 
         <!-- Stats en grille -->
-        <div class="mt-6 grid grid-cols-3 divide-x divide-slate-100 rounded-2xl border border-slate-100 bg-slate-50/50">
+        <div class="mt-6 grid grid-cols-2 sm:grid-cols-3 divide-x divide-slate-100 rounded-2xl border border-slate-100 bg-slate-50/50">
           <div class="p-4 text-center">
             <p class="font-headline text-xl font-bold text-primary">
               {{ bourse.fraisDossier.toLocaleString('fr-FR') }}
             </p>
             <p class="mt-0.5 text-xs text-slate-500">{{ bourse.devise }} de dossier</p>
           </div>
-          <div class="p-4 text-center">
+          <div v-if="showCoveragePercent && bourse.coveragePercent > 0" class="p-4 text-center">
             <p class="font-headline text-xl font-bold text-emerald-600">
               {{ bourse.coveragePercent }} %
             </p>

@@ -32,6 +32,10 @@ function pruneStrings(arr: string[]) {
 function buildPayload(): Record<string, unknown> {
   const key = props.contentKey
   switch (key) {
+    case 'display_settings':
+      return {
+        showCoveragePercent: Boolean(state.showCoveragePercent)
+      }
     case 'boursefi_contact':
       return {
         phone: String(state.phone ?? '').trim(),
@@ -207,8 +211,31 @@ defineExpose({ buildPayload })
 
 <template>
   <div class="space-y-6">
-    <!-- boursefi_contact -->
-    <template v-if="contentKey === 'boursefi_contact'">
+    <!-- display_settings -->
+    <template v-if="contentKey === 'display_settings'">
+      <div class="rounded-2xl border border-slate-200 bg-slate-50/70 p-6 space-y-4">
+        <label class="flex items-start gap-4 cursor-pointer">
+          <input
+            v-model="state.showCoveragePercent as boolean"
+            type="checkbox"
+            class="mt-1 h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary"
+          />
+          <div>
+            <span class="font-headline text-base font-bold text-slate-900">
+              Afficher l'ensemble des pourcentages sur le site public
+            </span>
+            <p class="mt-1 text-sm text-slate-600 leading-relaxed">
+              Lorsque cette option est activée, les badges et textes de pourcentage de prise en charge (ex: <em>"38 % de prise en charge"</em>, <em>"26 %"</em>) sont affichés sur les cartes de bourses et la fiche détaillée.
+            </p>
+            <p class="mt-2 text-xs font-semibold text-primary">
+              Décocher cette case masquera instantanément tous les badges de pourcentages sur le site pour vos visiteurs.
+            </p>
+          </div>
+        </label>
+      </div>
+    </template>
+
+    <template v-else-if="contentKey === 'boursefi_contact'">
       <p class="text-sm text-slate-600">
         Coordonnées officielles de BourseFi utilisées sur tout le site (support, contact, WhatsApp, footer).
       </p>
