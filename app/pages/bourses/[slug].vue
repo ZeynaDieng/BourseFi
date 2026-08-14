@@ -133,44 +133,49 @@ useSiteSeo({
       </div>
     </header>
 
-    <!-- Message Commercial Dynamique d'Économie -->
-    <div v-if="bourse.economie && bourse.economie > 0" class="mb-6 rounded-2xl bg-amber-50 border border-amber-200 p-4 text-center shadow-sm">
-      <p class="font-headline text-base font-extrabold text-amber-950">
-        🎉 Cette opportunité vous permet d'économiser {{ bourse.economie.toLocaleString('fr-FR') }} {{ bourse.devise }} sur le tarif normal !
-      </p>
-    </div>
-
-    <!-- Détail du financement -->
-    <section class="mb-8 mt-6 rounded-3xl border border-slate-100 bg-white p-6 shadow-premium md:p-8">
+    <!-- Section Détail du financement avec espacement aéré -->
+    <section class="my-8 rounded-3xl border border-slate-100 bg-white p-6 shadow-premium md:p-8">
       <h2 class="font-headline text-xl font-bold text-primary mb-4">Détail du financement</h2>
-      
+
+      <!-- Message Commercial Dynamique d'Économie -->
+      <div v-if="bourse.economie && bourse.economie > 0" class="mb-6 rounded-2xl bg-amber-50/80 border border-amber-200 p-4 text-center shadow-sm">
+        <p class="font-headline text-base font-extrabold text-amber-950">
+          🎉 Cette opportunité vous permet d'économiser {{ bourse.economie.toLocaleString('fr-FR') }} {{ bourse.devise }} sur le tarif normal !
+        </p>
+      </div>
+
       <div v-if="bourse.hasTuitionFee">
-        <dl class="grid gap-4 sm:grid-cols-2 text-sm">
-          <div class="flex justify-between border-b border-slate-100 pb-3">
-            <dt class="text-slate-500">Tarif public normal</dt>
-            <dd class="font-bold text-slate-400 line-through">{{ bourse.tuitionFee.toLocaleString('fr-FR') }} {{ bourse.devise }} / an</dd>
+        <div class="grid gap-4 sm:grid-cols-2 md:gap-x-12 text-sm">
+          <div class="flex items-center justify-between border-b border-slate-100 py-3 gap-4">
+            <span class="text-slate-500 font-medium">Tarif public normal</span>
+            <span class="font-bold text-slate-400 line-through whitespace-nowrap">{{ bourse.tuitionFee.toLocaleString('fr-FR') }} {{ bourse.devise }} / an</span>
           </div>
-          <div class="flex justify-between border-b border-slate-100 pb-3">
-            <dt class="text-slate-500 font-semibold">Votre tarif avec BourseFi</dt>
-            <dd class="font-extrabold text-primary text-base">{{ (bourse.montantBourse || bourse.resteACharge || 0).toLocaleString('fr-FR') }} {{ bourse.devise }} / an</dd>
+          
+          <div class="flex items-center justify-between border-b border-slate-100 py-3 gap-4">
+            <span class="text-slate-700 font-bold">Votre tarif avec BourseFi</span>
+            <span class="font-black text-primary text-base whitespace-nowrap">{{ (bourse.montantBourse || bourse.resteACharge || 0).toLocaleString('fr-FR') }} {{ bourse.devise }} / an</span>
           </div>
-          <div v-if="bourse.economie && bourse.economie > 0" class="flex justify-between border-b border-slate-100 pb-3">
-            <dt class="text-amber-900 font-extrabold">VOUS ÉCONOMISEZ</dt>
-            <dd class="font-black text-amber-800 text-base">{{ bourse.economie.toLocaleString('fr-FR') }} {{ bourse.devise }}</dd>
+
+          <div v-if="bourse.economie && bourse.economie > 0" class="flex items-center justify-between border-b border-slate-100 py-3 gap-4">
+            <span class="text-amber-900 font-extrabold">VOUS ÉCONOMISEZ</span>
+            <span class="font-black text-amber-800 text-base whitespace-nowrap">{{ bourse.economie.toLocaleString('fr-FR') }} {{ bourse.devise }}</span>
           </div>
-          <div v-if="showCoveragePercent && bourse.economiePercent" class="flex justify-between border-b border-slate-100 pb-3">
-            <dt class="text-slate-500">Économie réelle</dt>
-            <dd class="font-bold text-primary">{{ bourse.economiePercent }} %</dd>
+
+          <div v-if="showCoveragePercent && bourse.economiePercent" class="flex items-center justify-between border-b border-slate-100 py-3 gap-4">
+            <span class="text-slate-500 font-medium">Économie réelle</span>
+            <span class="font-bold text-primary whitespace-nowrap">{{ bourse.economiePercent }} %</span>
           </div>
-          <div v-if="bourse.anneeAcademique" class="flex justify-between border-b border-slate-100 pb-3">
-            <dt class="text-slate-500">Année académique</dt>
-            <dd class="font-bold text-slate-700">{{ bourse.anneeAcademique }}</dd>
+
+          <div v-if="bourse.anneeAcademique" class="flex items-center justify-between border-b border-slate-100 py-3 gap-4">
+            <span class="text-slate-500 font-medium">Année académique</span>
+            <span class="font-bold text-slate-700 whitespace-nowrap">{{ bourse.anneeAcademique }}</span>
           </div>
-          <div class="flex justify-between border-b border-slate-100 pb-3">
-            <dt class="text-slate-500">Frais de dossier BourseFi</dt>
-            <dd class="font-bold text-slate-800">{{ bourse.fraisDossier.toLocaleString('fr-FR') }} {{ bourse.devise }}</dd>
+
+          <div class="flex items-center justify-between border-b border-slate-100 py-3 gap-4">
+            <span class="text-slate-500 font-medium">Frais de dossier BourseFi</span>
+            <span class="font-bold text-slate-800 whitespace-nowrap">{{ bourse.fraisDossier.toLocaleString('fr-FR') }} {{ bourse.devise }}</span>
           </div>
-        </dl>
+        </div>
 
         <!-- Décomposition détaillée des tarifs par année (Inscription, Mensualité, Durée) -->
         <div v-if="bourse.tarifs && bourse.tarifs.length > 0" class="mt-6 border-t border-slate-100 pt-5">
