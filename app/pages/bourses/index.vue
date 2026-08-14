@@ -6,29 +6,10 @@ import type { BourseDto } from '~/types/bourse'
 const { data: bourses } = await useFetch<BourseDto[]>('/api/bourses')
 
 const searchQ = ref('')
-const partnerFilter = ref('')
-const cityFilter = ref('')
 const levelFilter = ref('')
-const sortBy = ref('economie_desc')
 const coverageMin = ref(0)
 
 const displayLimit = ref(12)
-
-const partners = computed(() => {
-  const set = new Map<string, string>()
-  for (const b of bourses.value ?? []) {
-    set.set(b.partnerSlug, b.partnerName)
-  }
-  return [...set.entries()].map(([slug, name]) => ({ slug, name }))
-})
-
-const cities = computed(() => {
-  const set = new Set<string>()
-  for (const b of bourses.value ?? []) {
-    if (b.ville) set.add(b.ville)
-  }
-  return [...set].sort()
-})
 
 const levels = computed(() => {
   const set = new Set<string>()
@@ -50,24 +31,10 @@ const fuse = computed(() =>
   }),
 )
 
-const topSavingsIds = computed(() => {
-  const validList = (bourses.value ?? []).filter(
-    (b) => b.economie !== undefined && b.economie !== null && b.economie > 0,
-  )
-  const sorted = [...validList].sort((a, b) => (b.economie || 0) - (a.economie || 0))
-  return new Set(sorted.slice(0, 3).map((b) => b.id))
-})
-
 const filtered = computed(() => {
-  let list = bourses.value ?? []
+  let list = [...(bourses.value ?? [])]
   if (searchQ.value.trim().length >= 2) {
     list = fuse.value.search(searchQ.value.trim()).map((r) => r.item)
-  }
-  if (partnerFilter.value) {
-    list = list.filter((b) => b.partnerSlug === partnerFilter.value)
-  }
-  if (cityFilter.value) {
-    list = list.filter((b) => b.ville === cityFilter.value)
   }
   if (levelFilter.value) {
     list = list.filter((b) => b.programmeNiveau === levelFilter.value)
@@ -76,22 +43,9 @@ const filtered = computed(() => {
     list = list.filter((b) => b.coveragePercent >= coverageMin.value)
   }
 
-  // Marquer le badge Top Économie
-  const result = list.map((b) => ({
-    ...b,
-    isBestEconomy: topSavingsIds.value.has(b.id),
-  }))
+  list.sort((a, b) => (b.economie || 0) - (a.economie || 0))
 
-  // Application du Tri
-  if (sortBy.value === 'economie_desc') {
-    result.sort((a, b) => (b.economie || 0) - (a.economie || 0))
-  } else if (sortBy.value === 'price_asc') {
-    result.sort((a, b) => (a.montantBourse || a.tuitionFee || 0) - (b.montantBourse || b.tuitionFee || 0))
-  } else if (sortBy.value === 'coverage_desc') {
-    result.sort((a, b) => b.coveragePercent - a.coveragePercent)
-  }
-
-  return result
+  return list
 })
 
 const displayedBourses = computed(() => {
@@ -108,7 +62,7 @@ function loadMore() {
   }
 }
 
-watch([searchQ, partnerFilter, cityFilter, levelFilter, coverageMin, sortBy], () => {
+watch([searchQ, levelFilter, coverageMin], () => {
   displayLimit.value = 12
 })
 
@@ -116,19 +70,14 @@ const isMobileFilterOpen = ref(false)
 
 const activeFiltersCount = computed(() => {
   let count = 0
-  if (partnerFilter.value) count += 1
-  if (cityFilter.value) count += 1
   if (levelFilter.value) count += 1
   if (coverageMin.value > 0) count += 1
   return count
 })
 
 function resetFilters() {
-  partnerFilter.value = ''
-  cityFilter.value = ''
   levelFilter.value = ''
   coverageMin.value = 0
-  sortBy.value = 'economie_desc'
 }
 
 const loadMoreSentinel = ref<HTMLElement | null>(null)
@@ -182,9 +131,9 @@ useSiteSeo({
     </header>
 
     <!-- Filtres Multicritères (Desktop version) -->
-    <div class="mb-8 hidden md:grid gap-4 rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm md:grid-cols-6 animate-scale-up">
+    <div class="mb-8 hidden md:grid gap-4 rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm md:grid-cols-3 animate-scale-up">
       <!-- Recherche -->
-      <div class="relative md:col-span-1">
+      <div class="relative">
         <span class="material-symbols-outlined absolute left-3.5 top-3 text-[18px] text-slate-400 select-none">search</span>
         <input
           v-model="searchQ"
@@ -193,25 +142,6 @@ useSiteSeo({
           class="w-full rounded-lg border border-slate-200 bg-slate-50/50 py-2.5 pl-10 pr-4 text-sm placeholder:text-slate-400 focus:border-primary/30 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/5"
         />
       </div>
-
-      <!-- Trier Par -->
-      <select v-model="sortBy" class="rounded-lg border border-amber-300 bg-amber-50/50 px-3.5 py-2.5 text-sm font-bold text-slate-800 focus:border-amber-500 focus:bg-white focus:outline-none">
-        <option value="economie_desc">Plus forte économie (FCFA)</option>
-        <option value="price_asc">Prix final le plus bas</option>
-        <option value="coverage_desc">Plus forte prise en charge (%)</option>
-      </select>
-
-      <!-- Filtre Partenaire -->
-      <select v-model="partnerFilter" class="rounded-lg border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-sm text-slate-700 focus:border-primary/30 focus:bg-white focus:outline-none">
-        <option value="">Tous les partenaires</option>
-        <option v-for="p in partners" :key="p.slug" :value="p.slug">{{ p.name }}</option>
-      </select>
-
-      <!-- Filtre Ville -->
-      <select v-model="cityFilter" class="rounded-lg border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-sm text-slate-700 focus:border-primary/30 focus:bg-white focus:outline-none">
-        <option value="">Toutes les villes</option>
-        <option v-for="c in cities" :key="c" :value="c">{{ c }}</option>
-      </select>
 
       <!-- Filtre Niveau -->
       <select v-model="levelFilter" class="rounded-lg border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-sm text-slate-700 focus:border-primary/30 focus:bg-white focus:outline-none">
@@ -277,34 +207,6 @@ useSiteSeo({
               </div>
 
               <div class="space-y-4 flex-1">
-                <!-- Ordre de Tri -->
-                <div class="space-y-1">
-                  <label class="text-[10px] font-bold uppercase tracking-wider text-amber-700">Ordre de tri</label>
-                  <select v-model="sortBy" class="w-full rounded-lg border border-amber-300 bg-amber-50/50 px-3.5 py-3 text-sm font-bold text-slate-800 focus:bg-white focus:outline-none">
-                    <option value="economie_desc">Plus forte économie (FCFA)</option>
-                    <option value="price_asc">Prix final le plus bas</option>
-                    <option value="coverage_desc">Plus forte prise en charge (%)</option>
-                  </select>
-                </div>
-
-                <!-- Partenaire -->
-                <div class="space-y-1">
-                  <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Partenaire</label>
-                  <select v-model="partnerFilter" class="w-full rounded-lg border border-slate-200 bg-slate-50/50 px-3.5 py-3 text-sm text-slate-700 focus:bg-white focus:outline-none">
-                    <option value="">Tous les partenaires</option>
-                    <option v-for="p in partners" :key="p.slug" :value="p.slug">{{ p.name }}</option>
-                  </select>
-                </div>
-
-                <!-- Ville -->
-                <div class="space-y-1">
-                  <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Ville</label>
-                  <select v-model="cityFilter" class="w-full rounded-lg border border-slate-200 bg-slate-50/50 px-3.5 py-3 text-sm text-slate-700 focus:bg-white focus:outline-none">
-                    <option value="">Toutes les villes</option>
-                    <option v-for="c in cities" :key="c" :value="c">{{ c }}</option>
-                  </select>
-                </div>
-
                 <!-- Niveau -->
                 <div class="space-y-1">
                   <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Niveau d'études</label>

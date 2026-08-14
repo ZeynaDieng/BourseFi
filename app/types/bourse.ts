@@ -46,7 +46,6 @@ export type BourseDto = {
   economiePercent?: number | null
   pricingStatus?: 'VALID' | 'TARIF_DIRECT' | 'NO_COMPARISON' | 'INVALID_PRICING'
   isTarifDirect?: boolean
-  isBestEconomy?: boolean
   fraisDossier: number
   fraisDossierEtranger: number
   devise: string

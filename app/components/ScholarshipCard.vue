@@ -31,9 +31,6 @@ const isDirectRate = computed(() => {
         <span class="inline-flex items-center rounded-md bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-600">
           {{ bourse.programmeNiveau }}
         </span>
-        <span v-if="bourse.isBestEconomy" class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-extrabold text-amber-900">
-          🏆 Top Économie
-        </span>
       </div>
 
       <h3 class="line-clamp-2 font-headline text-lg font-extrabold leading-snug text-primary">
