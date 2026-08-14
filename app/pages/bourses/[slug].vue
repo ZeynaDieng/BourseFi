@@ -134,8 +134,8 @@ useSiteSeo({
     </header>
 
     <!-- Message Commercial Dynamique d'Économie -->
-    <div v-if="bourse.economie && bourse.economie > 0" class="mb-6 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 p-4 text-center shadow-sm">
-      <p class="font-headline text-base font-extrabold text-emerald-900">
+    <div v-if="bourse.economie && bourse.economie > 0" class="mb-6 rounded-2xl bg-amber-50 border border-amber-200 p-4 text-center shadow-sm">
+      <p class="font-headline text-base font-extrabold text-amber-950">
         🎉 Cette opportunité vous permet d'économiser {{ bourse.economie.toLocaleString('fr-FR') }} {{ bourse.devise }} sur le tarif normal !
       </p>
     </div>
@@ -155,12 +155,12 @@ useSiteSeo({
             <dd class="font-extrabold text-primary text-base">{{ (bourse.montantBourse || bourse.resteACharge || 0).toLocaleString('fr-FR') }} {{ bourse.devise }} / an</dd>
           </div>
           <div v-if="bourse.economie && bourse.economie > 0" class="flex justify-between border-b border-slate-100 pb-3">
-            <dt class="text-emerald-800 font-extrabold">VOUS ÉCONOMISEZ</dt>
-            <dd class="font-black text-emerald-600 text-base">{{ bourse.economie.toLocaleString('fr-FR') }} {{ bourse.devise }}</dd>
+            <dt class="text-amber-900 font-extrabold">VOUS ÉCONOMISEZ</dt>
+            <dd class="font-black text-amber-800 text-base">{{ bourse.economie.toLocaleString('fr-FR') }} {{ bourse.devise }}</dd>
           </div>
           <div v-if="showCoveragePercent && bourse.economiePercent" class="flex justify-between border-b border-slate-100 pb-3">
             <dt class="text-slate-500">Économie réelle</dt>
-            <dd class="font-bold text-emerald-600">{{ bourse.economiePercent }} %</dd>
+            <dd class="font-bold text-primary">{{ bourse.economiePercent }} %</dd>
           </div>
           <div v-if="bourse.anneeAcademique" class="flex justify-between border-b border-slate-100 pb-3">
             <dt class="text-slate-500">Année académique</dt>

@@ -50,17 +50,12 @@ const fuse = computed(() =>
   }),
 )
 
-// Bourses avec la plus forte économie en FCFA (Top 3 dynamique)
-const topSavingsBourses = computed(() => {
+const topSavingsIds = computed(() => {
   const validList = (bourses.value ?? []).filter(
     (b) => b.economie !== undefined && b.economie !== null && b.economie > 0,
   )
   const sorted = [...validList].sort((a, b) => (b.economie || 0) - (a.economie || 0))
-  return sorted.slice(0, 3)
-})
-
-const topSavingsIds = computed(() => {
-  return new Set(topSavingsBourses.value.map((b) => b.id))
+  return new Set(sorted.slice(0, 3).map((b) => b.id))
 })
 
 const filtered = computed(() => {
@@ -169,78 +164,24 @@ onUnmounted(() => {
 })
 
 useSiteSeo({
-  title: 'Ne payez pas vos études au prix fort | Catalogue BourseFi',
+  title: 'Catalogue des bourses | BourseFi',
   description:
-    "Comparez le coût réel de vos études avant de vous inscrire. Découvrez combien vous pouvez économiser sur votre formation au Sénégal.",
+    "Comparez les tarifs et découvrez combien vous pouvez économiser sur votre formation au Sénégal.",
 })
 </script>
 
 <template>
-  <main class="mx-auto max-w-7xl px-6 py-12 md:px-8">
-    <!-- En-tête Marketing Orienté Bénéfice Étudiant -->
-    <header class="mb-10 text-center md:text-left">
-      <div class="inline-flex items-center gap-2 rounded-full bg-secondary/10 px-4 py-1.5 text-xs font-black uppercase tracking-widest text-secondary mb-3">
-        <span class="material-symbols-outlined text-sm">payments</span>
-        Comparez le coût réel de vos études avant de vous inscrire
-      </div>
-      <h1 class="font-headline text-3xl font-black text-primary sm:text-4xl md:text-5xl leading-tight">
-        Ne payez pas vos études au prix fort.
-      </h1>
-      <p class="mt-3 max-w-3xl text-lg font-bold text-slate-600">
-        Trouvez. Comparez. Économisez. Postulez.
+  <main class="mx-auto max-w-7xl px-6 py-10 md:px-8">
+    <!-- En-tête Épuré -->
+    <header class="mb-8">
+      <p class="text-xs font-bold uppercase tracking-widest text-secondary">Catalogue bourses</p>
+      <h1 class="font-headline text-3xl font-extrabold text-primary sm:text-4xl">Bourses disponibles</h1>
+      <p class="mt-2 max-w-2xl text-slate-600">
+        Comparez les tarifs officiels, découvrez combien vous pouvez économiser et postulez en quelques clics.
       </p>
     </header>
 
-    <!-- Section Dynamique : Les formations qui vous permettent d'économiser le plus (Top 3) -->
-    <section v-if="topSavingsBourses.length > 0 && !searchQ && !partnerFilter" class="mb-12 rounded-3xl bg-slate-900 p-6 text-white shadow-2xl md:p-8">
-      <div class="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4">
-        <div>
-          <span class="text-xs font-black uppercase tracking-widest text-amber-400">Top Économies BourseFi</span>
-          <h2 class="font-headline text-xl font-black md:text-2xl text-white mt-1">
-            🏆 Les formations qui vous permettent d'économiser le plus
-          </h2>
-        </div>
-        <p class="text-xs text-slate-400">Calculé en direct d'après les tarifs officiels des établissements</p>
-      </div>
-
-      <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <div
-          v-for="(b, idx) in topSavingsBourses"
-          :key="b.id"
-          class="relative flex flex-col justify-between rounded-2xl bg-slate-800/90 p-5 ring-1 ring-slate-700 transition hover:bg-slate-800"
-        >
-          <div>
-            <div class="flex items-center justify-between">
-              <span class="text-2xl font-black">
-                {{ idx === 0 ? '🥇' : idx === 1 ? '🥈' : '🥉' }}
-              </span>
-              <span class="rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-black text-emerald-400 ring-1 ring-emerald-500/30">
-                - {{ b.economie?.toLocaleString('fr-FR') }} FCFA
-              </span>
-            </div>
-
-            <h3 class="mt-3 font-headline text-base font-extrabold text-white line-clamp-1">
-              {{ b.titre }}
-            </h3>
-            <p class="mt-1 text-xs text-slate-400 truncate">{{ b.etablissement }}</p>
-
-            <div class="mt-4 flex items-baseline justify-between text-xs">
-              <span class="text-slate-400 line-through">{{ b.tuitionFee?.toLocaleString('fr-FR') }} FCFA</span>
-              <span class="font-headline text-lg font-black text-amber-300">{{ b.montantBourse?.toLocaleString('fr-FR') }} FCFA</span>
-            </div>
-          </div>
-
-          <NuxtLink
-            :to="`/bourses/${b.slug}`"
-            class="mt-4 block w-full rounded-xl bg-amber-400 py-2.5 text-center text-xs font-black text-slate-950 transition hover:bg-amber-300"
-          >
-            Économiser {{ b.economie?.toLocaleString('fr-FR') }} FCFA →
-          </NuxtLink>
-        </div>
-      </div>
-    </section>
-
-    <!-- Filtres Multicritères Ultra-Premium (Desktop version) -->
+    <!-- Filtres Multicritères (Desktop version) -->
     <div class="mb-8 hidden md:grid gap-4 rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm md:grid-cols-6 animate-scale-up">
       <!-- Recherche -->
       <div class="relative md:col-span-1">
@@ -253,11 +194,11 @@ useSiteSeo({
         />
       </div>
 
-      <!-- Trier Par (Nouveau) -->
-      <select v-model="sortBy" class="rounded-lg border border-emerald-300 bg-emerald-50/50 px-3.5 py-2.5 text-sm font-bold text-emerald-900 focus:border-emerald-500 focus:bg-white focus:outline-none">
-        <option value="economie_desc">🟢 Plus forte économie (FCFA)</option>
-        <option value="price_asc">💵 Prix final le plus bas</option>
-        <option value="coverage_desc">📊 Plus forte prise en charge (%)</option>
+      <!-- Trier Par -->
+      <select v-model="sortBy" class="rounded-lg border border-amber-300 bg-amber-50/50 px-3.5 py-2.5 text-sm font-bold text-slate-800 focus:border-amber-500 focus:bg-white focus:outline-none">
+        <option value="economie_desc">Plus forte économie (FCFA)</option>
+        <option value="price_asc">Prix final le plus bas</option>
+        <option value="coverage_desc">Plus forte prise en charge (%)</option>
       </select>
 
       <!-- Filtre Partenaire -->
@@ -287,7 +228,7 @@ useSiteSeo({
       </select>
     </div>
 
-    <!-- Barre de Recherche Compacte & Bouton Filtres (Mobile version) -->
+    <!-- Barre de Recherche Compacte (Mobile version) -->
     <div class="mb-6 flex gap-2 md:hidden">
       <div class="relative flex-1">
         <span class="material-symbols-outlined absolute left-3 top-3 text-[18px] text-slate-400 select-none">search</span>
@@ -299,7 +240,6 @@ useSiteSeo({
         />
       </div>
       
-      <!-- Bouton déclencheur des filtres -->
       <button
         type="button"
         class="flex-none flex items-center justify-center h-10 w-10 rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50 relative active:scale-95"
@@ -339,11 +279,11 @@ useSiteSeo({
               <div class="space-y-4 flex-1">
                 <!-- Ordre de Tri -->
                 <div class="space-y-1">
-                  <label class="text-[10px] font-bold uppercase tracking-wider text-emerald-700">Ordre de tri</label>
-                  <select v-model="sortBy" class="w-full rounded-lg border border-emerald-300 bg-emerald-50/50 px-3.5 py-3 text-sm font-bold text-emerald-900 focus:bg-white focus:outline-none">
-                    <option value="economie_desc">🟢 Plus forte économie (FCFA)</option>
-                    <option value="price_asc">💵 Prix final le plus bas</option>
-                    <option value="coverage_desc">📊 Plus forte prise en charge (%)</option>
+                  <label class="text-[10px] font-bold uppercase tracking-wider text-amber-700">Ordre de tri</label>
+                  <select v-model="sortBy" class="w-full rounded-lg border border-amber-300 bg-amber-50/50 px-3.5 py-3 text-sm font-bold text-slate-800 focus:bg-white focus:outline-none">
+                    <option value="economie_desc">Plus forte économie (FCFA)</option>
+                    <option value="price_asc">Prix final le plus bas</option>
+                    <option value="coverage_desc">Plus forte prise en charge (%)</option>
                   </select>
                 </div>
 
