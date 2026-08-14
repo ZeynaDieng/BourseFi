@@ -4,7 +4,11 @@ import type { BourseDto } from '~/types/bourse'
 
 const { data: bourses } = await useFetch<BourseDto[]>('/api/bourses')
 
-const featured = computed(() => (bourses.value ?? []).slice(0, 9))
+const featured = computed(() => {
+  const list = [...(bourses.value ?? [])]
+  list.sort((a, b) => (b.economie || 0) - (a.economie || 0))
+  return list.slice(0, 9)
+})
 </script>
 
 <template>
