@@ -9,6 +9,7 @@ const searchQ = ref('')
 const partnerFilter = ref('')
 const cityFilter = ref('')
 const levelFilter = ref('')
+const sortBy = ref('economie_desc')
 const coverageMin = ref(0)
 
 const displayLimit = ref(12)
@@ -49,6 +50,19 @@ const fuse = computed(() =>
   }),
 )
 
+// Bourses avec la plus forte économie en FCFA (Top 3 dynamique)
+const topSavingsBourses = computed(() => {
+  const validList = (bourses.value ?? []).filter(
+    (b) => b.economie !== undefined && b.economie !== null && b.economie > 0,
+  )
+  const sorted = [...validList].sort((a, b) => (b.economie || 0) - (a.economie || 0))
+  return sorted.slice(0, 3)
+})
+
+const topSavingsIds = computed(() => {
+  return new Set(topSavingsBourses.value.map((b) => b.id))
+})
+
 const filtered = computed(() => {
   let list = bourses.value ?? []
   if (searchQ.value.trim().length >= 2) {
@@ -66,7 +80,23 @@ const filtered = computed(() => {
   if (coverageMin.value > 0) {
     list = list.filter((b) => b.coveragePercent >= coverageMin.value)
   }
-  return list
+
+  // Marquer le badge Top Économie
+  const result = list.map((b) => ({
+    ...b,
+    isBestEconomy: topSavingsIds.value.has(b.id),
+  }))
+
+  // Application du Tri
+  if (sortBy.value === 'economie_desc') {
+    result.sort((a, b) => (b.economie || 0) - (a.economie || 0))
+  } else if (sortBy.value === 'price_asc') {
+    result.sort((a, b) => (a.montantBourse || a.tuitionFee || 0) - (b.montantBourse || b.tuitionFee || 0))
+  } else if (sortBy.value === 'coverage_desc') {
+    result.sort((a, b) => b.coveragePercent - a.coveragePercent)
+  }
+
+  return result
 })
 
 const displayedBourses = computed(() => {
@@ -83,7 +113,7 @@ function loadMore() {
   }
 }
 
-watch([searchQ, partnerFilter, cityFilter, levelFilter, coverageMin], () => {
+watch([searchQ, partnerFilter, cityFilter, levelFilter, coverageMin, sortBy], () => {
   displayLimit.value = 12
 })
 
@@ -103,6 +133,7 @@ function resetFilters() {
   cityFilter.value = ''
   levelFilter.value = ''
   coverageMin.value = 0
+  sortBy.value = 'economie_desc'
 }
 
 const loadMoreSentinel = ref<HTMLElement | null>(null)
@@ -138,24 +169,79 @@ onUnmounted(() => {
 })
 
 useSiteSeo({
-  title: 'Bourses disponibles | BourseFi',
+  title: 'Ne payez pas vos études au prix fort | Catalogue BourseFi',
   description:
-    "Parcourez les bourses d'études disponibles au Sénégal : couverture, écoles partenaires et dates limites.",
+    "Comparez le coût réel de vos études avant de vous inscrire. Découvrez combien vous pouvez économiser sur votre formation au Sénégal.",
 })
 </script>
 
 <template>
   <main class="mx-auto max-w-7xl px-6 py-12 md:px-8">
-    <header class="mb-10">
-      <p class="text-xs font-bold uppercase tracking-widest text-secondary">Catalogue bourses</p>
-      <h1 class="font-headline text-4xl font-extrabold text-primary">Bourses disponibles</h1>
-      <p class="mt-2 max-w-2xl text-slate-600">
-        Trouvez une bourse, consultez la formation associée et postulez en quelques clics.
+    <!-- En-tête Marketing Orienté Bénéfice Étudiant -->
+    <header class="mb-10 text-center md:text-left">
+      <div class="inline-flex items-center gap-2 rounded-full bg-secondary/10 px-4 py-1.5 text-xs font-black uppercase tracking-widest text-secondary mb-3">
+        <span class="material-symbols-outlined text-sm">payments</span>
+        Comparez le coût réel de vos études avant de vous inscrire
+      </div>
+      <h1 class="font-headline text-3xl font-black text-primary sm:text-4xl md:text-5xl leading-tight">
+        Ne payez pas vos études au prix fort.
+      </h1>
+      <p class="mt-3 max-w-3xl text-lg font-bold text-slate-600">
+        Trouvez. Comparez. Économisez. Postulez.
       </p>
     </header>
 
+    <!-- Section Dynamique : Les formations qui vous permettent d'économiser le plus (Top 3) -->
+    <section v-if="topSavingsBourses.length > 0 && !searchQ && !partnerFilter" class="mb-12 rounded-3xl bg-slate-900 p-6 text-white shadow-2xl md:p-8">
+      <div class="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4">
+        <div>
+          <span class="text-xs font-black uppercase tracking-widest text-amber-400">Top Économies BourseFi</span>
+          <h2 class="font-headline text-xl font-black md:text-2xl text-white mt-1">
+            🏆 Les formations qui vous permettent d'économiser le plus
+          </h2>
+        </div>
+        <p class="text-xs text-slate-400">Calculé en direct d'après les tarifs officiels des établissements</p>
+      </div>
+
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div
+          v-for="(b, idx) in topSavingsBourses"
+          :key="b.id"
+          class="relative flex flex-col justify-between rounded-2xl bg-slate-800/90 p-5 ring-1 ring-slate-700 transition hover:bg-slate-800"
+        >
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="text-2xl font-black">
+                {{ idx === 0 ? '🥇' : idx === 1 ? '🥈' : '🥉' }}
+              </span>
+              <span class="rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-black text-emerald-400 ring-1 ring-emerald-500/30">
+                - {{ b.economie?.toLocaleString('fr-FR') }} FCFA
+              </span>
+            </div>
+
+            <h3 class="mt-3 font-headline text-base font-extrabold text-white line-clamp-1">
+              {{ b.titre }}
+            </h3>
+            <p class="mt-1 text-xs text-slate-400 truncate">{{ b.etablissement }}</p>
+
+            <div class="mt-4 flex items-baseline justify-between text-xs">
+              <span class="text-slate-400 line-through">{{ b.tuitionFee?.toLocaleString('fr-FR') }} FCFA</span>
+              <span class="font-headline text-lg font-black text-amber-300">{{ b.montantBourse?.toLocaleString('fr-FR') }} FCFA</span>
+            </div>
+          </div>
+
+          <NuxtLink
+            :to="`/bourses/${b.slug}`"
+            class="mt-4 block w-full rounded-xl bg-amber-400 py-2.5 text-center text-xs font-black text-slate-950 transition hover:bg-amber-300"
+          >
+            Économiser {{ b.economie?.toLocaleString('fr-FR') }} FCFA →
+          </NuxtLink>
+        </div>
+      </div>
+    </section>
+
     <!-- Filtres Multicritères Ultra-Premium (Desktop version) -->
-    <div class="mb-8 hidden md:grid gap-4 rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm md:grid-cols-5 animate-scale-up">
+    <div class="mb-8 hidden md:grid gap-4 rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm md:grid-cols-6 animate-scale-up">
       <!-- Recherche -->
       <div class="relative md:col-span-1">
         <span class="material-symbols-outlined absolute left-3.5 top-3 text-[18px] text-slate-400 select-none">search</span>
@@ -167,31 +253,37 @@ useSiteSeo({
         />
       </div>
 
+      <!-- Trier Par (Nouveau) -->
+      <select v-model="sortBy" class="rounded-lg border border-emerald-300 bg-emerald-50/50 px-3.5 py-2.5 text-sm font-bold text-emerald-900 focus:border-emerald-500 focus:bg-white focus:outline-none">
+        <option value="economie_desc">🟢 Plus forte économie (FCFA)</option>
+        <option value="price_asc">💵 Prix final le plus bas</option>
+        <option value="coverage_desc">📊 Plus forte prise en charge (%)</option>
+      </select>
+
       <!-- Filtre Partenaire -->
-      <select v-model="partnerFilter" class="rounded-lg border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-sm text-slate-700 focus:border-primary/30 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/5">
+      <select v-model="partnerFilter" class="rounded-lg border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-sm text-slate-700 focus:border-primary/30 focus:bg-white focus:outline-none">
         <option value="">Tous les partenaires</option>
         <option v-for="p in partners" :key="p.slug" :value="p.slug">{{ p.name }}</option>
       </select>
 
       <!-- Filtre Ville -->
-      <select v-model="cityFilter" class="rounded-lg border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-sm text-slate-700 focus:border-primary/30 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/5">
+      <select v-model="cityFilter" class="rounded-lg border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-sm text-slate-700 focus:border-primary/30 focus:bg-white focus:outline-none">
         <option value="">Toutes les villes</option>
         <option v-for="c in cities" :key="c" :value="c">{{ c }}</option>
       </select>
 
       <!-- Filtre Niveau -->
-      <select v-model="levelFilter" class="rounded-lg border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-sm text-slate-700 focus:border-primary/30 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/5">
+      <select v-model="levelFilter" class="rounded-lg border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-sm text-slate-700 focus:border-primary/30 focus:bg-white focus:outline-none">
         <option value="">Tous les niveaux</option>
         <option v-for="l in levels" :key="l" :value="l">{{ l }}</option>
       </select>
 
       <!-- Filtre Couverture -->
-      <select v-model.number="coverageMin" class="rounded-lg border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-sm text-slate-700 focus:border-primary/30 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/5">
+      <select v-model.number="coverageMin" class="rounded-lg border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-sm text-slate-700 focus:border-primary/30 focus:bg-white focus:outline-none">
         <option :value="0">Toute couverture</option>
         <option :value="25">≥ 25 % de prise en charge</option>
         <option :value="50">≥ 50 % de prise en charge</option>
         <option :value="75">≥ 75 % de prise en charge</option>
-        <option :value="100">100 % de prise en charge</option>
       </select>
     </div>
 
@@ -214,7 +306,6 @@ useSiteSeo({
         @click="isMobileFilterOpen = true"
       >
         <span class="material-symbols-outlined text-[20px] select-none">tune</span>
-        <!-- Badge des filtres actifs -->
         <span
           v-if="activeFiltersCount > 0"
           class="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[9px] font-bold text-white"
@@ -224,21 +315,18 @@ useSiteSeo({
       </button>
     </div>
 
-    <!-- Tiroir de filtres du bas pour Mobile (Bottom Sheet Drawer) -->
+    <!-- Tiroir de filtres Mobile -->
     <Teleport to="body">
       <Transition name="drawer-fade">
         <div v-if="isMobileFilterOpen" class="fixed inset-0 z-[120] md:hidden" role="dialog" aria-modal="true">
-          <!-- Backdrop sombre flouté -->
           <div class="absolute inset-0 bg-slate-900/45 backdrop-blur-[2px]" @click="isMobileFilterOpen = false" />
           
-          <!-- Conteneur Bottom Sheet -->
           <Transition name="sheet-slide">
             <div class="absolute bottom-0 inset-x-0 rounded-t-2xl bg-white p-6 shadow-2xl max-h-[85vh] overflow-y-auto flex flex-col">
-              <!-- Poignée de glissement visuelle -->
               <div class="mx-auto w-12 h-1.5 rounded-full bg-slate-200 mb-5 flex-none" />
               
               <div class="flex items-center justify-between mb-5 flex-none">
-                <h3 class="font-headline text-lg font-bold text-primary">Filtrer les bourses</h3>
+                <h3 class="font-headline text-lg font-bold text-primary">Filtrer & Trier les bourses</h3>
                 <button
                   type="button"
                   class="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
@@ -248,8 +336,17 @@ useSiteSeo({
                 </button>
               </div>
 
-              <!-- Filtres empilés proprement -->
               <div class="space-y-4 flex-1">
+                <!-- Ordre de Tri -->
+                <div class="space-y-1">
+                  <label class="text-[10px] font-bold uppercase tracking-wider text-emerald-700">Ordre de tri</label>
+                  <select v-model="sortBy" class="w-full rounded-lg border border-emerald-300 bg-emerald-50/50 px-3.5 py-3 text-sm font-bold text-emerald-900 focus:bg-white focus:outline-none">
+                    <option value="economie_desc">🟢 Plus forte économie (FCFA)</option>
+                    <option value="price_asc">💵 Prix final le plus bas</option>
+                    <option value="coverage_desc">📊 Plus forte prise en charge (%)</option>
+                  </select>
+                </div>
+
                 <!-- Partenaire -->
                 <div class="space-y-1">
                   <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Partenaire</label>
@@ -274,18 +371,6 @@ useSiteSeo({
                   <select v-model="levelFilter" class="w-full rounded-lg border border-slate-200 bg-slate-50/50 px-3.5 py-3 text-sm text-slate-700 focus:bg-white focus:outline-none">
                     <option value="">Tous les niveaux</option>
                     <option v-for="l in levels" :key="l" :value="l">{{ l }}</option>
-                  </select>
-                </div>
-
-                <!-- Couverture -->
-                <div class="space-y-1">
-                  <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Couverture de la bourse</label>
-                  <select v-model.number="coverageMin" class="w-full rounded-lg border border-slate-200 bg-slate-50/50 px-3.5 py-3 text-sm text-slate-700 focus:bg-white focus:outline-none">
-                    <option :value="0">Toute couverture</option>
-                    <option :value="25">≥ 25 % de prise en charge</option>
-                    <option :value="50">≥ 50 % de prise en charge</option>
-                    <option :value="75">≥ 75 % de prise en charge</option>
-                    <option :value="100">100 % de prise en charge</option>
                   </select>
                 </div>
               </div>
@@ -313,6 +398,7 @@ useSiteSeo({
       </Transition>
     </Teleport>
 
+    <!-- Grille de cartes -->
     <div v-if="displayedBourses.length" class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
       <ScholarshipCard v-for="b in displayedBourses" :key="b.id" :bourse="b" />
     </div>
@@ -321,7 +407,7 @@ useSiteSeo({
       Aucune bourse ne correspond à votre recherche.
     </p>
 
-    <!-- Sentinel element to trigger next batch load -->
+    <!-- Sentinel element pour infinite scroll -->
     <div v-if="hasMore" ref="loadMoreSentinel" class="py-12 flex justify-center">
       <div class="h-7 w-7 animate-spin rounded-full border-[3px] border-slate-200 border-t-primary"></div>
     </div>

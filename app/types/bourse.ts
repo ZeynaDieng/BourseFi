@@ -42,6 +42,11 @@ export type BourseDto = {
   montantMax: number | null
   montantBourse: number | null
   resteACharge: number | null
+  economie?: number | null
+  economiePercent?: number | null
+  pricingStatus?: 'VALID' | 'TARIF_DIRECT' | 'NO_COMPARISON' | 'INVALID_PRICING'
+  isTarifDirect?: boolean
+  isBestEconomy?: boolean
   fraisDossier: number
   fraisDossierEtranger: number
   devise: string

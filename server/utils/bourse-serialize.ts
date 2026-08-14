@@ -112,7 +112,7 @@ export function serializeBourse(b: BourseRow) {
     b.coveragePercent,
     currentTarif ? currentTarif.montant : null,
     currentTarif ? currentTarif.anneeAcademique : null,
-    b.montantMax,
+    currentTarif ? currentTarif.montantBourse : b.montantMax,
     b.programme.devise,
   )
 
@@ -169,6 +169,10 @@ export function serializeBourse(b: BourseRow) {
     anneeAcademique: economy.anneeAcademique,
     montantBourse: currentTarif?.montantBourse ?? economy.montantBourse,
     resteACharge: currentTarif?.montantBourse ?? economy.resteACharge,
+    economie: economy.economie,
+    economiePercent: economy.economiePercent,
+    pricingStatus: economy.pricingStatus,
+    isTarifDirect: economy.isTarifDirect,
     fraisDossier: b.programme.fraisDossier,
     fraisDossierEtranger: b.programme.fraisDossierEtranger ?? b.programme.fraisDossier,
     devise: b.programme.devise,
