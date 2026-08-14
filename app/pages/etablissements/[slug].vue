@@ -25,7 +25,7 @@ const { whatsappUrl } = useBoursefiContact()
 </script>
 
 <template>
-  <main v-if="ecole" class="mx-auto max-w-4xl px-4 py-12 sm:px-6 md:py-20">
+  <main v-if="ecole" class="mx-auto max-w-7xl px-6 py-12 md:py-16">
     <!-- Image de couverture -->
     <div v-if="ecole.coverImageUrl?.trim()" class="mb-8 overflow-hidden rounded-3xl shadow-premium">
       <img
