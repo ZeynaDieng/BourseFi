@@ -130,7 +130,7 @@ const { whatsappUrl } = useBoursefiContact()
           </span>
         </div>
 
-        <div v-if="ecoleBourses.length" class="grid gap-4 sm:grid-cols-2">
+        <div v-if="ecoleBourses.length" class="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           <ScholarshipCard v-for="b in ecoleBourses" :key="b.id" :bourse="b" />
         </div>
         <div v-else class="rounded-2xl border border-dashed border-slate-200 py-12 text-center">
