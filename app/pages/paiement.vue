@@ -131,15 +131,16 @@ async function submitPayment() {
 }
     if (res.redirectUrl.startsWith('http')) {
       openPaytechModal(res.redirectUrl)
+      pollStatus()
     } else {
       confirmingPayment.value = true
       pollStatus()
     }
   } catch {
-  paymentStarted.value = false
-  paymentError.value = 'Impossible d’initier le paiement. Réessayez dans un instant.'
-  isPaying.value = false
-}
+    paymentStarted.value = false
+    paymentError.value = 'Impossible d’initier le paiement. Réessayez dans un instant.'
+    isPaying.value = false
+  }
 }
 
 async function pollStatus() {
@@ -195,7 +196,7 @@ function cancelVerifying() {
 
 async function onPaymentValidated() {
   paymentStarted.value = false
-isPaying.value = false
+  isPaying.value = false
   isPaid.value = true
   verifying.value = false
   confirmingPayment.value = false
@@ -206,12 +207,10 @@ isPaying.value = false
     sessionStorage.setItem('boursefi:payment-success', '1')
   }
 
-  // Toujours en pleine page : jamais le profil dans l'iframe PayTech.
-  if (typeof window !== 'undefined' && window.self !== window.top) {
-    window.top!.location.replace(STUDENT_HOME)
-    return
+  // Téléchargement automatique direct de l'attestation PDF officielle
+  if (typeof window !== 'undefined' && candidatureId.value) {
+    window.open(`/api/attestations/${candidatureId.value}`, '_blank')
   }
-  await navigateTo(STUDENT_HOME, { replace: true })
 }
 
 function retryPayment() {
@@ -258,24 +257,30 @@ onUnmounted(() => {
 })
 
 function onLogoError(e: Event) {
-  ;(e.target as HTMLImageElement).style.display = 'none'
+  const el = e.target as HTMLImageElement
+  if (el) el.style.display = 'none'
 }
 
 useSeoMeta({ title: 'Paiement  BourseFi' })
 </script>
 
 <template>
-  <div class="min-h-dvh bg-slate-50 font-body">
-    <header class="sticky top-0 z-20 border-b border-slate-100 bg-white/90 backdrop-blur">
-      <div class="mx-auto flex max-w-5xl items-center justify-between px-4 py-3 sm:px-6">
+  <main class="min-h-screen bg-slate-50">
+    <!-- Header simple -->
+    <header class="border-b border-slate-200 bg-white">
+      <div class="mx-auto flex max-w-5xl items-center justify-between px-4 py-4 sm:px-6">
         <NuxtLink to="/" class="flex items-center gap-2">
-          <img src="/boursefi-logo.png" alt="BourseFi" class="h-7 w-7 rounded-lg object-contain" @error="onLogoError" />
-          <span class="font-headline text-lg font-extrabold text-primary">BourseFi</span>
+          <img src="/boursefi-logo.png" alt="BourseFi" class="h-8 w-auto" @error="onLogoError" />
+          <span class="font-headline text-xl font-extrabold text-primary">BourseFi</span>
         </NuxtLink>
-        <span class="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
-          <span class="material-symbols-outlined text-[18px] text-emerald-600">lock</span>
-          Paiement sécurisé
-        </span>
+
+        <NuxtLink
+          :to="STUDENT_HOME"
+          class="flex items-center gap-1.5 text-xs font-semibold text-slate-600 transition hover:text-slate-900"
+        >
+          <span class="material-symbols-outlined text-base">close</span>
+          Quitter
+        </NuxtLink>
       </div>
     </header>
 
@@ -287,15 +292,16 @@ useSeoMeta({ title: 'Paiement  BourseFi' })
       <h1 class="font-headline text-3xl font-extrabold text-primary">Paiement réussi !</h1>
       <p class="mt-3 text-slate-600">
         Votre dossier <span class="font-semibold text-primary">{{ dossier?.programmeTitre }}</span>
-        est transmis au bailleur pour analyse. Vous serez notifié dès la décision.
+        a été validé. Votre attestation officielle est désormais disponible.
       </p>
-      <CandidatureApplyStepper class="mt-8 w-full" :current="3" :steps="PAYMENT_STEPS" />
+      <CandidatureApplyStepper class="mt-8 w-full" :current="4" :steps="PAYMENT_STEPS" />
       <div class="mt-10 flex w-full flex-col gap-3 sm:flex-row sm:justify-center">
-        <NuxtLink :to="STUDENT_HOME" class="rounded-xl bg-primary px-8 py-4 font-bold text-white shadow-sm transition hover:opacity-95">
-          Accéder à mon espace
-        </NuxtLink>
-        <NuxtLink to="/bourses" class="rounded-xl border border-slate-200 bg-white px-8 py-4 font-bold text-slate-600 transition hover:bg-slate-50">
-          Voir d’autres bourses
+        <a :href="`/api/attestations/${candidatureId}`" target="_blank" class="rounded-xl bg-emerald-600 px-6 py-3.5 font-bold text-white shadow-md transition hover:bg-emerald-700 flex items-center justify-center gap-2">
+          <span class="material-symbols-outlined">verified</span>
+          Télécharger l'Attestation (PDF)
+        </a>
+        <NuxtLink :to="STUDENT_HOME" class="rounded-xl bg-primary px-6 py-3.5 font-bold text-white shadow-sm transition hover:opacity-95 flex items-center justify-center">
+          Mon espace
         </NuxtLink>
       </div>
     </div>
@@ -369,7 +375,7 @@ useSeoMeta({ title: 'Paiement  BourseFi' })
     </div>
 
     <!-- Checkout -->
-    <main v-else-if="showCheckout" class="mx-auto max-w-xl px-4 py-6 pb-32 sm:px-6 lg:pb-12">
+    <div v-else-if="showCheckout" class="mx-auto max-w-xl px-4 py-6 pb-32 sm:px-6 lg:pb-12">
       <div class="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm sm:p-5">
         <CandidatureApplyStepper :current="2" :steps="PAYMENT_STEPS" />
       </div>
@@ -417,7 +423,7 @@ useSeoMeta({ title: 'Paiement  BourseFi' })
         <span class="material-symbols-outlined text-[16px] text-slate-400">info</span>
         Vous choisirez votre moyen de paiement (Wave, Orange Money…) directement sur l’écran PayTech sécurisé.
       </p>
-    </main>
+    </div>
 
     <!-- CTA sticky mobile -->
     <div
@@ -441,5 +447,5 @@ useSeoMeta({ title: 'Paiement  BourseFi' })
       @close="cancelVerifying"
       @return="(p) => onPaytechReturn(p.status, p.candidatureId)"
     />
-  </div>
+  </main>
 </template>

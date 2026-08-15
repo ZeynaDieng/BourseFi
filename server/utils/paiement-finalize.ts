@@ -66,10 +66,18 @@ export async function finalizePaiement(
       }
     })
 
-    if (candidature && candidature.status === 'EN_ATTENTE_PAIEMENT') {
+    if (candidature) {
+      const attestationNum =
+        candidature.attestationNumber ||
+        `BF-ATT-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`
+
       await tx.candidature.update({
         where: { id: candidature.id },
-        data: { status: 'EN_REVUE_PARTENAIRE' }
+        data: {
+          status: 'DOCUMENT_EMIS',
+          attestationNumber: attestationNum,
+          attestationIssuedAt: candidature.attestationIssuedAt || new Date(),
+        },
       })
     }
 

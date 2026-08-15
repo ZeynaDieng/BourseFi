@@ -45,6 +45,7 @@ export default defineEventHandler(async (event) => {
 
   const programme = await prisma.programme.findUnique({
     where: { id: parsed.data.programmeId },
+    include: { etablissement: true, tarifs: true },
   })
 
   if (!programme) {
@@ -66,8 +67,23 @@ export default defineEventHandler(async (event) => {
     bourseId = bourse.id
   }
 
+  const effectiveFraisDossier =
+    programme.etablissement?.isDirectPartner && programme.etablissement?.fraisDossier !== undefined
+      ? programme.etablissement.fraisDossier
+      : programme.fraisDossier
+
+  let commissionAmount = 0
+  if (programme.etablissement?.commissionValue) {
+    if (programme.etablissement.commissionType === 'PERCENTAGE') {
+      const tuition = programme.tarifs?.[0]?.montant || 0
+      commissionAmount = Math.round(tuition * (programme.etablissement.commissionValue / 100))
+    } else {
+      commissionAmount = programme.etablissement.commissionValue
+    }
+  }
+
   let initialStatus: CandidatureStatus = 'SOUMIS'
-  if (programme.fraisDossier > 0) {
+  if (effectiveFraisDossier > 0) {
     initialStatus = 'EN_ATTENTE_PAIEMENT'
   } else {
     initialStatus = 'EN_REVUE_PARTENAIRE'
@@ -158,6 +174,7 @@ export default defineEventHandler(async (event) => {
       gpa: parsed.data.gpa || 'N/A',
       targetProgram: programme.titre,
       status: initialStatus,
+      commissionAmount,
       identityCardRectoUrl: rectoUrl,
       identityCardVersoUrl: versoUrl,
       bfemAttestationUrl: bfemUrl || null,

@@ -52,6 +52,7 @@ const shortcuts = [
   { to: '/admin/catalogue/programmes', label: 'Formations', hint: 'Catalogue programmes', icon: 'menu_book' },
   { to: '/admin/catalogue/ecoles', label: 'Écoles', hint: 'Établissements', icon: 'apartment' },
   { to: '/admin/transactions', label: 'Paiements', hint: 'Historique & commissions', icon: 'payments' },
+  { to: '/admin/rapports/commissions', label: 'Commissions Écoles', hint: 'Orientations & facturation', icon: 'account_balance_wallet' },
   { to: '/admin/rapports', label: 'Rapports', hint: 'Export & KPI', icon: 'analytics' },
   { to: '/admin/users', label: 'Utilisateurs', hint: 'Comptes & rôles', icon: 'group' },
   { to: '/admin/cms/site', label: 'Blocs du site', hint: 'Titres & sections', icon: 'web' },

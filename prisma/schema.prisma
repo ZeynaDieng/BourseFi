@@ -77,6 +77,12 @@ model Etablissement {
   source            ContactSource?
   contactStatus     ContactVerificationStatus @default(TO_VERIFY)
   contactVerifiedAt DateTime?
+  isDirectPartner      Boolean                   @default(false)
+  fraisDossier         Int                       @default(20000)
+  autoIssueAttestation Boolean                   @default(false)
+  commissionType       String                    @default("FIXED_AMOUNT")
+  commissionValue      Int                       @default(0)
+  commissionPaidStatus String                    @default("UP_TO_DATE")
   updatedBy         String?
   createdAt         DateTime                  @default(now())
   updatedAt         DateTime                  @updatedAt
@@ -263,6 +269,14 @@ model Candidature {
   gpa                  String            @default("")
   targetProgram        String
   status               CandidatureStatus @default(SOUMIS)
+  commissionAmount     Int               @default(0)
+  commissionStatus     String            @default("EN_ATTENTE")
+  commissionPaidAt     DateTime?
+  commissionRef        String?
+  commissionNotes      String?
+  attestationNumber    String?           @unique
+  attestationIssuedAt  DateTime?
+  attestationUrl       String?
   documentUrl          String?
   documentIssuedAt     DateTime?
   identityCardRectoUrl String?

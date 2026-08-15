@@ -1,0 +1,19 @@
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 160' width='140' height='140' style='transform: rotate(-6deg);'>
+  <!-- Double ring circles -->
+  <circle cx='80' cy='80' r='76' fill='none' stroke='#123A72' stroke-width='3' stroke-opacity='0.9'/>
+  <circle cx='80' cy='80' r='66' fill='none' stroke='#123A72' stroke-width='1.5' stroke-dasharray='4,2' stroke-opacity='0.9'/>
+  <circle cx='80' cy='80' r='52' fill='none' stroke='#123A72' stroke-width='1.5' stroke-opacity='0.9'/>
+
+  <!-- Circular text path -->
+  <path id='circlePath' d='M 80, 80 m -60, 0 a 60,60 0 1,1 120,0 a 60,60 0 1,1 -120,0' fill='none'/>
+  <text font-family='Arial, sans-serif' font-size='7.5' font-weight='bold' fill='#123A72' letter-spacing='0.5'>
+    <textPath href='#circlePath' startOffset='0%'>
+      • RCCM : SN.DKR.2026.A.21376 • NINEA : 013125324 • TEL : +221 77 113 39 26
+    </textPath>
+  </text>
+
+  <!-- Center box -->
+  <rect x='28' y='56' width='104' height='48' rx='4' fill='#ffffff' fill-opacity='0.85' stroke='#123A72' stroke-width='2'/>
+  <text x='80' y='76' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' font-weight='900' fill='#123A72' letter-spacing='1'>MATKAM</text>
+  <text x='80' y='92' text-anchor='middle' font-family='Arial, sans-serif' font-size='8.5' font-weight='800' fill='#123A72' letter-spacing='0.5'>LA DIRECTRICE</text>
+</svg>

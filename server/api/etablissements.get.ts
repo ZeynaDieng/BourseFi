@@ -71,6 +71,8 @@ export default defineEventHandler(async (event) => {
       contactStatus: e.contactStatus,
       contactVerifiedAt: e.contactVerifiedAt ? e.contactVerifiedAt.toISOString() : null,
       source: e.source,
+      isDirectPartner: e.isDirectPartner,
+      fraisDossier: e.fraisDossier,
       resume: e.resume,
       coverImageUrl: e.coverImageUrl,
       logoUrl: e.logoUrl,
@@ -80,18 +82,23 @@ export default defineEventHandler(async (event) => {
       tauxInsertion,
       partenairePrincipal,
       contacts: e.contacts,
-      programmes: e.programmes.map((p) => ({
-        slug: p.slug,
-        titre: p.titre,
-        fraisDossier: p.fraisDossier,
-        fraisDossierEtranger: p.fraisDossierEtranger,
-        devise: p.devise,
-        duree: p.duree,
-        niveau: p.niveau,
-        placement: p.placement,
-        partnerName: p.partner.name,
-        boursesCount: p.bourses.length,
-      })),
+      programmes: e.programmes.map((p) => {
+        const effectiveFrais = e.isDirectPartner && e.fraisDossier !== undefined && e.fraisDossier !== null
+          ? e.fraisDossier
+          : p.fraisDossier
+        return {
+          slug: p.slug,
+          titre: p.titre,
+          fraisDossier: effectiveFrais,
+          fraisDossierEtranger: p.fraisDossierEtranger ?? effectiveFrais,
+          devise: p.devise,
+          duree: p.duree,
+          niveau: p.niveau,
+          placement: p.placement,
+          partnerName: p.partner.name,
+          boursesCount: p.bourses.length,
+        }
+      }),
     }
   })
 })

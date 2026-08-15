@@ -57,6 +57,7 @@ export default defineEventHandler(async (event) => {
     targetProgram: c.targetProgram,
     status: c.status,
     statusLabel: statusLabel(c.status),
+    attestationNumber: c.attestationNumber,
     documentUrl: c.documentUrl,
     documentIssuedAt: c.documentIssuedAt?.toISOString() ?? null,
     identityCardRectoUrl: c.identityCardRectoUrl,

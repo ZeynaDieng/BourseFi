@@ -40,9 +40,9 @@ export default defineEventHandler(async (event) => {
   const candidature = await prisma.candidature.findUnique({
     where: { id: parsed.data.candidatureId },
     include: {
-      programme: { include: { partner: true } },
-      paiement: true
-    }
+      programme: { include: { partner: true, etablissement: true } },
+      paiement: true,
+    },
   })
 
   if (!candidature) {
@@ -54,14 +54,21 @@ export default defineEventHandler(async (event) => {
   if (candidature.status !== 'EN_ATTENTE_PAIEMENT') {
     throw createError({
       statusCode: 400,
-      statusMessage: 'Cette candidature ne necessite pas de paiement a ce stade.'
+      statusMessage: 'Cette candidature ne necessite pas de paiement a ce stade.',
     })
   }
   if (candidature.paiement && candidature.paiement.status === 'Valide') {
     throw createError({ statusCode: 400, statusMessage: 'Un paiement existe deja pour ce dossier.' })
   }
 
-  const total = candidature.programme.fraisDossier
+  const effectiveFraisDossier =
+    candidature.programme.etablissement?.isDirectPartner &&
+    candidature.programme.etablissement?.fraisDossier !== undefined &&
+    candidature.programme.etablissement?.fraisDossier !== null
+      ? candidature.programme.etablissement.fraisDossier
+      : candidature.programme.fraisDossier
+
+  const total = effectiveFraisDossier
   if (total <= 0) {
     throw createError({ statusCode: 400, statusMessage: 'Aucun frais de dossier a regler.' })
   }
@@ -74,9 +81,21 @@ export default defineEventHandler(async (event) => {
     configured: isPaytechConfigured()
   })
 
-  const pct = Math.min(100, Math.max(0, candidature.programme.partner.partnerSharePercent))
-  const amountPartner = Math.round((total * pct) / 100)
-  const amountPlatform = total - amountPartner
+  const etablissement = candidature.programme.etablissement
+  let amountPlatform = 0
+  let amountPartner = 0
+
+  if (etablissement.isDirectPartner) {
+    // Partenaire Direct : BourseFi perçoit sa commissionInterne (ou la totalité des frais réduits)
+    const commission = etablissement.commissionInterne ?? total
+    amountPlatform = Math.min(total, commission)
+    amountPartner = total - amountPlatform
+  } else {
+    // Partenaire Standard : Répartition selon partnerSharePercent
+    const pct = Math.min(100, Math.max(0, candidature.programme.partner.partnerSharePercent))
+    amountPartner = Math.round((total * pct) / 100)
+    amountPlatform = total - amountPartner
+  }
   const refCommand = buildRefCommand()
 
   // Coordonnées récupérées depuis la candidature (déjà collectées).
@@ -125,8 +144,11 @@ export default defineEventHandler(async (event) => {
   }
 
   const { siteUrl } = getPaytechConfig()
-  const returnOrigin = resolveReturnOrigin(event, siteUrl)
-  const returnBase = `${returnOrigin}/paiement/retour?candidatureId=${candidature.id}`
+  const publicSiteUrl = (siteUrl && !siteUrl.includes('localhost') && !siteUrl.includes('127.0.0.1'))
+    ? siteUrl
+    : 'https://boursefi.sn'
+
+  const returnBase = `${publicSiteUrl}/paiement/retour?candidatureId=${candidature.id}`
   const result = await requestPayment({
     itemName: `Frais de dossier - ${candidature.programme.titre}`,
     itemPrice: total,
@@ -134,7 +156,7 @@ export default defineEventHandler(async (event) => {
     commandName: `BourseFi - ${candidature.programme.titre}`,
     // Méthode vide => PayTech propose tous les moyens de paiement sur son écran.
     targetPayment: method ? mapMethodToTarget(method) : undefined,
-    ipnUrl: `${siteUrl.replace(/\/+$/, '')}/api/paiements/ipn`,
+    ipnUrl: `${publicSiteUrl}/api/paiements/ipn`,
     successUrl: `${returnBase}&status=success`,
     cancelUrl: `${returnBase}&status=cancel`,
     customField: { paiementId: paiement.id, candidatureId: candidature.id },

@@ -56,15 +56,13 @@ export function buildStudentDocuments(
   }
 
   for (const c of candidatures || []) {
-    if (c.documentUrl) {
-      list.push({
-        id: `doc-${c.id}`,
-        label: `Attestation  ${c.programmeTitre}`,
-        url: c.documentUrl,
-        group: 'attestation',
-      })
-    }
-    // Anciennes candidatures sans compte unifié : dédoublonnage par URL
+    const attUrl = c.documentUrl || c.attestationUrl || `/api/attestations/${c.id}`
+    list.push({
+      id: `doc-${c.id}`,
+      label: `Attestation officielle — ${c.programmeTitre}`,
+      url: attUrl,
+      group: 'attestation',
+    })
     pushIdentity(c.identityCardRectoUrl, c.identityCardVersoUrl, c.id)
   }
 

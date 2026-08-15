@@ -117,7 +117,12 @@ function formatCandidature(raw: {
     etablissementSlug: raw.programme.etablissement.slug,
     partnerName: raw.partner.name,
     partnerSlug: raw.partner.slug,
-    fraisDossier: raw.programme.fraisDossier,
+    fraisDossier:
+      raw.programme.etablissement.isDirectPartner &&
+      raw.programme.etablissement.fraisDossier !== undefined &&
+      raw.programme.etablissement.fraisDossier !== null
+        ? raw.programme.etablissement.fraisDossier
+        : raw.programme.fraisDossier,
     devise: raw.programme.devise
   }
 }

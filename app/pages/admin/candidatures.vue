@@ -364,8 +364,8 @@ async function deleteDossier() {
       <div v-if="detailLoading" class="py-12 text-center text-sm text-slate-500">Chargement…</div>
 
       <div v-else-if="detail" class="space-y-6">
-        <!-- Statut & actions -->
-        <section class="rounded-xl border border-slate-100 bg-slate-50/60 p-4">
+        <!-- Statut, actions & Attestation générée -->
+        <section class="space-y-3 rounded-xl border border-slate-100 bg-slate-50/60 p-4">
           <div class="flex flex-wrap items-center justify-between gap-3">
             <ApplicationStatusBadge :status="detail.status" />
             <NuxtLink
@@ -375,9 +375,33 @@ async function deleteDossier() {
               Compte : {{ detail.user.name }} →
             </NuxtLink>
           </div>
-          <div class="mt-4 space-y-3">
+
+          <!-- Carte Attestation Officielle BourseFi -->
+          <div class="flex items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50/80 p-3 shadow-xs">
+            <div class="flex items-center gap-3">
+              <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-600 text-white shadow-xs">
+                <span class="material-symbols-outlined text-[20px]">workspace_premium</span>
+              </div>
+              <div>
+                <p class="text-xs font-bold text-emerald-950">Attestation Officielle BourseFi</p>
+                <p class="text-[11px] text-emerald-800">
+                  Réf : {{ detail.attestationNumber || detail.id }}
+                </p>
+              </div>
+            </div>
+            <a
+              :href="`/api/attestations/${detail.id}`"
+              target="_blank"
+              class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-700 px-3 py-1.5 text-xs font-bold text-white shadow-sm transition hover:bg-emerald-800"
+            >
+              <span class="material-symbols-outlined text-[16px]">visibility</span>
+              Voir / Imprimer
+            </a>
+          </div>
+
+          <div class="space-y-3 pt-2">
             <label class="block">
-              <span class="text-xs font-semibold text-slate-500">Changer le statut</span>
+              <span class="text-xs font-semibold text-slate-500">Changer le statut du dossier</span>
               <select v-model="draft.status" class="admin-input mt-1 w-full bg-white">
                 <option v-for="s in statusChoices" :key="s" :value="s">
                   {{ candidatureStatusLabel(s) }}
@@ -385,8 +409,8 @@ async function deleteDossier() {
               </select>
             </label>
             <label class="block">
-              <span class="text-xs font-semibold text-slate-500">Attestation  importer un fichier (PDF ou image)</span>
-              <CandidatureDocumentDropzone v-model="draft.documentDataUrl" label="Attestation" class="mt-2" />
+              <span class="text-xs font-semibold text-slate-500">Document / Attestation personnalisée (Optionnel)</span>
+              <CandidatureDocumentDropzone v-model="draft.documentDataUrl" label="Attestation complémentaire" class="mt-2" />
             </label>
             <button type="button" class="admin-btn-primary w-full text-sm" :disabled="saving" @click="savePatch">
               {{ saving ? 'Enregistrement…' : 'Enregistrer les modifications' }}
@@ -394,100 +418,128 @@ async function deleteDossier() {
           </div>
         </section>
 
-        <!-- Candidat -->
-        <section>
-          <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Candidat</p>
-          <dl class="mt-3 grid gap-2 text-sm sm:grid-cols-2">
-            <div><dt class="text-slate-400">Nom complet</dt><dd class="font-medium">{{ detail.fullName }}</dd></div>
-            <div><dt class="text-slate-400">Email</dt><dd>{{ detail.email }}</dd></div>
-            <div><dt class="text-slate-400">Téléphone</dt><dd>{{ detail.phone || '' }}</dd></div>
-            <div class="sm:col-span-2"><dt class="text-slate-400">Adresse</dt><dd>{{ detail.address || '' }}</dd></div>
-            <div><dt class="text-slate-400">Déposé le</dt><dd>{{ formatDate(detail.createdAt) }}</dd></div>
+        <!-- Informations Candidat -->
+        <section class="rounded-xl border border-slate-100 bg-white p-4 shadow-2xs">
+          <div class="flex items-center gap-2 border-b border-slate-100 pb-2.5">
+            <span class="material-symbols-outlined text-[18px] text-primary">person</span>
+            <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Informations du Candidat</p>
+          </div>
+          <dl class="mt-3 grid gap-3 text-sm sm:grid-cols-2">
+            <div><dt class="text-xs text-slate-400">Nom complet</dt><dd class="font-bold text-primary">{{ detail.fullName }}</dd></div>
+            <div><dt class="text-xs text-slate-400">Email</dt><dd class="font-medium text-slate-700">{{ detail.email }}</dd></div>
+            <div><dt class="text-xs text-slate-400">Téléphone</dt><dd class="font-medium text-slate-700">{{ detail.phone || 'Non renseigné' }}</dd></div>
+            <div><dt class="text-xs text-slate-400">Adresse</dt><dd class="font-medium text-slate-700">{{ detail.address || 'Non renseignée' }}</dd></div>
+            <div><dt class="text-xs text-slate-400">Déposé le</dt><dd class="font-medium text-slate-700">{{ formatDate(detail.createdAt) }}</dd></div>
+            <div><dt class="text-xs text-slate-400">Identifiant Dossier</dt><dd class="font-mono text-xs text-slate-500">{{ detail.id }}</dd></div>
           </dl>
         </section>
 
-        <!-- Parcours -->
-        <section>
-          <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Parcours académique</p>
-          <dl class="mt-3 grid gap-2 text-sm sm:grid-cols-2">
-            <div><dt class="text-slate-400">Établissement</dt><dd>{{ detail.institution || '' }}</dd></div>
-            <div><dt class="text-slate-400">Filière</dt><dd>{{ detail.field || '' }}</dd></div>
-            <div><dt class="text-slate-400">Niveau</dt><dd>{{ detail.level || '' }}</dd></div>
-            <div><dt class="text-slate-400">Dernier diplôme</dt><dd>{{ detail.lastDiploma || '' }}</dd></div>
-            <div><dt class="text-slate-400">Année obtention</dt><dd>{{ detail.graduationDate || '' }}</dd></div>
-            <div><dt class="text-slate-400">Moyenne</dt><dd>{{ detail.gpa || '' }}</dd></div>
+        <!-- Parcours Académique -->
+        <section class="rounded-xl border border-slate-100 bg-white p-4 shadow-2xs">
+          <div class="flex items-center gap-2 border-b border-slate-100 pb-2.5">
+            <span class="material-symbols-outlined text-[18px] text-primary">school</span>
+            <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Parcours Académique du Candidat</p>
+          </div>
+          <dl class="mt-3 grid gap-3 text-sm sm:grid-cols-2">
+            <div><dt class="text-xs text-slate-400">Établissement fréquenté</dt><dd class="font-medium text-slate-700">{{ detail.institution || 'N/A' }}</dd></div>
+            <div><dt class="text-xs text-slate-400">Filière / Domaine</dt><dd class="font-medium text-slate-700">{{ detail.field || 'N/A' }}</dd></div>
+            <div><dt class="text-xs text-slate-400">Niveau d'études actuel</dt><dd class="font-medium text-slate-700">{{ detail.level || 'N/A' }}</dd></div>
+            <div><dt class="text-xs text-slate-400">Dernier diplôme obtenu</dt><dd class="font-medium text-slate-700">{{ detail.lastDiploma || 'N/A' }}</dd></div>
+            <div><dt class="text-xs text-slate-400">Année d'obtention</dt><dd class="font-medium text-slate-700">{{ detail.graduationDate || 'N/A' }}</dd></div>
+            <div><dt class="text-xs text-slate-400">Moyenne générale / Notes</dt><dd class="font-medium text-slate-700">{{ detail.gpa || 'N/A' }}</dd></div>
           </dl>
         </section>
 
-        <!-- Programme -->
-        <section>
-          <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Programme visé</p>
-          <dl class="mt-3 grid gap-2 text-sm sm:grid-cols-2">
-            <div class="sm:col-span-2"><dt class="text-slate-400">Programme</dt><dd class="font-medium">{{ detail.programme.titre }}</dd></div>
-            <div><dt class="text-slate-400">École</dt><dd>{{ detail.programme.etablissement.nom }}</dd></div>
-            <div><dt class="text-slate-400">Ville</dt><dd>{{ detail.programme.ville }}</dd></div>
-            <div><dt class="text-slate-400">Partenaire</dt><dd>{{ detail.partner.name }}</dd></div>
-            <div v-if="detail.bourse"><dt class="text-slate-400">Bourse</dt><dd>{{ detail.bourse.titre }}</dd></div>
+        <!-- Programme & Établissement Visés -->
+        <section class="rounded-xl border border-slate-100 bg-white p-4 shadow-2xs">
+          <div class="flex items-center gap-2 border-b border-slate-100 pb-2.5">
+            <span class="material-symbols-outlined text-[18px] text-primary">domain</span>
+            <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Programme & Établissement Visés</p>
+          </div>
+          <dl class="mt-3 grid gap-3 text-sm sm:grid-cols-2">
+            <div class="sm:col-span-2"><dt class="text-xs text-slate-400">Programme choisi</dt><dd class="font-bold text-primary">{{ detail.programme.titre }}</dd></div>
+            <div><dt class="text-xs text-slate-400">Établissement d'accueil</dt><dd class="font-medium text-slate-700">{{ detail.programme.etablissement.nom }}</dd></div>
+            <div><dt class="text-xs text-slate-400">Ville</dt><dd class="font-medium text-slate-700">{{ detail.programme.ville }}</dd></div>
+            <div><dt class="text-xs text-slate-400">Partenaire référent</dt><dd class="font-medium text-slate-700">{{ detail.partner.name }}</dd></div>
+            <div v-if="detail.bourse"><dt class="text-xs text-slate-400">Bourse associée</dt><dd class="font-bold text-amber-700">{{ detail.bourse.titre }}</dd></div>
             <div>
-              <dt class="text-slate-400">Frais de dossier</dt>
-              <dd>{{ detail.programme.fraisDossier.toLocaleString('fr-FR') }} {{ detail.programme.devise }}</dd>
+              <dt class="text-xs text-slate-400">Frais de dossier</dt>
+              <dd class="font-semibold text-slate-800">{{ detail.programme.fraisDossier.toLocaleString('fr-FR') }} {{ detail.programme.devise }}</dd>
             </div>
           </dl>
         </section>
 
-        <!-- Paiement -->
-        <section v-if="detail.paiement">
-          <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Paiement</p>
-          <div class="mt-3 rounded-xl border border-slate-100 bg-white p-3 text-sm">
-            <p class="font-semibold">{{ detail.paiement.amount.toLocaleString('fr-FR') }} FCFA</p>
-            <p class="mt-2 text-xs text-slate-500">
-              {{ detail.paiement.status }} · {{ detail.paiement.method }}
-              <span v-if="detail.paiement.refCommand"> · Réf. {{ detail.paiement.refCommand }}</span>
-            </p>
-            <NuxtLink
-              :to="`/admin/transactions?id=${detail.paiement.id}`"
-              class="mt-2 inline-block text-xs font-semibold text-primary hover:underline"
-            >
-              Voir le paiement →
-            </NuxtLink>
-            <p class="text-[11px] text-slate-400">{{ formatDate(detail.paiement.createdAt) }}</p>
+        <!-- Détails Financiers & Paiement -->
+        <section class="rounded-xl border border-slate-100 bg-white p-4 shadow-2xs">
+          <div class="flex items-center gap-2 border-b border-slate-100 pb-2.5">
+            <span class="material-symbols-outlined text-[18px] text-primary">payments</span>
+            <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Finances & Paiement du Dossier</p>
+          </div>
+
+          <div v-if="detail.paiement" class="mt-3 space-y-2 text-sm">
+            <div class="flex items-center justify-between rounded-lg bg-emerald-50/60 p-3 border border-emerald-100">
+              <div>
+                <p class="text-xs text-emerald-800">Montant réglé par le candidat</p>
+                <p class="font-headline text-lg font-black text-emerald-900">{{ detail.paiement.amount.toLocaleString('fr-FR') }} FCFA</p>
+              </div>
+              <span class="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-800">
+                Paiement {{ detail.paiement.status }}
+              </span>
+            </div>
+            <dl class="grid gap-2 text-xs pt-1 sm:grid-cols-2">
+              <div><dt class="text-slate-400">Mode de paiement</dt><dd class="font-semibold text-slate-700">{{ detail.paiement.method || 'PayTech / Mobile Money' }}</dd></div>
+              <div><dt class="text-slate-400">Référence transaction</dt><dd class="font-mono text-slate-700">{{ detail.paiement.refCommand || 'N/A' }}</dd></div>
+              <div><dt class="text-slate-400">Date du règlement</dt><dd class="text-slate-700">{{ formatDate(detail.paiement.createdAt) }}</dd></div>
+            </dl>
+            <div class="pt-2">
+              <NuxtLink
+                :to="`/admin/transactions?id=${detail.paiement.id}`"
+                class="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+              >
+                Voir le détail de la transaction →
+              </NuxtLink>
+            </div>
+          </div>
+          <div v-else class="mt-3 p-2 text-sm text-amber-700">
+            Aucun paiement enregistré pour ce dossier.
           </div>
         </section>
-        <section v-else>
-          <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Paiement</p>
-          <p class="mt-2 text-sm text-amber-600">Aucun paiement enregistré pour ce dossier.</p>
-        </section>
 
-        <!-- Documents -->
-        <section>
-          <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Documents</p>
-          <div class="mt-3 flex flex-wrap gap-2">
+        <!-- Documents & Pièces fournies -->
+        <section class="rounded-xl border border-slate-100 bg-white p-4 shadow-2xs">
+          <div class="flex items-center gap-2 border-b border-slate-100 pb-2.5">
+            <span class="material-symbols-outlined text-[18px] text-primary">folder_open</span>
+            <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Documents & Pièces Justificatives</p>
+          </div>
+          <div class="mt-3 flex flex-wrap gap-3">
+            <a
+              :href="`/api/attestations/${detail.id}`"
+              target="_blank"
+              class="flex items-center gap-2 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-800 hover:bg-emerald-100 transition"
+            >
+              <span class="material-symbols-outlined text-[18px] text-emerald-600">picture_as_pdf</span>
+              Attestation BourseFi (PDF)
+            </a>
             <AdminDocumentThumb
               v-if="detail.identityCardRectoUrl"
               :url="detail.identityCardRectoUrl"
-              label="CNI recto"
+              label="CNI Recto"
               @open="previewDoc = $event"
             />
             <AdminDocumentThumb
               v-if="detail.identityCardVersoUrl"
               :url="detail.identityCardVersoUrl"
-              label="CNI verso"
+              label="CNI Verso"
               @open="previewDoc = $event"
             />
             <AdminDocumentThumb
               v-if="detail.documentUrl"
               :url="detail.documentUrl"
-              label="Attestation"
+              label="Fichier joint"
               @open="previewDoc = $event"
             />
-            <span
-              v-if="!detail.identityCardRectoUrl && !detail.identityCardVersoUrl && !detail.documentUrl"
-              class="text-sm text-slate-400"
-            >
-              Aucun document disponible.
-            </span>
           </div>
-          <p v-if="detail.documentIssuedAt" class="mt-2 text-xs text-slate-400">
+          <p v-if="detail.documentIssuedAt" class="mt-3 text-xs text-slate-400">
             Attestation émise le {{ formatDate(detail.documentIssuedAt) }}
           </p>
         </section>

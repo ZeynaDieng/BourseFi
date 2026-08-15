@@ -24,6 +24,8 @@ type TransactionRow = {
   refCommand: string | null
   programme: string | null
   programmeTitre: string | null
+  etablissementNom?: string | null
+  isDirectPartner?: boolean
   partnerName: string | null
   createdAt: string
 }
@@ -333,8 +335,17 @@ function statusClass(status: string) {
               <td class="admin-td text-sm">{{ formatMethod(t.method) }}</td>
               <td class="admin-td text-sm">{{ t.amountPlatform.toLocaleString('fr-FR') }} {{ t.currency }}</td>
               <td class="admin-td">
-                <p class="text-sm">{{ t.programmeTitre ?? t.programme ?? '' }}</p>
-                <p v-if="t.partnerName" class="text-xs text-slate-400">{{ t.partnerName }}</p>
+                <p class="text-sm font-semibold text-slate-800">{{ t.programmeTitre ?? t.programme ?? '' }}</p>
+                <div class="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs">
+                  <span v-if="t.etablissementNom" class="font-medium text-slate-600">{{ t.etablissementNom }}</span>
+                  <span
+                    v-if="t.isDirectPartner"
+                    class="inline-flex rounded bg-sky-100 px-1.5 py-0.2 text-[10px] font-extrabold text-sky-800"
+                  >
+                    Partenariat Direct
+                  </span>
+                  <span v-else-if="t.partnerName" class="text-slate-400">· {{ t.partnerName }}</span>
+                </div>
               </td>
               <td class="admin-td text-xs text-slate-500">{{ formatDate(t.createdAt) }}</td>
               <td class="admin-td text-right">

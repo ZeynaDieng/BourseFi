@@ -22,9 +22,9 @@ export function getPaytechConfig(): PaytechConfig {
   const envRaw = String(process.env.NUXT_PAYTECH_ENV || process.env.PAYTECH_ENV || config.paytechEnv || 'test')
   const env = envRaw === 'prod' ? 'prod' : 'test'
   const siteUrl = String(
-    process.env.NUXT_PUBLIC_SITE_URL || process.env.SITE_URL || config.public?.siteUrl || ''
+    process.env.NUXT_PUBLIC_SITE_URL || process.env.SITE_URL || config.public?.siteUrl || 'https://boursefi.sn'
   ).replace(/\/+$/, '')
-  return { apiKey, apiSecret, env, siteUrl }
+  return { apiKey, apiSecret, env, siteUrl: siteUrl || 'https://boursefi.sn' }
 }
 
 export function isPaytechConfigured(): boolean {

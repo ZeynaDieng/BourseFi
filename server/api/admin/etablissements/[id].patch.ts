@@ -34,6 +34,12 @@ export default defineEventHandler(async (event) => {
     status?: 'ACTIVE' | 'INACTIVE' | 'ARCHIVED'
     source?: 'OFFICIAL_WEBSITE' | 'ESTABLISHMENT' | 'DIRECTORY' | 'OTHER' | null
     contactStatus?: 'VERIFIED' | 'TO_VERIFY' | 'UNVERIFIED'
+    isDirectPartner?: boolean
+    fraisDossier?: number
+    autoIssueAttestation?: boolean
+    commissionType?: string
+    commissionValue?: number
+    commissionPaidStatus?: string
   }>(event)
 
   if (body.slug !== undefined) {
@@ -64,6 +70,12 @@ export default defineEventHandler(async (event) => {
     ...(body.typeLabel !== undefined ? { typeLabel: body.typeLabel?.trim() || null } : {}),
     ...(body.status !== undefined ? { status: body.status } : {}),
     ...(body.source !== undefined ? { source: body.source } : {}),
+    ...(body.isDirectPartner !== undefined ? { isDirectPartner: body.isDirectPartner } : {}),
+    ...(body.fraisDossier !== undefined ? { fraisDossier: Number(body.fraisDossier) } : {}),
+    ...(body.autoIssueAttestation !== undefined ? { autoIssueAttestation: body.autoIssueAttestation } : {}),
+    ...(body.commissionType !== undefined ? { commissionType: body.commissionType } : {}),
+    ...(body.commissionValue !== undefined ? { commissionValue: Number(body.commissionValue) } : {}),
+    ...(body.commissionPaidStatus !== undefined ? { commissionPaidStatus: body.commissionPaidStatus } : {}),
     updatedBy: user.email,
   }
 

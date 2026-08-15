@@ -331,6 +331,14 @@ const drawerTitle = computed(() => (editingId.value ? 'Modifier l’établisseme
               </td>
               <td class="admin-td text-right whitespace-nowrap">
                 <NuxtLink
+                  :to="`/admin/catalogue/ecoles/${e.id}`"
+                  class="inline-flex items-center gap-1 rounded-lg bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700 hover:bg-blue-100 mr-2"
+                  title="Consulter le rapport financier et orientations"
+                >
+                  <span class="material-symbols-outlined text-[14px]">analytics</span>
+                  Rapport & Finances
+                </NuxtLink>
+                <NuxtLink
                   :to="`/etablissements/${e.slug}`"
                   target="_blank"
                   class="admin-btn-ghost mr-2 text-xs"

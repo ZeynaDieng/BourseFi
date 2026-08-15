@@ -10,7 +10,12 @@ export default defineEventHandler(async (event) => {
       candidature: {
         select: {
           targetProgram: true,
-          programme: { select: { titre: true } },
+          programme: {
+            select: {
+              titre: true,
+              etablissement: { select: { nom: true, isDirectPartner: true } },
+            },
+          },
           partner: { select: { name: true } },
         },
       },
@@ -48,6 +53,8 @@ export default defineEventHandler(async (event) => {
       refCommand: p.refCommand,
       programme: p.candidature?.targetProgram ?? null,
       programmeTitre: p.candidature?.programme?.titre ?? null,
+      etablissementNom: p.candidature?.programme?.etablissement?.nom ?? null,
+      isDirectPartner: p.candidature?.programme?.etablissement?.isDirectPartner ?? false,
       partnerName: p.candidature?.partner?.name ?? null,
       createdAt: p.createdAt.toISOString(),
     })),

@@ -82,6 +82,16 @@
         Témoignages
       </NuxtLink>
 
+      <p class="mt-4 px-4 text-[10px] font-bold uppercase tracking-widest text-amber-600">Finances & Recouvrement</p>
+      <NuxtLink
+        to="/admin/commissionnement"
+        class="flex items-center justify-between rounded-lg px-4 py-3 font-bold text-amber-900 bg-amber-50/70 hover:bg-amber-100 transition"
+        active-class="bg-amber-200/70 text-amber-950 font-black ring-1 ring-amber-300"
+      >
+        <span>Commissionnement</span>
+        <span class="material-symbols-outlined text-[18px] text-amber-700">payments</span>
+      </NuxtLink>
+
       <p class="mt-4 px-4 text-[10px] font-bold uppercase tracking-widest text-slate-400">Rapports & système</p>
       <NuxtLink
         to="/admin/rapports"

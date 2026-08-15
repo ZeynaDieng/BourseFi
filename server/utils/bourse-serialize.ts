@@ -96,6 +96,8 @@ type BourseRow = {
       contactStatus: string
       contactVerifiedAt: Date | null
       status: string
+      isDirectPartner?: boolean
+      fraisDossier?: number
       contacts?: ContactItem[]
     }
   }
@@ -107,16 +109,21 @@ export function serializeBourse(b: BourseRow) {
   const activeTarifs = (b.programme.tarifs || []).filter((t) => t.status === 'ACTIVE')
   const currentTarif = activeTarifs.find((t) => t.isDefault) || activeTarifs[0] || null
 
+  const etab = b.programme.etablissement
+
+  const effectiveFraisDossier =
+    etab.isDirectPartner && etab.fraisDossier !== undefined && etab.fraisDossier !== null
+      ? etab.fraisDossier
+      : b.programme.fraisDossier
+
   const economy = computeScholarshipEconomy(
-    b.programme.fraisDossier,
+    effectiveFraisDossier,
     b.coveragePercent,
     currentTarif ? currentTarif.montant : null,
     currentTarif ? currentTarif.anneeAcademique : null,
     currentTarif ? currentTarif.montantBourse : b.montantMax,
     b.programme.devise,
   )
-
-  const etab = b.programme.etablissement
 
   return {
     id: b.id,
@@ -138,6 +145,7 @@ export function serializeBourse(b: BourseRow) {
     etablissementContactStatus: etab.contactStatus,
     etablissementContactVerifiedAt: etab.contactVerifiedAt ? etab.contactVerifiedAt.toISOString() : null,
     etablissementContacts: (etab.contacts || []).filter((c) => c.isActive),
+    isDirectPartner: etab.isDirectPartner ?? false,
     partnerName: b.partner.name,
     partnerSlug: b.partner.slug,
     partnerLogoUrl: b.partner.logoUrl,
@@ -173,8 +181,8 @@ export function serializeBourse(b: BourseRow) {
     economiePercent: economy.economiePercent,
     pricingStatus: economy.pricingStatus,
     isTarifDirect: economy.isTarifDirect,
-    fraisDossier: b.programme.fraisDossier,
-    fraisDossierEtranger: b.programme.fraisDossierEtranger ?? b.programme.fraisDossier,
+    fraisDossier: effectiveFraisDossier,
+    fraisDossierEtranger: b.programme.fraisDossierEtranger ?? effectiveFraisDossier,
     devise: b.programme.devise,
     quota: b.quota,
     dateDebut: b.dateDebut ? b.dateDebut.toISOString() : null,
