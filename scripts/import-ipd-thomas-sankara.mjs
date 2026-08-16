@@ -6,12 +6,15 @@ const IPD_ETAB_ID = 'cmrghuciw007wgny4ybtbw7ur'
 
 const PROGRAMMES_DATA = [
   // LICENCE — SCIENCES ET TECHNOLOGIES (5)
+  // Brochure publique : Inscription 150 000 + 8 mensualités de 85 000 = 830 000 FCFA
+  // Tarif réduit BourseFi : Inscription 150 000 + 8 mensualités de 54 375 = 585 000 FCFA (Économie: 245 000 FCFA / ~30%)
   {
     titre: 'Génie Civil (Licence)',
     slug: 'ipd-licence-genie-civil',
     niveau: 'Licence',
     categorie: 'TECH',
-    montant: 585000,
+    montantNormal: 830000,
+    montantReduit: 585000,
     fraisInscription: 150000,
     mensualite: 54375,
     nombreMois: 8,
@@ -24,7 +27,8 @@ const PROGRAMMES_DATA = [
     slug: 'ipd-licence-administration-gestion-reseaux',
     niveau: 'Licence',
     categorie: 'TECH',
-    montant: 585000,
+    montantNormal: 830000,
+    montantReduit: 585000,
     fraisInscription: 150000,
     mensualite: 54375,
     nombreMois: 8,
@@ -37,7 +41,8 @@ const PROGRAMMES_DATA = [
     slug: 'ipd-licence-genie-logiciel',
     niveau: 'Licence',
     categorie: 'TECH',
-    montant: 585000,
+    montantNormal: 830000,
+    montantReduit: 585000,
     fraisInscription: 150000,
     mensualite: 54375,
     nombreMois: 8,
@@ -50,7 +55,8 @@ const PROGRAMMES_DATA = [
     slug: 'ipd-licence-reseaux-telecom',
     niveau: 'Licence',
     categorie: 'TECH',
-    montant: 585000,
+    montantNormal: 830000,
+    montantReduit: 585000,
     fraisInscription: 150000,
     mensualite: 54375,
     nombreMois: 8,
@@ -63,7 +69,8 @@ const PROGRAMMES_DATA = [
     slug: 'ipd-licence-electrotechnique',
     niveau: 'Licence',
     categorie: 'TECH',
-    montant: 585000,
+    montantNormal: 830000,
+    montantReduit: 585000,
     fraisInscription: 150000,
     mensualite: 54375,
     nombreMois: 8,
@@ -73,12 +80,15 @@ const PROGRAMMES_DATA = [
   },
 
   // LICENCE — SCIENCES ÉCONOMIQUES ET DE GESTION (7)
+  // Brochure publique : Inscription 100 000 + 8 mensualités de 75 000 = 700 000 FCFA
+  // Tarif réduit BourseFi : Inscription 150 000 + 8 mensualités de 41 875 = 485 000 FCFA (Économie: 215 000 FCFA / ~31%)
   {
     titre: 'Administration des Entreprises (Licence)',
     slug: 'ipd-licence-administration-des-entreprises',
     niveau: 'Licence',
     categorie: 'ECO',
-    montant: 485000,
+    montantNormal: 700000,
+    montantReduit: 485000,
     fraisInscription: 150000,
     mensualite: 41875,
     nombreMois: 8,
@@ -91,7 +101,8 @@ const PROGRAMMES_DATA = [
     slug: 'ipd-licence-gestion-des-ressources-humaines',
     niveau: 'Licence',
     categorie: 'ECO',
-    montant: 485000,
+    montantNormal: 700000,
+    montantReduit: 485000,
     fraisInscription: 150000,
     mensualite: 41875,
     nombreMois: 8,
@@ -104,7 +115,8 @@ const PROGRAMMES_DATA = [
     slug: 'ipd-licence-finance-banque-assurance',
     niveau: 'Licence',
     categorie: 'ECO',
-    montant: 485000,
+    montantNormal: 700000,
+    montantReduit: 485000,
     fraisInscription: 150000,
     mensualite: 41875,
     nombreMois: 8,
@@ -117,7 +129,8 @@ const PROGRAMMES_DATA = [
     slug: 'ipd-licence-finance-comptabilite',
     niveau: 'Licence',
     categorie: 'ECO',
-    montant: 485000,
+    montantNormal: 700000,
+    montantReduit: 485000,
     fraisInscription: 150000,
     mensualite: 41875,
     nombreMois: 8,
@@ -130,7 +143,8 @@ const PROGRAMMES_DATA = [
     slug: 'ipd-licence-commerce-international',
     niveau: 'Licence',
     categorie: 'ECO',
-    montant: 485000,
+    montantNormal: 700000,
+    montantReduit: 485000,
     fraisInscription: 150000,
     mensualite: 41875,
     nombreMois: 8,
@@ -143,7 +157,8 @@ const PROGRAMMES_DATA = [
     slug: 'ipd-licence-transport-logistique',
     niveau: 'Licence',
     categorie: 'ECO',
-    montant: 485000,
+    montantNormal: 700000,
+    montantReduit: 485000,
     fraisInscription: 150000,
     mensualite: 41875,
     nombreMois: 8,
@@ -156,7 +171,8 @@ const PROGRAMMES_DATA = [
     slug: 'ipd-licence-marketing-communication',
     niveau: 'Licence',
     categorie: 'ECO',
-    montant: 485000,
+    montantNormal: 700000,
+    montantReduit: 485000,
     fraisInscription: 150000,
     mensualite: 41875,
     nombreMois: 8,
@@ -166,12 +182,15 @@ const PROGRAMMES_DATA = [
   },
 
   // MASTER — SCIENCES ET TECHNOLOGIES (9)
+  // Brochure publique : Inscription 150 000 + 8 mensualités de 95 000 = 910 000 FCFA
+  // Tarif réduit BourseFi : Inscription 150 000 + 8 mensualités de 60 000 = 630 000 FCFA (Économie: 280 000 FCFA / ~31%)
   {
     titre: 'Génie Civil (Master)',
     slug: 'ipd-master-genie-civil',
     niveau: 'Master',
     categorie: 'TECH',
-    montant: 630000,
+    montantNormal: 910000,
+    montantReduit: 630000,
     fraisInscription: 150000,
     mensualite: 60000,
     nombreMois: 8,
@@ -184,7 +203,8 @@ const PROGRAMMES_DATA = [
     slug: 'ipd-master-architecture',
     niveau: 'Master',
     categorie: 'TECH',
-    montant: 630000,
+    montantNormal: 910000,
+    montantReduit: 630000,
     fraisInscription: 150000,
     mensualite: 60000,
     nombreMois: 8,
@@ -197,7 +217,8 @@ const PROGRAMMES_DATA = [
     slug: 'ipd-master-topographie',
     niveau: 'Master',
     categorie: 'TECH',
-    montant: 630000,
+    montantNormal: 910000,
+    montantReduit: 630000,
     fraisInscription: 150000,
     mensualite: 60000,
     nombreMois: 8,
@@ -210,7 +231,8 @@ const PROGRAMMES_DATA = [
     slug: 'ipd-master-batiments-et-construction',
     niveau: 'Master',
     categorie: 'TECH',
-    montant: 630000,
+    montantNormal: 910000,
+    montantReduit: 630000,
     fraisInscription: 150000,
     mensualite: 60000,
     nombreMois: 8,
@@ -223,7 +245,8 @@ const PROGRAMMES_DATA = [
     slug: 'ipd-master-genie-logiciel',
     niveau: 'Master',
     categorie: 'TECH',
-    montant: 630000,
+    montantNormal: 910000,
+    montantReduit: 630000,
     fraisInscription: 150000,
     mensualite: 60000,
     nombreMois: 8,
@@ -236,7 +259,8 @@ const PROGRAMMES_DATA = [
     slug: 'ipd-master-administration-des-reseaux',
     niveau: 'Master',
     categorie: 'TECH',
-    montant: 630000,
+    montantNormal: 910000,
+    montantReduit: 630000,
     fraisInscription: 150000,
     mensualite: 60000,
     nombreMois: 8,
@@ -249,7 +273,8 @@ const PROGRAMMES_DATA = [
     slug: 'ipd-master-reseaux-telecom',
     niveau: 'Master',
     categorie: 'TECH',
-    montant: 630000,
+    montantNormal: 910000,
+    montantReduit: 630000,
     fraisInscription: 150000,
     mensualite: 60000,
     nombreMois: 8,
@@ -262,7 +287,8 @@ const PROGRAMMES_DATA = [
     slug: 'ipd-master-securite-des-systemes-et-reseaux',
     niveau: 'Master',
     categorie: 'TECH',
-    montant: 630000,
+    montantNormal: 910000,
+    montantReduit: 630000,
     fraisInscription: 150000,
     mensualite: 60000,
     nombreMois: 8,
@@ -275,7 +301,8 @@ const PROGRAMMES_DATA = [
     slug: 'ipd-master-electrotechnique',
     niveau: 'Master',
     categorie: 'TECH',
-    montant: 630000,
+    montantNormal: 910000,
+    montantReduit: 630000,
     fraisInscription: 150000,
     mensualite: 60000,
     nombreMois: 8,
@@ -285,12 +312,15 @@ const PROGRAMMES_DATA = [
   },
 
   // MASTER — SCIENCES ÉCONOMIQUES ET DE GESTION (9)
+  // Brochure publique : Inscription 100 000 + 8 mensualités de 85 000 = 780 000 FCFA
+  // Tarif réduit BourseFi : Inscription 150 000 + 8 mensualités de 50 000 = 550 000 FCFA (Économie: 230 000 FCFA / ~30%)
   {
     titre: 'Administration des Entreprises (Master)',
     slug: 'ipd-master-administration-des-entreprises',
     niveau: 'Master',
     categorie: 'ECO',
-    montant: 550000,
+    montantNormal: 780000,
+    montantReduit: 550000,
     fraisInscription: 150000,
     mensualite: 50000,
     nombreMois: 8,
@@ -303,7 +333,8 @@ const PROGRAMMES_DATA = [
     slug: 'ipd-master-gestion-des-ressources-humaines',
     niveau: 'Master',
     categorie: 'ECO',
-    montant: 550000,
+    montantNormal: 780000,
+    montantReduit: 550000,
     fraisInscription: 150000,
     mensualite: 50000,
     nombreMois: 8,
@@ -316,7 +347,8 @@ const PROGRAMMES_DATA = [
     slug: 'ipd-master-marketing-communication',
     niveau: 'Master',
     categorie: 'ECO',
-    montant: 550000,
+    montantNormal: 780000,
+    montantReduit: 550000,
     fraisInscription: 150000,
     mensualite: 50000,
     nombreMois: 8,
@@ -329,7 +361,8 @@ const PROGRAMMES_DATA = [
     slug: 'ipd-master-commerce-international',
     niveau: 'Master',
     categorie: 'ECO',
-    montant: 550000,
+    montantNormal: 780000,
+    montantReduit: 550000,
     fraisInscription: 150000,
     mensualite: 50000,
     nombreMois: 8,
@@ -342,7 +375,8 @@ const PROGRAMMES_DATA = [
     slug: 'ipd-master-transport-logistique',
     niveau: 'Master',
     categorie: 'ECO',
-    montant: 550000,
+    montantNormal: 780000,
+    montantReduit: 550000,
     fraisInscription: 150000,
     mensualite: 50000,
     nombreMois: 8,
@@ -355,7 +389,8 @@ const PROGRAMMES_DATA = [
     slug: 'ipd-master-finance-comptabilite',
     niveau: 'Master',
     categorie: 'ECO',
-    montant: 550000,
+    montantNormal: 780000,
+    montantReduit: 550000,
     fraisInscription: 150000,
     mensualite: 50000,
     nombreMois: 8,
@@ -368,7 +403,8 @@ const PROGRAMMES_DATA = [
     slug: 'ipd-master-finance-banque-assurance',
     niveau: 'Master',
     categorie: 'ECO',
-    montant: 550000,
+    montantNormal: 780000,
+    montantReduit: 550000,
     fraisInscription: 150000,
     mensualite: 50000,
     nombreMois: 8,
@@ -381,7 +417,8 @@ const PROGRAMMES_DATA = [
     slug: 'ipd-master-audit-comptable-financier-et-fiscal',
     niveau: 'Master',
     categorie: 'ECO',
-    montant: 550000,
+    montantNormal: 780000,
+    montantReduit: 550000,
     fraisInscription: 150000,
     mensualite: 50000,
     nombreMois: 8,
@@ -394,7 +431,8 @@ const PROGRAMMES_DATA = [
     slug: 'ipd-master-ingenierie-financiere',
     niveau: 'Master',
     categorie: 'ECO',
-    montant: 550000,
+    montantNormal: 780000,
+    montantReduit: 550000,
     fraisInscription: 150000,
     mensualite: 50000,
     nombreMois: 8,
@@ -405,7 +443,7 @@ const PROGRAMMES_DATA = [
 ]
 
 async function runImport() {
-  console.log('🚀 Début de l\'importation officielle IPD Thomas Sankara...')
+  console.log('🚀 Début de l\'importation officielle IPD Thomas Sankara (avec comparatif Tarifs Normaux vs Tarifs Réduits BourseFi)...')
 
   // 1. Récupérer ou créer le partenaire par défaut
   let partner = await prisma.partner.findFirst({
@@ -459,25 +497,25 @@ async function runImport() {
   const existingProgIds = existingProgs.map(p => p.id)
 
   if (existingProgIds.length > 0) {
-    // Supprimer les anciennes bourses liées
     await prisma.bourse.deleteMany({
       where: { programmeId: { in: existingProgIds } }
     })
-    // Supprimer les anciens tarifs liés
     await prisma.tarif.deleteMany({
       where: { programmeId: { in: existingProgIds } }
     })
-    // Supprimer les anciens programmes
     await prisma.programme.deleteMany({
       where: { id: { in: existingProgIds } }
     })
-    console.log(`🧹 ${existingProgIds.length} ancien(s) programme(s) obsolète(s) nettoyé(s).`)
+    console.log(`🧹 ${existingProgIds.length} ancien(s) programme(s) nettoyé(s).`)
   }
 
-  // 4. Importer les 30 programmes officiels 2026-2027
+  // 4. Importer les 30 programmes officiels 2026-2027 avec comparaison Tarifs Normaux vs Réduits
   let countImported = 0
 
   for (const progData of PROGRAMMES_DATA) {
+    const economie = progData.montantNormal - progData.montantReduit
+    const economiePercent = Math.round((economie / progData.montantNormal) * 100)
+
     const programme = await prisma.programme.create({
       data: {
         slug: progData.slug,
@@ -497,15 +535,15 @@ async function runImport() {
         tarifs: {
           create: {
             anneeAcademique: '2026-2027',
-            montant: progData.montant,
-            montantBourse: progData.montant,
+            montant: progData.montantNormal,
+            montantBourse: progData.montantReduit,
             fraisInscription: progData.fraisInscription,
             mensualite: progData.mensualite,
             nombreMois: progData.nombreMois,
             fraisSoutenance: progData.fraisSoutenance,
             frequence: 'ANNUEL',
             devise: 'FCFA',
-            label: 'Tarif Réduit Officiel IPD 2026-2027',
+            label: 'Tarif Réduit Officiel BourseFi 2026-2027',
             isDefault: true,
             isVerified: true,
             status: 'ACTIVE',
@@ -516,7 +554,7 @@ async function runImport() {
             slug: `bourse-${progData.slug}`,
             titre: `Bourse Officielle IPD — ${progData.titre}`,
             partnerId: partner.id,
-            coveragePercent: 0,
+            coveragePercent: economiePercent,
             quota: 30,
             placesRestantes: 25,
             dateLimite: new Date('2026-12-31T23:59:59.000Z'),
@@ -530,10 +568,10 @@ async function runImport() {
     })
 
     countImported++
-    console.log(`  [${countImported}/30] Programme ajouté : ${programme.titre} (${progData.montant.toLocaleString('fr-FR')} FCFA / an)`)
+    console.log(`  [${countImported}/30] ${programme.titre} | Normal: ${progData.montantNormal.toLocaleString('fr-FR')} F -> BourseFi: ${progData.montantReduit.toLocaleString('fr-FR')} F (-${economie.toLocaleString('fr-FR')} FCFA / ${economiePercent}%)`)
   }
 
-  console.log(`\n🎉 IMPORTATION RÉUSSIE ! ${countImported} programmes officiels IPD Thomas Sankara importés avec leurs grilles 2026-2027.`)
+  console.log(`\n🎉 IMPORTATION RÉUSSIE ! ${countImported} programmes officiels IPD Thomas Sankara mis à jour avec comparaison Tarifs Normaux vs Tarifs Réduits BourseFi.`)
 }
 
 runImport()
