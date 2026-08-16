@@ -214,7 +214,28 @@ async function runImport() {
 
     console.log(`✅ Établissement prêt : ${etab.nom} (${etab.id})`)
 
-    // 3. Importer les 12 programmes certifiants officiels ABS
+    // 3. Désactiver ou supprimer les anciennes formations d'ABS non présentes dans la grille officielle 2025-2026
+    const officialSlugs = OFFICIAL_ABS_PROGRAMMES.map(p => p.slug)
+    const oldProgs = await tx.programme.findMany({
+      where: {
+        etablissementId: etab.id,
+        slug: { notIn: officialSlugs }
+      },
+      include: { candidatures: true, bourses: true, tarifs: true }
+    })
+
+    for (const oldP of oldProgs) {
+      if (oldP.candidatures.length === 0) {
+        await tx.bourse.deleteMany({ where: { programmeId: oldP.id } })
+        await tx.tarif.deleteMany({ where: { programmeId: oldP.id } })
+        await tx.programme.delete({ where: { id: oldP.id } })
+      } else {
+        await tx.bourse.updateMany({ where: { programmeId: oldP.id }, data: { isActive: false, status: 'INACTIVE' } })
+        await tx.programme.update({ where: { id: oldP.id }, data: { status: 'INACTIVE' } })
+      }
+    }
+
+    // 4. Importer les 12 programmes certifiants officiels ABS
     for (const progData of OFFICIAL_ABS_PROGRAMMES) {
       let prog = await tx.programme.findFirst({
         where: { slug: progData.slug }
