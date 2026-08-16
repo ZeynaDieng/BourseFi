@@ -112,9 +112,9 @@ export function serializeBourse(b: BourseRow) {
   const etab = b.programme.etablissement
 
   const effectiveFraisDossier =
-    etab.isDirectPartner && etab.fraisDossier !== undefined && etab.fraisDossier !== null
-      ? etab.fraisDossier
-      : b.programme.fraisDossier
+    b.programme.fraisDossier !== undefined && b.programme.fraisDossier !== null
+      ? b.programme.fraisDossier
+      : (etab.fraisDossier ?? 20000)
 
   const economy = computeScholarshipEconomy(
     effectiveFraisDossier,
