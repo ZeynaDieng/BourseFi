@@ -13,6 +13,7 @@ const OFFICIAL_PROGRAMMES_DATA = [
     niveau: 'Licence',
     existingId: 'cmrghucg8002bgny4dxlcmh7t',
     existingBourseId: 'cmrghucys00okgny4tlz62s0h',
+    keywords: ['financi', 'comptab'],
     description: 'Formation aux normes comptables SYSCOHADA, analyse financière, gestion de trésorerie et contrôle de gestion.',
   },
   {
@@ -21,12 +22,14 @@ const OFFICIAL_PROGRAMMES_DATA = [
     niveau: 'Licence',
     existingId: 'cmrghucgb002ngny4dz4ynsr5',
     existingBourseId: 'cmrghucwk00icgny4sc69klyd',
+    keywords: ['banque', 'assurance'],
     description: 'Spécialisation dans les opérations bancaires, les produits d\'assurance et la gestion de portefeuille.',
   },
   {
     slug: 'estg-licence-gestion-des-entreprises',
     titre: 'Gestion des Entreprises (Licence Professionnelle)',
     niveau: 'Licence',
+    keywords: ['gestion des entreprises'],
     description: 'Management d\'entreprise, stratégie organisationnelle, droit des affaires et entrepreneuriat.',
   },
   {
@@ -35,6 +38,7 @@ const OFFICIAL_PROGRAMMES_DATA = [
     niveau: 'Licence',
     existingId: 'cmrghucgd002rgny42gefzgdv',
     existingBourseId: 'cmrghucwp00iwgny44el1dg7o',
+    keywords: ['commerce international'],
     description: 'Techniques d\'import-export, douanes, incoterms et négociation commerciale internationale.',
   },
   {
@@ -43,18 +47,21 @@ const OFFICIAL_PROGRAMMES_DATA = [
     niveau: 'Licence',
     existingId: 'cmrghucg9002fgny48f3elu5p',
     existingBourseId: 'cmrghud1w00vugny4cp69ilo1',
+    keywords: ['transport', 'logistique'],
     description: 'Gestion de la chaîne d\'approvisionnement (Supply Chain), logistique de distribution et gestion de flotte.',
   },
   {
     slug: 'estg-licence-marketing-et-communication',
     titre: 'Marketing et Communication (Licence Professionnelle)',
     niveau: 'Licence',
+    keywords: ['marketing', 'communication'],
     description: 'Stratégie de marque, marketing digital, publicité, événementiel et relations publiques.',
   },
   {
     slug: 'estg-licence-qhse',
     titre: 'Qualité, Hygiène, Sécurité et Environnement (QHSE) (Licence Professionnelle)',
     niveau: 'Licence',
+    keywords: ['qhse', 'qualité', 'qualite'],
     description: 'Management de la qualité, normes ISO, prévention des risques professionnels et gestion environnementale.',
   },
   {
@@ -63,24 +70,28 @@ const OFFICIAL_PROGRAMMES_DATA = [
     niveau: 'Licence',
     existingId: 'cmrghucgc002pgny4z0y348st',
     existingBourseId: 'cmrghucz200p2gny4uxlpp8jl',
+    keywords: ['ressources humaines', 'grh'],
     description: 'Gestion de la paie, recrutement, droit du travail et administration du personnel.',
   },
   {
     slug: 'estg-licence-informatique-de-gestion',
     titre: 'Informatique de Gestion (Licence Professionnelle)',
     niveau: 'Licence',
+    keywords: ['informatique'],
     description: 'Conception de systèmes d\'information, bases de données d\'entreprise et développement d\'applications de gestion.',
   },
   {
     slug: 'estg-licence-securite-informatique',
     titre: 'Sécurité Informatique (Licence Professionnelle)',
     niveau: 'Licence',
+    keywords: ['sécurité', 'securite'],
     description: 'Sécurisation des réseaux, cryptographie, protection des données et audit de vulnérabilités.',
   },
   {
     slug: 'estg-licence-reseaux-et-telecommunications',
     titre: 'Réseaux et Télécommunications (Licence Professionnelle)',
     niveau: 'Licence',
+    keywords: ['réseaux', 'reseaux', 'télécom'],
     description: 'Administration système et réseaux, télécommunications, fibre optique et réseaux mobiles.',
   },
 
@@ -91,12 +102,14 @@ const OFFICIAL_PROGRAMMES_DATA = [
     niveau: 'Master',
     existingId: 'cmrghucgg002zgny4r858bw3v',
     existingBourseId: 'cmrghucyt00omgny4ok21pxxa',
+    keywords: ['financie', 'financi'],
     description: 'Ingénierie financière, marchés des capitaux, évaluation d\'entreprise et stratégie financière.',
   },
   {
     slug: 'estg-master-comptabilite-controle-audit',
     titre: 'Comptabilité-Contrôle-Audit (Master Professionnel)',
     niveau: 'Master',
+    keywords: ['comptab', 'audit'],
     description: 'Expertise comptable SYSCOHADA révisé, audit interne et externe et contrôle de gestion.',
   },
   {
@@ -105,6 +118,7 @@ const OFFICIAL_PROGRAMMES_DATA = [
     niveau: 'Master',
     existingId: 'cmrghucgg002xgny41w3jl747',
     existingBourseId: 'cmrghucyn00o4gny4hmvu0ejm',
+    keywords: ['ressources humaines', 'grh'],
     description: 'Management stratégique des RH, développement du capital humain et gestion de la transformation organisationnelle.',
   },
   {
@@ -113,6 +127,7 @@ const OFFICIAL_PROGRAMMES_DATA = [
     niveau: 'Master',
     existingId: 'cmrghucgi0033gny4yfml8dkx',
     existingBourseId: 'cmrghud1900u2gny4lfp8qomt',
+    keywords: ['qhse', 'qualité', 'qualite'],
     description: 'Audit et systèmes intégrés QSE, prévention des risques industriels et responsabilité sociétale (RSE).',
   },
   {
@@ -121,6 +136,7 @@ const OFFICIAL_PROGRAMMES_DATA = [
     niveau: 'Master',
     existingId: 'cmrghucgh0031gny4g691qhli',
     existingBourseId: 'cmrghud0f00s2gny4cwgmjurw',
+    keywords: ['entreprise', 'management'],
     description: 'Pilotage de la performance, gouvernance d\'entreprise et développement stratégique.',
   },
   {
@@ -129,6 +145,7 @@ const OFFICIAL_PROGRAMMES_DATA = [
     niveau: 'Master',
     existingId: 'cmrghucgi0035gny4cs9gzah1',
     existingBourseId: 'cmrghud1y00w0gny4xcgi1s4r',
+    keywords: ['transport', 'logistique'],
     description: 'Supply Chain globale, ingénierie logistique et commerce international.',
   },
   {
@@ -137,6 +154,7 @@ const OFFICIAL_PROGRAMMES_DATA = [
     niveau: 'Master',
     existingId: 'cmrghucge002tgny40470wz04',
     existingBourseId: 'cmrghud0y00tcgny4ku5phwk0',
+    keywords: ['marketing', 'communication'],
     description: 'Communication de crise, marketing d\'influence, stratégie de marque et branding.',
   },
 ]
@@ -217,13 +235,18 @@ async function runImport() {
 
     // 3. Désactiver tous les anciens programmes ESTG (les passer en INACTIVE)
     const existingProgs = await tx.programme.findMany({
-      where: { etablissementId: etab.id }
+      where: {
+        OR: [
+          { etablissementId: etab.id },
+          { slug: { contains: 'estg' } }
+        ]
+      }
     })
 
     for (const ep of existingProgs) {
       await tx.programme.update({
         where: { id: ep.id },
-        data: { status: 'INACTIVE' }
+        data: { status: 'INACTIVE', etablissementId: etab.id }
       })
     }
 
@@ -241,25 +264,41 @@ async function runImport() {
     }
 
     // 4. Traiter les 18 programmes officiels et leurs 36 tarifs
-    const officialProgIds = []
+    const usedProgIds = new Set()
 
     for (const progData of OFFICIAL_PROGRAMMES_DATA) {
-      let prog = await tx.programme.findFirst({
+      let prog = null
+
+      // 4.1 Recherche par slug exact
+      prog = await tx.programme.findFirst({
         where: { slug: progData.slug }
       })
-      if (!prog && progData.existingId) {
+
+      // 4.2 Recherche par ID si non encore attribué
+      if (!prog && progData.existingId && !usedProgIds.has(progData.existingId)) {
         prog = await tx.programme.findUnique({ where: { id: progData.existingId } })
       }
+
+      // 4.3 Recherche par mot-clé et niveau parmi les programmes existants d'ESTG
       if (!prog) {
-        prog = await tx.programme.findFirst({
-          where: {
-            etablissementId: etab.id,
-            titre: { contains: progData.titre.slice(0, 12), mode: 'insensitive' }
-          }
-        })
+        for (const kw of (progData.keywords || [])) {
+          prog = await tx.programme.findFirst({
+            where: {
+              etablissementId: etab.id,
+              id: { notIn: Array.from(usedProgIds) },
+              niveau: { contains: progData.niveau, mode: 'insensitive' },
+              OR: [
+                { titre: { contains: kw, mode: 'insensitive' } },
+                { slug: { contains: kw, mode: 'insensitive' } }
+              ]
+            }
+          })
+          if (prog) break
+        }
       }
 
       if (prog) {
+        usedProgIds.add(prog.id)
         prog = await tx.programme.update({
           where: { id: prog.id },
           data: {
@@ -297,10 +336,9 @@ async function runImport() {
             partnerId: partner.id,
           }
         })
+        usedProgIds.add(prog.id)
         stats.createCount++
       }
-
-      officialProgIds.push(prog.id)
 
       // Supprimer les anciens tarifs pour ce programme et recréer les 2 tarifs officiels 2025-2026
       await tx.tarif.deleteMany({
