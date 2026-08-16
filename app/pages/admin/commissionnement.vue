@@ -125,7 +125,9 @@ async function loadData() {
     studentCommissions.value = await $fetch<StudentCommissionRow[]>('/api/admin/commissions/dossiers')
 
   } catch (err) {
-    alert(getAdminErrorMessage(err, 'Erreur lors du chargement des données de commissionnement.'))
+    if (import.meta.client) {
+      alert(getAdminErrorMessage(err, 'Erreur lors du chargement des données de commissionnement.'))
+    }
   } finally {
     loading.value = false
   }
@@ -153,7 +155,9 @@ async function handleValidatePayout() {
     modalOpen.value = false
     await loadData()
   } catch (err) {
-    alert(getAdminErrorMessage(err, 'Erreur lors de la validation du règlement.'))
+    if (import.meta.client) {
+      alert(getAdminErrorMessage(err, 'Erreur lors de la validation du règlement.'))
+    }
   } finally {
     validating.value = false
   }
@@ -167,7 +171,9 @@ async function toggleStudentCommissionStatus(row: StudentCommissionRow, newStatu
     })
     await loadData()
   } catch (err) {
-    alert(getAdminErrorMessage(err, 'Erreur lors de la mise à jour de la commission.'))
+    if (import.meta.client) {
+      alert(getAdminErrorMessage(err, 'Erreur lors de la mise à jour de la commission.'))
+    }
   }
 }
 

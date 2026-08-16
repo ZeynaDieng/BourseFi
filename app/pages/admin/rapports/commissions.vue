@@ -90,7 +90,9 @@ async function load() {
 
     schools.value = results
   } catch (err) {
-    alert(getAdminErrorMessage(err, 'Erreur lors du chargement des commissions.'))
+    if (import.meta.client) {
+      alert(getAdminErrorMessage(err, 'Erreur lors du chargement des commissions.'))
+    }
   } finally {
     loading.value = false
   }
@@ -118,7 +120,9 @@ async function handleValidatePayout() {
     modalOpen.value = false
     await load()
   } catch (err) {
-    alert(getAdminErrorMessage(err, 'Erreur lors de la validation du règlement.'))
+    if (import.meta.client) {
+      alert(getAdminErrorMessage(err, 'Erreur lors de la validation du règlement.'))
+    }
   } finally {
     validating.value = false
   }
