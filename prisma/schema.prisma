@@ -116,7 +116,7 @@ model Programme {
   titre                String
   ville                String
   duree                String
-  fraisDossier         Int           @default(20000)
+  fraisDossier         Int?
   fraisDossierEtranger Int?          @default(30000)
   devise               String        @default("FCFA")
   niveau               String
