@@ -18,7 +18,12 @@ const programmeCount = computed(
 const boursesCount = computed(() => props.ecole.boursesCount ?? 0)
 
 const initials = computed(() => {
-  const words = props.ecole.nom.split(/\s+/).filter(Boolean)
+  const name = props.ecole.nom.trim()
+  const firstWord = name.split(/\s+/)[0]
+  if (firstWord && firstWord.length >= 2 && firstWord === firstWord.toUpperCase() && /^[A-Z0-9]+$/.test(firstWord)) {
+    return firstWord.slice(0, 4)
+  }
+  const words = name.split(/\s+/).filter((w) => !['—', '-', '«', '»'].includes(w))
   const letters = words.slice(0, 3).map((w) => w[0]?.toUpperCase() ?? '')
   return letters.join('').slice(0, 3) || 'BF'
 })
@@ -46,12 +51,12 @@ function formatBourses(count: number) {
       />
       <span
         v-if="boursesCount > 0"
-        :class="[badgePopular, 'absolute right-3 top-3 shadow-sm']"
+        class="absolute right-3 top-3 z-10 inline-flex items-center rounded-full bg-slate-900/85 px-3 py-1 text-[11px] font-extrabold text-white shadow-md backdrop-blur-xs ring-1 ring-white/20"
       >
         {{ boursesCount }} bourse{{ boursesCount !== 1 ? 's' : '' }}
       </span>
       <div
-        class="absolute left-3 top-3 flex h-[52px] w-[52px] items-center justify-center overflow-hidden rounded-xl bg-white p-1.5 shadow-md ring-1 ring-black/5"
+        class="absolute left-3 top-3 z-10 flex h-[52px] w-[52px] items-center justify-center overflow-hidden rounded-xl bg-white p-1.5 shadow-md ring-1 ring-black/5"
       >
         <img
           v-if="ecole.logoUrl?.trim()"
@@ -64,7 +69,7 @@ function formatBourses(count: number) {
         />
         <span
           v-else
-          class="flex h-full w-full items-center justify-center rounded-lg bg-primary/10 text-[11px] font-extrabold leading-none text-primary"
+          class="flex h-full w-full items-center justify-center rounded-lg bg-primary/10 text-[11px] font-black leading-none text-primary"
         >
           {{ initials }}
         </span>
