@@ -143,17 +143,22 @@ useSiteSeo({
           🎉 Cette opportunité vous permet d'économiser {{ bourse.economie.toLocaleString('fr-FR') }} {{ bourse.devise }} sur le tarif normal !
         </p>
       </div>
+      <div v-else class="mb-6 rounded-2xl bg-emerald-50/80 border border-emerald-200 p-4 text-center shadow-sm">
+        <p class="font-headline text-base font-extrabold text-emerald-950">
+          ✨ Tarif officiel réduit garanti 2026-2027 pour les candidats inscrits sur BourseFi !
+        </p>
+      </div>
 
-      <div v-if="bourse.hasTuitionFee">
+      <div v-if="bourse.hasTuitionFee || (bourse.tarifs && bourse.tarifs.length > 0)">
         <div class="grid gap-4 sm:grid-cols-2 md:gap-x-12 text-sm">
-          <div class="flex items-center justify-between border-b border-slate-100 py-3 gap-4">
+          <div v-if="bourse.economie && bourse.economie > 0" class="flex items-center justify-between border-b border-slate-100 py-3 gap-4">
             <span class="text-slate-500 font-medium">Tarif public normal</span>
-            <span class="font-bold text-slate-400 line-through whitespace-nowrap">{{ bourse.tuitionFee.toLocaleString('fr-FR') }} {{ bourse.devise }} / an</span>
+            <span class="font-bold text-slate-400 line-through whitespace-nowrap">{{ bourse.tuitionFee?.toLocaleString('fr-FR') }} {{ bourse.devise }} / an</span>
           </div>
           
           <div class="flex items-center justify-between border-b border-slate-100 py-3 gap-4">
-            <span class="text-slate-700 font-bold">Votre tarif avec BourseFi</span>
-            <span class="font-black text-primary text-base whitespace-nowrap">{{ (bourse.montantBourse || bourse.resteACharge || 0).toLocaleString('fr-FR') }} {{ bourse.devise }} / an</span>
+            <span class="text-slate-700 font-bold">Votre tarif officiel garanti</span>
+            <span class="font-black text-primary text-base whitespace-nowrap">{{ (bourse.montantBourse || bourse.resteACharge || bourse.tuitionFee || 0).toLocaleString('fr-FR') }} {{ bourse.devise }} / an</span>
           </div>
 
           <div v-if="bourse.economie && bourse.economie > 0" class="flex items-center justify-between border-b border-slate-100 py-3 gap-4">

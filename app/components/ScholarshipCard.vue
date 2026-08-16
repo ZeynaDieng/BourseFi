@@ -49,8 +49,8 @@ const isDirectRate = computed(() => {
             ({{ bourse.economiePercent }} %)
           </template>
         </span>
-        <span v-else-if="isDirectRate" class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-700">
-          Tarif officiel : {{ (bourse.tuitionFee || bourse.montantBourse || 0).toLocaleString('fr-FR') }} {{ bourse.devise }}
+        <span v-else-if="isDirectRate || bourse.tuitionFee || bourse.montantBourse" class="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800">
+          Tarif officiel garanti : {{ (bourse.montantBourse || bourse.tuitionFee || 0).toLocaleString('fr-FR') }} {{ bourse.devise }}
         </span>
         <span v-else-if="showCoveragePercent && bourse.coveragePercent > 0" :class="[badgeCoverage, 'w-fit']">
           {{ bourse.coveragePercent }} % de prise en charge
@@ -64,6 +64,11 @@ const isDirectRate = computed(() => {
         </span>
         <span class="text-xs text-slate-400 line-through">
           {{ bourse.tuitionFee?.toLocaleString('fr-FR') }} {{ bourse.devise }}
+        </span>
+      </div>
+      <div v-else-if="bourse.tuitionFee || bourse.montantBourse" class="mt-3 flex items-baseline gap-2 text-sm">
+        <span class="font-extrabold text-primary">
+          {{ (bourse.montantBourse || bourse.tuitionFee)?.toLocaleString('fr-FR') }} {{ bourse.devise }} / an
         </span>
       </div>
     </div>
