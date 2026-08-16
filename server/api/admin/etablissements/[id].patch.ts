@@ -40,6 +40,7 @@ export default defineEventHandler(async (event) => {
     commissionType?: string
     commissionValue?: number
     commissionPaidStatus?: string
+    programmeCommissions?: Array<{ id: string; fraisDossier: number | null }>
   }>(event)
 
   if (body.slug !== undefined) {
@@ -90,6 +91,21 @@ export default defineEventHandler(async (event) => {
     where: { id },
     data: updateData,
   })
+
+  if (Array.isArray(body.programmeCommissions) && body.programmeCommissions.length > 0) {
+    for (const item of body.programmeCommissions) {
+      if (item.id) {
+        await prisma.programme.update({
+          where: { id: item.id },
+          data: {
+            fraisDossier: item.fraisDossier !== null && item.fraisDossier !== undefined && item.fraisDossier > 0
+              ? Number(item.fraisDossier)
+              : null
+          }
+        })
+      }
+    }
+  }
 
   await writeAuditLog({
     actorId: user.id,

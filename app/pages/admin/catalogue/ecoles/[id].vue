@@ -8,6 +8,20 @@ const route = useRoute()
 const router = useRouter()
 const schoolId = computed(() => route.params.id as string)
 
+type ProgrammeBreakdownItem = {
+  id: string
+  slug: string
+  titre: string
+  niveau: string
+  duree: string
+  status: string
+  fraisDossier: number | null
+  effectiveFraisDossier: number
+  tuitionFee: number | null
+  orientedCount: number
+  totalCommission: number
+}
+
 type RapportData = {
   etablissement: {
     id: string
@@ -27,17 +41,10 @@ type RapportData = {
     totalPaidCount: number
     totalFraisDossierCollectes: number
     totalCommissionsDues: number
+    activeProgrammesCount?: number
+    totalProgrammesCount?: number
   }
-  programmesBreakdown: Array<{
-    id: string
-    slug: string
-    titre: string
-    niveau: string
-    duree: string
-    tuitionFee: number | null
-    orientedCount: number
-    totalCommission: number
-  }>
+  programmesBreakdown: Array<ProgrammeBreakdownItem>
   studentList: Array<{
     id: string
     fullName: string
@@ -61,6 +68,10 @@ const activeTab = ref<'orientations' | 'programmes' | 'settings'>('orientations'
 
 const searchStudent = ref('')
 const statusFilter = ref('ALL')
+const showOnlyActiveProgrammes = ref(true)
+
+// Map des frais de dossier spécifiques par formation
+const programmeCommissionsMap = ref<Record<string, number | null>>({})
 
 // Formulaire d'édition des paramètres partenaire
 const partnerForm = ref({
@@ -89,6 +100,13 @@ async function loadRapport() {
       commissionValue: res.etablissement.commissionValue ?? 0,
       commissionPaidStatus: res.etablissement.commissionPaidStatus || 'UP_TO_DATE',
     }
+
+    // Initialiser la map des commissions spécifiques par formation
+    const pMap: Record<string, number | null> = {}
+    res.programmesBreakdown.forEach((p) => {
+      pMap[p.id] = p.fraisDossier
+    })
+    programmeCommissionsMap.value = pMap
   } catch (err) {
     errorMsg.value = getAdminErrorMessage(err, 'Erreur lors du chargement du rapport.')
   } finally {
@@ -97,6 +115,24 @@ async function loadRapport() {
 }
 
 await loadRapport()
+
+const activeProgrammesCount = computed(() => {
+  if (!data.value) return 0
+  return data.value.programmesBreakdown.filter((p) => p.status === 'ACTIVE').length
+})
+
+const filteredProgrammes = computed(() => {
+  if (!data.value) return []
+  if (showOnlyActiveProgrammes.value) {
+    return data.value.programmesBreakdown.filter((p) => p.status === 'ACTIVE')
+  }
+  return data.value.programmesBreakdown
+})
+
+const activeProgrammesList = computed(() => {
+  if (!data.value) return []
+  return data.value.programmesBreakdown.filter((p) => p.status === 'ACTIVE')
+})
 
 const filteredStudents = computed(() => {
   if (!data.value) return []
@@ -125,10 +161,19 @@ const filteredStudents = computed(() => {
 async function saveSettings() {
   savingPartnerSettings.value = true
   saveSuccess.value = false
+
+  const programmeCommissions = Object.entries(programmeCommissionsMap.value).map(([id, val]) => ({
+    id,
+    fraisDossier: val !== null && val !== undefined && val > 0 ? Number(val) : null,
+  }))
+
   try {
     await $fetch(`/api/admin/etablissements/${schoolId.value}`, {
       method: 'PATCH',
-      body: partnerForm.value,
+      body: {
+        ...partnerForm.value,
+        programmeCommissions,
+      },
     })
     saveSuccess.value = true
     await loadRapport()
@@ -148,6 +193,7 @@ function exportExcel() {
 <template>
   <div class="flex min-h-screen bg-slate-50">
     <AdminSidebar />
+
     <main class="flex-1 p-4 md:p-8 space-y-8">
       <!-- Chargement / Erreur -->
       <div v-if="loading" class="py-12 text-center text-slate-500">
@@ -179,7 +225,7 @@ function exportExcel() {
               </span>
             </div>
             <p class="text-sm text-slate-500 mt-1">
-              Ville : <strong>{{ data.etablissement.ville }}</strong> | Frais dossier : <strong>{{ (data.etablissement.fraisDossier || 20000).toLocaleString('fr-FR') }} FCFA</strong>
+              Ville : <strong>{{ data.etablissement.ville }}</strong> | Commission globale école : <strong>{{ (data.etablissement.fraisDossier || 20000).toLocaleString('fr-FR') }} FCFA</strong>
             </p>
           </div>
 
@@ -232,15 +278,15 @@ function exportExcel() {
           <!-- Réglages Partenariat -->
           <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm flex flex-col justify-between">
             <div class="flex items-center justify-between text-slate-400">
-              <span class="text-xs font-bold uppercase tracking-wider">Tarif Frais Dossier</span>
-              <span class="material-symbols-outlined text-slate-600">tune</span>
+              <span class="text-xs font-bold uppercase tracking-wider">Formations Actives</span>
+              <span class="material-symbols-outlined text-slate-600">auto_stories</span>
             </div>
             <div>
               <p class="text-2xl font-extrabold text-slate-900">
-                {{ (data.etablissement.fraisDossier || 20000).toLocaleString('fr-FR') }} FCFA
+                {{ activeProgrammesCount }} <span class="text-xs text-slate-400 font-normal">actives / {{ data.programmesBreakdown.length }} au total</span>
               </p>
-              <p class="text-xs text-slate-500 mt-0.5">
-                {{ data.etablissement.isDirectPartner ? 'Tarif préférentiel direct' : 'Tarif standard' }}
+              <p class="text-xs text-emerald-600 font-bold mt-0.5">
+                Seules les 20 actives sont visibles sur le site
               </p>
             </div>
           </div>
@@ -263,7 +309,7 @@ function exportExcel() {
               :class="activeTab === 'programmes' ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover:text-slate-800'"
               @click="activeTab = 'programmes'"
             >
-              Orientations par Formation ({{ data.programmesBreakdown.length }})
+              Orientations par Formation ({{ activeProgrammesCount }} actives / {{ data.programmesBreakdown.length }})
             </button>
             <button
               type="button"
@@ -366,116 +412,214 @@ function exportExcel() {
         </div>
 
         <!-- ONGLET 2 : Orientations par Formation -->
-        <div v-else-if="activeTab === 'programmes'" class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-          <table class="w-full text-left text-sm text-slate-700">
-            <thead class="bg-slate-50 text-xs uppercase font-bold text-slate-500 border-b border-slate-200">
-              <tr>
-                <th class="px-4 py-3">Formation</th>
-                <th class="px-4 py-3">Niveau</th>
-                <th class="px-4 py-3">Tarif Scolarité Officiel</th>
-                <th class="px-4 py-3 text-center">Élèves Orientés</th>
-                <th class="px-4 py-3 text-right">Total Commission Générée</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-100">
-              <tr v-for="prog in data.programmesBreakdown" :key="prog.id" class="hover:bg-slate-50">
-                <td class="px-4 py-3.5 font-bold text-slate-900">{{ prog.titre }}</td>
-                <td class="px-4 py-3.5 text-xs text-slate-500">{{ prog.niveau }} ({{ prog.duree }})</td>
-                <td class="px-4 py-3.5 font-medium">
-                  {{ prog.tuitionFee ? `${prog.tuitionFee.toLocaleString('fr-FR')} FCFA` : 'Non renseigné' }}
-                </td>
-                <td class="px-4 py-3.5 text-center">
-                  <span class="inline-flex items-center justify-center rounded-full bg-blue-100 px-3 py-1 text-xs font-black text-blue-900">
-                    {{ prog.orientedCount }}
-                  </span>
-                </td>
-                <td class="px-4 py-3.5 text-right font-extrabold text-amber-900">
-                  {{ prog.totalCommission.toLocaleString('fr-FR') }} FCFA
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <div v-else-if="activeTab === 'programmes'" class="space-y-4">
+          <!-- Filtre Actifs vs Inactifs -->
+          <div class="flex items-center justify-between bg-white p-4 rounded-xl border border-slate-200">
+            <div>
+              <p class="text-sm font-bold text-slate-900">Filtre d'affichage du catalogue</p>
+              <p class="text-xs text-slate-500">Seules les <strong>{{ activeProgrammesCount }} formations actives</strong> apparaissent sur le site public BourseFi.</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button
+                type="button"
+                class="px-3 py-1.5 text-xs font-bold rounded-lg transition"
+                :class="showOnlyActiveProgrammes ? 'bg-primary text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+                @click="showOnlyActiveProgrammes = true"
+              >
+                Formations actives ({{ activeProgrammesCount }})
+              </button>
+              <button
+                type="button"
+                class="px-3 py-1.5 text-xs font-bold rounded-lg transition"
+                :class="!showOnlyActiveProgrammes ? 'bg-primary text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+                @click="showOnlyActiveProgrammes = false"
+              >
+                Toutes y compris inactives ({{ data.programmesBreakdown.length }})
+              </button>
+            </div>
+          </div>
+
+          <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+            <table class="w-full text-left text-sm text-slate-700">
+              <thead class="bg-slate-50 text-xs uppercase font-bold text-slate-500 border-b border-slate-200">
+                <tr>
+                  <th class="px-4 py-3">Formation</th>
+                  <th class="px-4 py-3">Statut Site</th>
+                  <th class="px-4 py-3">Frais / Commission</th>
+                  <th class="px-4 py-3">Tarif Scolarité Officiel</th>
+                  <th class="px-4 py-3 text-center">Élèves Orientés</th>
+                  <th class="px-4 py-3 text-right">Total Commission Générée</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                <tr v-for="prog in filteredProgrammes" :key="prog.id" class="hover:bg-slate-50">
+                  <td class="px-4 py-3.5">
+                    <p class="font-bold text-slate-900">{{ prog.titre }}</p>
+                    <p class="text-xs text-slate-500">{{ prog.niveau }} ({{ prog.duree }})</p>
+                  </td>
+                  <td class="px-4 py-3.5">
+                    <span v-if="prog.status === 'ACTIVE'" class="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800">
+                      🟢 Active sur le site
+                    </span>
+                    <span v-else class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-500">
+                      ⚪ Inactive (Masquée)
+                    </span>
+                  </td>
+                  <td class="px-4 py-3.5">
+                    <span v-if="prog.fraisDossier" class="inline-flex items-center gap-1 font-bold text-amber-900 bg-amber-50 px-2.5 py-1 rounded-lg text-xs border border-amber-200">
+                      ⚡ Spécifique : {{ prog.fraisDossier.toLocaleString('fr-FR') }} FCFA
+                    </span>
+                    <span v-else class="text-xs text-slate-600 font-medium">
+                      École : {{ prog.effectiveFraisDossier.toLocaleString('fr-FR') }} FCFA
+                    </span>
+                  </td>
+                  <td class="px-4 py-3.5 font-medium">
+                    {{ prog.tuitionFee ? `${prog.tuitionFee.toLocaleString('fr-FR')} FCFA` : 'Non renseigné' }}
+                  </td>
+                  <td class="px-4 py-3.5 text-center">
+                    <span class="inline-flex items-center justify-center rounded-full bg-blue-100 px-3 py-1 text-xs font-black text-blue-900">
+                      {{ prog.orientedCount }}
+                    </span>
+                  </td>
+                  <td class="px-4 py-3.5 text-right font-extrabold text-amber-900">
+                    {{ prog.totalCommission.toLocaleString('fr-FR') }} FCFA
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
 
         <!-- ONGLET 3 : Paramètres Partenariat & Commissions -->
-        <div v-else-if="activeTab === 'settings'" class="max-w-3xl rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-6">
-          <div>
-            <h2 class="font-headline text-lg font-bold text-primary">Configuration du Partenariat Direct</h2>
-            <p class="text-xs text-slate-500 mt-1">Définissez les privilèges, frais de dossier réduits et règles de commission pour {{ data.etablissement.nom }}.</p>
-          </div>
-
-          <form @submit.prevent="saveSettings" class="space-y-5">
-            <!-- Toggle Partenaire Direct -->
-            <div class="flex items-center justify-between p-4 rounded-xl border border-slate-200 bg-slate-50/50">
+        <div v-else-if="activeTab === 'settings'" class="space-y-8">
+          <form @submit.prevent="saveSettings" class="space-y-8">
+            <!-- CARTE 1 : Configuration Globale Partenariat -->
+            <div class="max-w-4xl rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-6">
               <div>
-                <p class="text-sm font-bold text-slate-900">Activer le statut "Partenaire Direct"</p>
-                <p class="text-xs text-slate-500">Permet la personnalisation des frais de dossier et la délivrance automatique.</p>
+                <h2 class="font-headline text-lg font-bold text-primary">1. Configuration du Partenariat Direct (Niveau École)</h2>
+                <p class="text-xs text-slate-500 mt-1">Définissez les privilèges, frais de dossier généraux et règles de commission globales pour {{ data.etablissement.nom }}.</p>
               </div>
-              <input type="checkbox" v-model="partnerForm.isDirectPartner" class="h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary" />
+
+              <div class="space-y-5">
+                <!-- Toggle Partenaire Direct -->
+                <div class="flex items-center justify-between p-4 rounded-xl border border-slate-200 bg-slate-50/50">
+                  <div>
+                    <p class="text-sm font-bold text-slate-900">Activer le statut "Partenaire Direct"</p>
+                    <p class="text-xs text-slate-500">Permet la personnalisation des frais de dossier et la délivrance automatique.</p>
+                  </div>
+                  <input type="checkbox" v-model="partnerForm.isDirectPartner" class="h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary" />
+                </div>
+
+                <!-- Frais de dossier globaux -->
+                <div class="space-y-1">
+                  <label class="text-xs font-bold uppercase text-slate-600">Commission globale par défaut de l'école (FCFA)</label>
+                  <input
+                    type="number"
+                    v-model.number="partnerForm.fraisDossier"
+                    placeholder="20000"
+                    class="w-full rounded-lg border border-slate-200 px-3.5 py-2.5 text-sm focus:border-primary focus:outline-none"
+                  />
+                  <p class="text-[11px] text-slate-400">Ex: 10000 FCFA pour AMDI. Toutes les formations sans commission spécifique utiliseront ce montant par défaut.</p>
+                </div>
+
+                <!-- Toggle Délivrance Auto Attestation -->
+                <div class="flex items-center justify-between p-4 rounded-xl border border-slate-200 bg-slate-50/50">
+                  <div>
+                    <p class="text-sm font-bold text-slate-900">Téléchargement automatique immédiat de l'Attestation</p>
+                    <p class="text-xs text-slate-500">Permet à l'étudiant de télécharger l'attestation officielle immédiatement après le paiement.</p>
+                  </div>
+                  <input type="checkbox" v-model="partnerForm.autoIssueAttestation" class="h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary" />
+                </div>
+
+                <!-- Mode de Commission Interne -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div class="space-y-1">
+                    <label class="text-xs font-bold uppercase text-slate-600">Type de Commission Interne</label>
+                    <select v-model="partnerForm.commissionType" class="w-full rounded-lg border border-slate-200 px-3.5 py-2.5 text-sm focus:border-primary focus:outline-none">
+                      <option value="FIXED_AMOUNT">Montant fixe par étudiant (FCFA)</option>
+                      <option value="PERCENTAGE">Pourcentage de la scolarité (%)</option>
+                    </select>
+                  </div>
+
+                  <div class="space-y-1">
+                    <label class="text-xs font-bold uppercase text-slate-600">Valeur de la Commission</label>
+                    <input
+                      type="number"
+                      v-model.number="partnerForm.commissionValue"
+                      placeholder="50000"
+                      class="w-full rounded-lg border border-slate-200 px-3.5 py-2.5 text-sm font-bold text-amber-900 focus:border-primary focus:outline-none"
+                    />
+                    <p class="text-[11px] text-slate-400">Ex: 50000 FCFA par étudiant inscrit ou 10%.</p>
+                  </div>
+                </div>
+
+                <!-- Statut de paiement des commissions -->
+                <div class="space-y-1">
+                  <label class="text-xs font-bold uppercase text-slate-600">Statut de Règlement des Commissions par l'École</label>
+                  <select v-model="partnerForm.commissionPaidStatus" class="w-full rounded-lg border border-slate-200 px-3.5 py-2.5 text-sm focus:border-primary focus:outline-none">
+                    <option value="UP_TO_DATE">🟢 À jour / Règlements reçus</option>
+                    <option value="PENDING">🟡 En attente de paiement par l'école</option>
+                    <option value="PARTIAL">🟠 Réglé partiellement</option>
+                  </select>
+                </div>
+              </div>
             </div>
 
-            <!-- Frais de dossier -->
-            <div class="space-y-1">
-              <label class="text-xs font-bold uppercase text-slate-600">Frais de dossier personnalisés (FCFA)</label>
-              <input
-                type="number"
-                v-model.number="partnerForm.fraisDossier"
-                placeholder="20000"
-                class="w-full rounded-lg border border-slate-200 px-3.5 py-2.5 text-sm focus:border-primary focus:outline-none"
-              />
-              <p class="text-[11px] text-slate-400">Ex: 10000 ou 15000 FCFA pour ce partenaire direct. Par défaut : 20000 FCFA.</p>
-            </div>
-
-            <!-- Toggle Délivrance Auto Attestation -->
-            <div class="flex items-center justify-between p-4 rounded-xl border border-slate-200 bg-slate-50/50">
+            <!-- CARTE 2 : Custom Commissions par Formation (Exceptions Partenariat) -->
+            <div class="max-w-4xl rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-6">
               <div>
-                <p class="text-sm font-bold text-slate-900">Téléchargement automatique immédiat de l'Attestation</p>
-                <p class="text-xs text-slate-500">Permet à l'étudiant de télécharger l'attestation officielle immédiatement après le paiement.</p>
-              </div>
-              <input type="checkbox" v-model="partnerForm.autoIssueAttestation" class="h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary" />
-            </div>
-
-            <!-- Mode de Commission Interne -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div class="space-y-1">
-                <label class="text-xs font-bold uppercase text-slate-600">Type de Commission Interne</label>
-                <select v-model="partnerForm.commissionType" class="w-full rounded-lg border border-slate-200 px-3.5 py-2.5 text-sm focus:border-primary focus:outline-none">
-                  <option value="FIXED_AMOUNT">Montant fixe par étudiant (FCFA)</option>
-                  <option value="PERCENTAGE">Pourcentage de la scolarité (%)</option>
-                </select>
+                <h2 class="font-headline text-lg font-bold text-primary">2. Commissions & Frais de Dossier Spécifiques par Formation (Article 11 / Exceptions)</h2>
+                <p class="text-xs text-slate-500 mt-1">
+                  Définissez une commission spécifique pour une formation particulière. Laissez vide pour utiliser la commission globale de l'école (<strong>{{ (partnerForm.fraisDossier || 10000).toLocaleString('fr-FR') }} FCFA</strong>).
+                </p>
               </div>
 
-              <div class="space-y-1">
-                <label class="text-xs font-bold uppercase text-slate-600">Valeur de la Commission</label>
-                <input
-                  type="number"
-                  v-model.number="partnerForm.commissionValue"
-                  placeholder="50000"
-                  class="w-full rounded-lg border border-slate-200 px-3.5 py-2.5 text-sm font-bold text-amber-900 focus:border-primary focus:outline-none"
-                />
-                <p class="text-[11px] text-slate-400">Ex: 50000 FCFA par étudiant inscrit ou 10%.</p>
+              <div class="overflow-hidden rounded-xl border border-slate-200 bg-white">
+                <table class="w-full text-left text-sm text-slate-700">
+                  <thead class="bg-slate-50 text-xs uppercase font-bold text-slate-500 border-b border-slate-200">
+                    <tr>
+                      <th class="px-4 py-3">Formation Actives ({{ activeProgrammesList.length }})</th>
+                      <th class="px-4 py-3">Niveau</th>
+                      <th class="px-4 py-3">Commission / Frais de Dossier Spécifique (FCFA)</th>
+                      <th class="px-4 py-3 text-right">Statut Appliqué</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-100">
+                    <tr v-for="prog in activeProgrammesList" :key="prog.id" class="hover:bg-slate-50">
+                      <td class="px-4 py-3 font-bold text-slate-900">{{ prog.titre }}</td>
+                      <td class="px-4 py-3 text-xs text-slate-500">{{ prog.niveau }}</td>
+                      <td class="px-4 py-3">
+                        <input
+                          type="number"
+                          v-model.number="programmeCommissionsMap[prog.id]"
+                          :placeholder="`Défaul: ${partnerForm.fraisDossier} FCFA`"
+                          class="w-40 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-800 focus:border-primary focus:outline-none"
+                        />
+                      </td>
+                      <td class="px-4 py-3 text-right">
+                        <span v-if="programmeCommissionsMap[prog.id] && programmeCommissionsMap[prog.id]! > 0" class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-bold text-amber-900">
+                          ⚡ Spécifique : {{ Number(programmeCommissionsMap[prog.id]).toLocaleString('fr-FR') }} F
+                        </span>
+                        <span v-else class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-600">
+                          École : {{ partnerForm.fraisDossier.toLocaleString('fr-FR') }} F
+                        </span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
 
-            <!-- Statut de paiement des commissions -->
-            <div class="space-y-1">
-              <label class="text-xs font-bold uppercase text-slate-600">Statut de Règlement des Commissions par l'École</label>
-              <select v-model="partnerForm.commissionPaidStatus" class="w-full rounded-lg border border-slate-200 px-3.5 py-2.5 text-sm focus:border-primary focus:outline-none">
-                <option value="UP_TO_DATE">🟢 À jour / Règlements reçus</option>
-                <option value="PENDING">🟡 En attente de paiement par l'école</option>
-                <option value="PARTIAL">🟠 Réglé partiellement</option>
-              </select>
-            </div>
-
-            <div class="pt-4 flex items-center gap-4">
+            <!-- Bouton de Sauvegarde Général -->
+            <div class="pt-2 flex items-center gap-4">
               <button
                 type="submit"
                 :disabled="savingPartnerSettings"
-                class="rounded-xl bg-primary px-6 py-3 text-sm font-bold text-white shadow-md transition hover:bg-primary/90 disabled:opacity-50"
+                class="rounded-xl bg-primary px-8 py-3.5 text-sm font-bold text-white shadow-lg transition hover:bg-primary/90 disabled:opacity-50"
               >
-                {{ savingPartnerSettings ? 'Enregistrement...' : 'Enregistrer les paramètres' }}
+                {{ savingPartnerSettings ? 'Enregistrement en cours...' : 'Enregistrer les paramètres et commissions' }}
               </button>
-              <span v-if="saveSuccess" class="text-xs font-bold text-emerald-600">✓ Paramètres enregistrés avec succès !</span>
+              <span v-if="saveSuccess" class="text-sm font-bold text-emerald-600">✓ Paramètres et commissions spécifiques enregistrés avec succès !</span>
             </div>
           </form>
         </div>

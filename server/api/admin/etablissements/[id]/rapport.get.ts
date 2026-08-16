@@ -88,6 +88,10 @@ export default defineEventHandler(async (event) => {
 
   const totalCommissionsEnAttente = totalCommissionsDues - totalCommissionsPayees
 
+  // Active vs Total programmes
+  const activeProgrammesCount = etablissement.programmes.filter(p => p.status === 'ACTIVE').length
+  const totalProgrammesCount = etablissement.programmes.length
+
   // Ventilation par programme / formation
   const programmesBreakdown = etablissement.programmes.map((prog) => {
     const progOriented = orientedStudents.filter((c) => c.programmeId === prog.id)
@@ -109,6 +113,9 @@ export default defineEventHandler(async (event) => {
       titre: prog.titre,
       niveau: prog.niveau,
       duree: prog.duree,
+      status: prog.status,
+      fraisDossier: prog.fraisDossier || null,
+      effectiveFraisDossier: prog.fraisDossier || etablissement.fraisDossier || 20000,
       tuitionFee: tuition,
       orientedCount: count,
       totalCommission: comm,
@@ -156,6 +163,8 @@ export default defineEventHandler(async (event) => {
       totalCommissionsDues,
       totalCommissionsPayees,
       totalCommissionsEnAttente,
+      activeProgrammesCount,
+      totalProgrammesCount,
     },
     programmesBreakdown,
     studentList,
