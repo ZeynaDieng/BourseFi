@@ -308,6 +308,14 @@ useSiteSeo({
       </ul>
     </section>
 
+    <!-- Programme Pédagogique -->
+    <section v-if="bourse.programmePedagogique" v-reveal class="mb-8 rounded-2xl border border-slate-100 bg-white p-6 shadow-premium md:p-8">
+      <h2 class="font-headline text-lg font-bold text-primary mb-3">Programme pédagogique & Modules de formation</h2>
+      <p class="whitespace-pre-line text-sm leading-relaxed text-slate-600">
+        {{ bourse.programmePedagogique }}
+      </p>
+    </section>
+
     <!-- Débouchés professionnels -->
     <section v-if="parsedDebouches.length > 0" v-reveal class="mb-8 rounded-2xl border border-slate-100 bg-white p-6 shadow-premium md:p-8">
       <h2 class="font-headline text-lg font-bold text-primary mb-4">Débouchés professionnels</h2>
