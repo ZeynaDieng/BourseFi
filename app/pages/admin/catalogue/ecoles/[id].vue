@@ -475,10 +475,10 @@ function exportExcel() {
                   </td>
                   <td class="px-4 py-3.5">
                     <span v-if="prog.fraisDossier && prog.fraisDossier !== partnerForm.fraisDossier" class="inline-flex items-center gap-1 font-bold text-amber-900 bg-amber-50 px-2.5 py-1 rounded-lg text-xs border border-amber-200">
-                      ⚡ Spécifique : {{ prog.fraisDossier.toLocaleString('fr-FR') }} FCFA
+                      ⚡ Spécifique : {{ (prog.fraisDossier || 0).toLocaleString('fr-FR') }} FCFA
                     </span>
                     <span v-else class="text-xs text-slate-600 font-medium">
-                      École : {{ partnerForm.fraisDossier.toLocaleString('fr-FR') }} FCFA
+                      École : {{ (partnerForm.fraisDossier || 0).toLocaleString('fr-FR') }} FCFA
                     </span>
                   </td>
                   <td class="px-4 py-3.5 font-medium">

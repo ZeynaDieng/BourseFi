@@ -464,7 +464,7 @@ async function deleteDossier() {
             <div v-if="detail.bourse"><dt class="text-xs text-slate-400">Bourse associée</dt><dd class="font-bold text-amber-700">{{ detail.bourse.titre }}</dd></div>
             <div>
               <dt class="text-xs text-slate-400">Frais de dossier</dt>
-              <dd class="font-semibold text-slate-800">{{ detail.programme.fraisDossier.toLocaleString('fr-FR') }} {{ detail.programme.devise }}</dd>
+              <dd class="font-semibold text-slate-800">{{ (detail.programme.fraisDossier ?? detail.programme.etablissement?.fraisDossier ?? 20000).toLocaleString('fr-FR') }} {{ detail.programme.devise }}</dd>
             </div>
           </dl>
         </section>

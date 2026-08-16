@@ -291,8 +291,8 @@ const drawerTitle = computed(() => (editingId.value ? 'Modifier le programme' : 
                 <span class="font-semibold">{{ p.niveau }}</span> · {{ p.duree }}
               </td>
               <td class="admin-td text-xs">
-                <div class="font-semibold text-slate-800">{{ p.fraisDossier.toLocaleString('fr-FR') }} FCFA</div>
-                <div v-if="p.fraisDossierEtranger" class="text-slate-400">Étranger: {{ p.fraisDossierEtranger.toLocaleString('fr-FR') }} FCFA</div>
+                <div class="font-semibold text-slate-800">{{ ((p.fraisDossier !== null && p.fraisDossier !== undefined) ? p.fraisDossier : (p.etablissement?.fraisDossier ?? 20000)).toLocaleString('fr-FR') }} FCFA</div>
+                <div v-if="p.fraisDossierEtranger" class="text-slate-400">Étranger: {{ (p.fraisDossierEtranger || 0).toLocaleString('fr-FR') }} FCFA</div>
               </td>
               <td class="admin-td text-center">
                 <span class="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-bold text-slate-700">

@@ -76,7 +76,7 @@ const isDirectRate = computed(() => {
     <!-- Pied de carte -->
     <div class="mt-5 border-t border-slate-100 pt-3">
       <p class="font-headline text-xs font-bold text-slate-500">
-        Frais de dossier : {{ bourse.fraisDossier.toLocaleString('fr-FR') }} {{ bourse.devise }}
+        Frais de dossier : {{ (bourse.fraisDossier || 0).toLocaleString('fr-FR') }} {{ bourse.devise }}
       </p>
 
       <NuxtLink
