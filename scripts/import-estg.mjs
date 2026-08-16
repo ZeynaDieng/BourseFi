@@ -381,7 +381,7 @@ async function runImport() {
 
       // Upsert de la Bourse officielle rattachée
       const bourseSlug = `bourse-${prog.slug}`
-      const coveragePercent = progData.niveau === 'Licence' ? 39 : 42
+      const coveragePercent = 50
 
       if (progData.existingBourseId) {
         await tx.bourse.update({

@@ -44,9 +44,9 @@ const isDirectRate = computed(() => {
       <!-- Bulle Jaune BourseFi (Pill Badge) -->
       <div class="mt-4 flex flex-wrap items-center gap-2">
         <span v-if="hasRealSavings" :class="[badgeCoverage, 'w-fit font-bold']">
-          Économisez {{ bourse.economie?.toLocaleString('fr-FR') }} {{ bourse.devise }}
-          <template v-if="showCoveragePercent && bourse.economiePercent">
-            ({{ bourse.economiePercent }} %)
+          Économisez {{ bourse.economie?.toLocaleString('fr-FR') }} {{ bourse.devise }}/an
+          <template v-if="showCoveragePercent && bourse.coveragePercent > 0">
+            ({{ bourse.coveragePercent }} % de prise en charge)
           </template>
         </span>
         <span v-else-if="isDirectRate || bourse.tuitionFee || bourse.montantBourse" class="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800">

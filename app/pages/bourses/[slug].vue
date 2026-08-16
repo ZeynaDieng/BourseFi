@@ -166,8 +166,13 @@ useSiteSeo({
             <span class="font-black text-amber-800 text-base whitespace-nowrap">{{ bourse.economie.toLocaleString('fr-FR') }} {{ bourse.devise }}</span>
           </div>
 
+          <div v-if="bourse.coveragePercent && bourse.coveragePercent > 0" class="flex items-center justify-between border-b border-slate-100 py-3 gap-4">
+            <span class="text-emerald-900 font-bold">Prise en charge mensualités</span>
+            <span class="font-bold text-emerald-700 whitespace-nowrap">{{ bourse.coveragePercent }} % sur vos mensualités</span>
+          </div>
+
           <div v-if="showCoveragePercent && bourse.economiePercent" class="flex items-center justify-between border-b border-slate-100 py-3 gap-4">
-            <span class="text-slate-500 font-medium">Économie réelle</span>
+            <span class="text-slate-500 font-medium">Économie réelle sur coût annuel</span>
             <span class="font-bold text-primary whitespace-nowrap">{{ bourse.economiePercent }} %</span>
           </div>
 
