@@ -2,8 +2,6 @@ import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
-const IPD_ETAB_ID = 'cmrghuciw007wgny4ybtbw7ur'
-
 const PROGRAMMES_DATA = [
   // LICENCE — SCIENCES ET TECHNOLOGIES (5)
   // Brochure publique : Inscription 150 000 + 8 mensualités de 85 000 = 830 000 FCFA
@@ -443,7 +441,7 @@ const PROGRAMMES_DATA = [
 ]
 
 async function runImport() {
-  console.log('🚀 Début de l\'importation officielle IPD Thomas Sankara (avec comparatif Tarifs Normaux vs Tarifs Réduits BourseFi)...')
+  console.log('🚀 Début de l\'importation officielle IPD Thomas Sankara (résolution sécurisée de l\'établissement)...')
 
   // 1. Récupérer ou créer le partenaire par défaut
   let partner = await prisma.partner.findFirst({
@@ -454,39 +452,43 @@ async function runImport() {
     partner = await prisma.partner.findFirst()
   }
 
-  // 2. Mettre à jour l'établissement IPD propre
-  const etab = await prisma.etablissement.upsert({
-    where: { id: IPD_ETAB_ID },
-    update: {
-      nom: 'IPD Thomas Sankara',
-      slug: 'ipd-thomas-sankara',
-      ville: 'Dakar',
-      adresse: 'Sud-Foire (à proximité du SAMU Municipal), Dakar, Sénégal',
-      phone: '+221 33 867 58 58',
-      email: 'contact@ipd.sn',
-      site: 'https://ipd.sn',
-      fraisDossier: 20000,
-      isDirectPartner: true,
-      autoIssueAttestation: true,
-      status: 'ACTIVE',
-    },
-    create: {
-      id: IPD_ETAB_ID,
-      nom: 'IPD Thomas Sankara',
-      slug: 'ipd-thomas-sankara',
-      ville: 'Dakar',
-      adresse: 'Sud-Foire (à proximité du SAMU Municipal), Dakar, Sénégal',
-      phone: '+221 33 867 58 58',
-      email: 'contact@ipd.sn',
-      site: 'https://ipd.sn',
-      fraisDossier: 20000,
-      isDirectPartner: true,
-      autoIssueAttestation: true,
-      status: 'ACTIVE',
+  // 2. Trouver l'établissement IPD par slug ou nom
+  let etab = await prisma.etablissement.findFirst({
+    where: {
+      OR: [
+        { slug: 'ipd-thomas-sankara' },
+        { nom: { contains: 'IPD', mode: 'insensitive' } },
+        { nom: { contains: 'Sankara', mode: 'insensitive' } }
+      ]
     }
   })
 
-  console.log('✅ Établissement configuré :', etab.nom, `(ID: ${etab.id})`)
+  const etabData = {
+    nom: 'IPD Thomas Sankara',
+    slug: 'ipd-thomas-sankara',
+    ville: 'Dakar',
+    adresse: 'Sud-Foire (à proximité du SAMU Municipal), Dakar, Sénégal',
+    phone: '+221 33 867 58 58',
+    email: 'contact@ipd.sn',
+    site: 'https://ipd.sn',
+    fraisDossier: 20000,
+    isDirectPartner: true,
+    autoIssueAttestation: true,
+    status: 'ACTIVE',
+  }
+
+  if (etab) {
+    etab = await prisma.etablissement.update({
+      where: { id: etab.id },
+      data: etabData
+    })
+  } else {
+    etab = await prisma.etablissement.create({
+      data: etabData
+    })
+  }
+
+  console.log('✅ Établissement configuré avec succès :', etab.nom, `(ID: ${etab.id})`)
 
   // 3. Supprimer les anciennes bourses et anciens programmes obsolètes sans candidature
   const existingProgs = await prisma.programme.findMany({
@@ -571,7 +573,7 @@ async function runImport() {
     console.log(`  [${countImported}/30] ${programme.titre} | Normal: ${progData.montantNormal.toLocaleString('fr-FR')} F -> BourseFi: ${progData.montantReduit.toLocaleString('fr-FR')} F (-${economie.toLocaleString('fr-FR')} FCFA / ${economiePercent}%)`)
   }
 
-  console.log(`\n🎉 IMPORTATION RÉUSSIE ! ${countImported} programmes officiels IPD Thomas Sankara mis à jour avec comparaison Tarifs Normaux vs Tarifs Réduits BourseFi.`)
+  console.log(`\n🎉 IMPORTATION RÉUSSIE ! ${countImported} programmes officiels IPD Thomas Sankara mis à jour.`)
 }
 
 runImport()
