@@ -35,7 +35,7 @@ export default defineEventHandler(async (event) => {
         },
       },
     },
-    orderBy: { nom: 'asc' },
+    orderBy: [{ isDirectPartner: 'desc' }, { nom: 'asc' }],
   })
 
   return ecoles.map((e) => {

@@ -26,7 +26,12 @@ const filteredEcoles = computed(() => {
   if (cityFilter.value) {
     list = list.filter((e) => e.ville === cityFilter.value)
   }
-  return list
+  return [...list].sort((a, b) => {
+    const aDirect = a.isDirectPartner ? 1 : 0
+    const bDirect = b.isDirectPartner ? 1 : 0
+    if (bDirect !== aDirect) return bDirect - aDirect
+    return a.nom.localeCompare(b.nom)
+  })
 })
 
 useSiteSeo({

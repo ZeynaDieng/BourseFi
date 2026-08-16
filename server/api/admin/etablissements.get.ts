@@ -10,6 +10,6 @@ export default defineEventHandler(async (event) => {
       },
       _count: { select: { programmes: true } },
     },
-    orderBy: { nom: 'asc' },
+    orderBy: [{ isDirectPartner: 'desc' }, { nom: 'asc' }],
   })
 })

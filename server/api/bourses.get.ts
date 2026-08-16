@@ -18,7 +18,7 @@ export default defineEventHandler(async (event) => {
       ...(partnerSlug ? { partner: { slug: partnerSlug } } : {}),
     },
     include: bourseInclude,
-    orderBy: [{ dateLimite: 'asc' }, { titre: 'asc' }],
+    orderBy: [{ programme: { etablissement: { isDirectPartner: 'desc' } } }, { dateLimite: 'asc' }, { titre: 'asc' }],
   })
 
   return rows.map(serializeBourse)
