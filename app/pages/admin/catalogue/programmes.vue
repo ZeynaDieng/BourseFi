@@ -87,15 +87,19 @@ const form = ref(emptyForm())
 type EtabAdminRow = { id: string; slug: string; nom: string; ville: string; _count: { programmes: number } }
 
 async function loadAll() {
-  const [p, partRows, etabRows] = await Promise.all([
-    $fetch<ProgrammeRow[]>('/api/admin/programmes'),
-    $fetch<Array<{ id: string; slug: string; name: string }>>('/api/admin/partners'),
-    $fetch<EtabAdminRow[]>('/api/admin/etablissements'),
-  ])
-  const etab = etabRows.map((r) => ({ id: r.id, slug: r.slug, nom: r.nom }))
-  programmes.value = p
-  partners.value = partRows.map((x) => ({ id: x.id, slug: x.slug, name: x.name }))
-  ecoles.value = etab
+  try {
+    const [p, partRows, etabRows] = await Promise.all([
+      $fetch<ProgrammeRow[]>('/api/admin/programmes'),
+      $fetch<Array<{ id: string; slug: string; name: string }>>('/api/admin/partners'),
+      $fetch<EtabAdminRow[]>('/api/admin/etablissements'),
+    ])
+    const etab = etabRows.map((r) => ({ id: r.id, slug: r.slug, nom: r.nom }))
+    programmes.value = p
+    partners.value = partRows.map((x) => ({ id: x.id, slug: x.slug, name: x.name }))
+    ecoles.value = etab
+  } catch (err) {
+    getAdminErrorMessage(err, 'Erreur lors du chargement des programmes.')
+  }
 }
 
 await loadAll()

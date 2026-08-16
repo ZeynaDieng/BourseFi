@@ -68,7 +68,11 @@ const emptyForm = () => ({
 const form = ref(emptyForm())
 
 async function load() {
-  items.value = await $fetch<EcoleRow[]>('/api/admin/etablissements')
+  try {
+    items.value = await $fetch<EcoleRow[]>('/api/admin/etablissements')
+  } catch (err) {
+    getAdminErrorMessage(err, 'Erreur lors du chargement des établissements.')
+  }
 }
 
 await load()
