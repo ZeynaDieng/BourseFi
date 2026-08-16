@@ -12,7 +12,7 @@ const OFFICIAL_ABS_PROGRAMMES = [
     duree: '4 mois',
     description: 'Design graphique, PAO, création visuelle, suite Adobe (Photoshop, Illustrator, InDesign) et maquettisme professionnel.',
     tarifsBourse: {
-      default: { montant: 150000, montantBourse: 150000, inscription: 50000, mensualite: 25000, mois: 4 }
+      default: { montant: 150000, montantBourse: 75000, inscription: 25000, mensualite: 12500, mois: 4 }
     }
   },
   {
@@ -22,7 +22,7 @@ const OFFICIAL_ABS_PROGRAMMES = [
     duree: '6 mois',
     description: 'Programmation web frontend/backend, applications mobiles, HTML/CSS, JavaScript, PHP, MySQL, React & Flutter.',
     tarifsBourse: {
-      default: { montant: 250000, montantBourse: 250000, inscription: 50000, mensualite: 50000, mois: 4 }
+      default: { montant: 250000, montantBourse: 125000, inscription: 25000, mensualite: 25000, mois: 4 }
     }
   },
   {
@@ -32,7 +32,7 @@ const OFFICIAL_ABS_PROGRAMMES = [
     duree: '6 mois',
     description: 'Stratégie digitale, Community Management, Social Media Ads, SEO/SEA, e-mailing et Growth Hacking.',
     tarifsBourse: {
-      default: { montant: 250000, montantBourse: 250000, inscription: 50000, mensualite: 50000, mois: 4 }
+      default: { montant: 250000, montantBourse: 125000, inscription: 25000, mensualite: 25000, mois: 4 }
     }
   },
   {
@@ -42,7 +42,7 @@ const OFFICIAL_ABS_PROGRAMMES = [
     duree: '6 mois',
     description: 'Prise de vue, cadrage, montage vidéo professionnel, réalisation audiovisuelle et traitement sonore.',
     tarifsBourse: {
-      default: { montant: 300000, montantBourse: 300000, inscription: 50000, mensualite: 50000, mois: 5 }
+      default: { montant: 300000, montantBourse: 150000, inscription: 25000, mensualite: 25000, mois: 5 }
     }
   },
   {
@@ -52,7 +52,7 @@ const OFFICIAL_ABS_PROGRAMMES = [
     duree: '3 mois',
     description: 'Gestion des opérations de volucompteur, sécurité pétrolière, accueil client, caisse et maintenance de station.',
     tarifsBourse: {
-      default: { montant: 150000, montantBourse: 150000, inscription: 50000, mensualite: 50000, mois: 2 }
+      default: { montant: 150000, montantBourse: 75000, inscription: 25000, mensualite: 25000, mois: 2 }
     }
   },
   {
@@ -62,7 +62,7 @@ const OFFICIAL_ABS_PROGRAMMES = [
     duree: '3 mois',
     description: 'Secrétariat avancé, gestion de plannings, organisation de réunions, rédaction administrative et bureautique.',
     tarifsBourse: {
-      default: { montant: 75000, montantBourse: 75000, inscription: 25000, mensualite: 25000, mois: 2 }
+      default: { montant: 75000, montantBourse: 37500, inscription: 12500, mensualite: 12500, mois: 2 }
     }
   },
   {
@@ -72,7 +72,7 @@ const OFFICIAL_ABS_PROGRAMMES = [
     duree: '3 mois',
     description: 'Techniques d\'encaissement, comptabilité de caisse, détection de faux billets, clôture journalière et relation client.',
     tarifsBourse: {
-      default: { montant: 75000, montantBourse: 75000, inscription: 25000, mensualite: 25000, mois: 2 }
+      default: { montant: 75000, montantBourse: 37500, inscription: 12500, mensualite: 12500, mois: 2 }
     }
   },
   {
@@ -82,7 +82,7 @@ const OFFICIAL_ABS_PROGRAMMES = [
     duree: '3 mois',
     description: 'Accompagnement aux usages digitaux, facilitation numérique, assistance administrative en ligne et outils collaboratifs.',
     tarifsBourse: {
-      default: { montant: 75000, montantBourse: 75000, inscription: 25000, mensualite: 25000, mois: 2 }
+      default: { montant: 75000, montantBourse: 37500, inscription: 12500, mensualite: 12500, mois: 2 }
     }
   },
   {
@@ -92,7 +92,7 @@ const OFFICIAL_ABS_PROGRAMMES = [
     duree: '6 mois',
     description: 'Réglementation des marchés publics, élaboration de dossiers d\'appel d\'offres (DAO), dépouillement et suivi des contrats.',
     tarifsBourse: {
-      default: { montant: 300000, montantBourse: 300000, inscription: 50000, mensualite: 50000, mois: 5 }
+      default: { montant: 300000, montantBourse: 150000, inscription: 25000, mensualite: 25000, mois: 5 }
     }
   },
   {
@@ -102,7 +102,7 @@ const OFFICIAL_ABS_PROGRAMMES = [
     duree: '6 mois',
     description: 'Procédures douanières, cotation fret, tarification GAINDE, dédouanement import/export et logistique portuaire.',
     tarifsBourse: {
-      default: { montant: 300000, montantBourse: 300000, inscription: 50000, mensualite: 50000, mois: 5 }
+      default: { montant: 300000, montantBourse: 150000, inscription: 25000, mensualite: 25000, mois: 5 }
     }
   },
   {
@@ -112,7 +112,7 @@ const OFFICIAL_ABS_PROGRAMMES = [
     duree: '6 mois',
     description: 'Architecture réseau, câblage structuré, baies de brassage, routage/commutation Cisco, Wi-Fi d\'entreprise et maintenance.',
     tarifsBourse: {
-      default: { montant: 300000, montantBourse: 300000, inscription: 50000, mensualite: 50000, mois: 5 }
+      default: { montant: 300000, montantBourse: 150000, inscription: 25000, mensualite: 25000, mois: 5 }
     }
   },
   {
@@ -122,7 +122,7 @@ const OFFICIAL_ABS_PROGRAMMES = [
     duree: '3 mois',
     description: 'Business English, communication professionnelle orale et écrite, négociations, présentations et réunions d\'affaires.',
     tarifsBourse: {
-      default: { montant: 85000, montantBourse: 85000, inscription: 25000, mensualite: 25000, mois: 2 }
+      default: { montant: 85000, montantBourse: 42500, inscription: 12500, mensualite: 15000, mois: 2 }
     }
   }
 ]
