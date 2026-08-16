@@ -158,6 +158,14 @@ const filteredStudents = computed(() => {
   return list
 })
 
+function resetAllProgrammeCommissionsToDefault() {
+  if (data.value) {
+    data.value.programmesBreakdown.forEach((p) => {
+      programmeCommissionsMap.value[p.id] = null
+    })
+  }
+}
+
 async function saveSettings() {
   savingPartnerSettings.value = true
   saveSuccess.value = false
@@ -286,7 +294,7 @@ function exportExcel() {
                 {{ activeProgrammesCount }} <span class="text-xs text-slate-400 font-normal">actives / {{ data.programmesBreakdown.length }} au total</span>
               </p>
               <p class="text-xs text-emerald-600 font-bold mt-0.5">
-                Seules les 20 actives sont visibles sur le site
+                Seules les {{ activeProgrammesCount }} actives sont visibles sur le site
               </p>
             </div>
           </div>
@@ -466,11 +474,11 @@ function exportExcel() {
                     </span>
                   </td>
                   <td class="px-4 py-3.5">
-                    <span v-if="prog.fraisDossier" class="inline-flex items-center gap-1 font-bold text-amber-900 bg-amber-50 px-2.5 py-1 rounded-lg text-xs border border-amber-200">
+                    <span v-if="prog.fraisDossier && prog.fraisDossier !== partnerForm.fraisDossier" class="inline-flex items-center gap-1 font-bold text-amber-900 bg-amber-50 px-2.5 py-1 rounded-lg text-xs border border-amber-200">
                       ⚡ Spécifique : {{ prog.fraisDossier.toLocaleString('fr-FR') }} FCFA
                     </span>
                     <span v-else class="text-xs text-slate-600 font-medium">
-                      École : {{ prog.effectiveFraisDossier.toLocaleString('fr-FR') }} FCFA
+                      École : {{ partnerForm.fraisDossier.toLocaleString('fr-FR') }} FCFA
                     </span>
                   </td>
                   <td class="px-4 py-3.5 font-medium">
@@ -519,7 +527,7 @@ function exportExcel() {
                     placeholder="20000"
                     class="w-full rounded-lg border border-slate-200 px-3.5 py-2.5 text-sm focus:border-primary focus:outline-none"
                   />
-                  <p class="text-[11px] text-slate-400">Ex: 10000 FCFA pour AMDI. Toutes les formations sans commission spécifique utiliseront ce montant par défaut.</p>
+                  <p class="text-[11px] text-slate-400">Ex: 15000 FCFA pour ESUP Dakar Santé, 10000 FCFA pour AMDI. Toutes les formations sans commission spécifique utiliseront ce montant par défaut.</p>
                 </div>
 
                 <!-- Toggle Délivrance Auto Attestation -->
@@ -567,11 +575,21 @@ function exportExcel() {
 
             <!-- CARTE 2 : Custom Commissions par Formation (Exceptions Partenariat) -->
             <div class="max-w-4xl rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-6">
-              <div>
-                <h2 class="font-headline text-lg font-bold text-primary">2. Commissions & Frais de Dossier Spécifiques par Formation (Article 11 / Exceptions)</h2>
-                <p class="text-xs text-slate-500 mt-1">
-                  Définissez une commission spécifique pour une formation particulière. Laissez vide pour utiliser la commission globale de l'école (<strong>{{ (partnerForm.fraisDossier || 10000).toLocaleString('fr-FR') }} FCFA</strong>).
-                </p>
+              <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                  <h2 class="font-headline text-lg font-bold text-primary">2. Commissions & Frais de Dossier Spécifiques par Formation (Article 11 / Exceptions)</h2>
+                  <p class="text-xs text-slate-500 mt-1">
+                    Définissez une commission spécifique pour une formation particulière. Laissez vide pour utiliser la commission globale de l'école (<strong>{{ (partnerForm.fraisDossier || 10000).toLocaleString('fr-FR') }} FCFA</strong>).
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  @click="resetAllProgrammeCommissionsToDefault"
+                  class="shrink-0 px-3.5 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 font-bold text-xs transition flex items-center gap-1.5"
+                >
+                  <span class="material-symbols-outlined text-[16px]">restart_alt</span>
+                  Tout réinitialiser à la commission globale ({{ partnerForm.fraisDossier }} F)
+                </button>
               </div>
 
               <div class="overflow-hidden rounded-xl border border-slate-200 bg-white">
@@ -580,7 +598,7 @@ function exportExcel() {
                     <tr>
                       <th class="px-4 py-3">Formation Actives ({{ activeProgrammesList.length }})</th>
                       <th class="px-4 py-3">Niveau</th>
-                      <th class="px-4 py-3">Commission / Frais de Dossier Spécifique (FCFA)</th>
+                      <th class="px-4 py-3">Commission / Frais Spécifique (FCFA)</th>
                       <th class="px-4 py-3 text-right">Statut Appliqué</th>
                     </tr>
                   </thead>
@@ -592,12 +610,12 @@ function exportExcel() {
                         <input
                           type="number"
                           v-model.number="programmeCommissionsMap[prog.id]"
-                          :placeholder="`Défaul: ${partnerForm.fraisDossier} FCFA`"
-                          class="w-40 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-800 focus:border-primary focus:outline-none"
+                          :placeholder="`Défaut école: ${partnerForm.fraisDossier} FCFA`"
+                          class="w-44 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-800 focus:border-primary focus:outline-none"
                         />
                       </td>
                       <td class="px-4 py-3 text-right">
-                        <span v-if="programmeCommissionsMap[prog.id] && programmeCommissionsMap[prog.id]! > 0" class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-bold text-amber-900">
+                        <span v-if="programmeCommissionsMap[prog.id] && Number(programmeCommissionsMap[prog.id]) !== partnerForm.fraisDossier" class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-bold text-amber-900">
                           ⚡ Spécifique : {{ Number(programmeCommissionsMap[prog.id]).toLocaleString('fr-FR') }} F
                         </span>
                         <span v-else class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-600">
