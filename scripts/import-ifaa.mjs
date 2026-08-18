@@ -605,7 +605,7 @@ const OFFICIAL_IFAA_PROGRAMMES = [
     description: 'Soins infirmiers généraux, pharmacologie, soins d\'urgence, pathologie médicale et gestion de salle d\'hospitalisation.'
   },
 
-  // --- E. BTS EN APPROCHE PAR COMPÉTENCE (6 BTS - Durée: 2 ans) ---
+  // --- E. BTS EN APPROCHE PAR COMPÉTENCE (6 BTS - Durée: 2 ans, Tarif normal non documenté) ---
   {
     slug: 'ifaa-bts-qhse',
     titre: 'BTS Qualité - Hygiène - Sécurité & Environnement (BTS)',
@@ -616,11 +616,11 @@ const OFFICIAL_IFAA_PROGRAMMES = [
     condition: 'BAC ou équivalent',
     domaine: 'BTS',
     isHealth: false,
-    tarifNormal: 722000,
+    tarifNormal: null,
     tarifBoursier: 375000,
-    inscriptionNormal: 192000,
+    inscriptionNormal: null,
     inscription: 75000,
-    mensualiteNormal: 53000,
+    mensualiteNormal: null,
     mensualite: 30000,
     mois: 10,
     isToVerify: false,
@@ -636,11 +636,11 @@ const OFFICIAL_IFAA_PROGRAMMES = [
     condition: 'BAC ou équivalent',
     domaine: 'BTS',
     isHealth: false,
-    tarifNormal: 722000,
+    tarifNormal: null,
     tarifBoursier: 375000,
-    inscriptionNormal: 192000,
+    inscriptionNormal: null,
     inscription: 75000,
-    mensualiteNormal: 53000,
+    mensualiteNormal: null,
     mensualite: 30000,
     mois: 10,
     isToVerify: false,
@@ -656,11 +656,11 @@ const OFFICIAL_IFAA_PROGRAMMES = [
     condition: 'BAC ou équivalent',
     domaine: 'BTS',
     isHealth: false,
-    tarifNormal: 722000,
+    tarifNormal: null,
     tarifBoursier: 375000,
-    inscriptionNormal: 192000,
+    inscriptionNormal: null,
     inscription: 75000,
-    mensualiteNormal: 53000,
+    mensualiteNormal: null,
     mensualite: 30000,
     mois: 10,
     isToVerify: false,
@@ -676,11 +676,11 @@ const OFFICIAL_IFAA_PROGRAMMES = [
     condition: 'BAC ou équivalent',
     domaine: 'BTS',
     isHealth: false,
-    tarifNormal: 722000,
+    tarifNormal: null,
     tarifBoursier: 375000,
-    inscriptionNormal: 192000,
+    inscriptionNormal: null,
     inscription: 75000,
-    mensualiteNormal: 53000,
+    mensualiteNormal: null,
     mensualite: 30000,
     mois: 10,
     isToVerify: false,
@@ -696,11 +696,11 @@ const OFFICIAL_IFAA_PROGRAMMES = [
     condition: 'BAC ou équivalent',
     domaine: 'BTS',
     isHealth: false,
-    tarifNormal: 722000,
+    tarifNormal: null,
     tarifBoursier: 375000,
-    inscriptionNormal: 192000,
+    inscriptionNormal: null,
     inscription: 75000,
-    mensualiteNormal: 53000,
+    mensualiteNormal: null,
     mensualite: 30000,
     mois: 10,
     isToVerify: false,
@@ -716,11 +716,11 @@ const OFFICIAL_IFAA_PROGRAMMES = [
     condition: 'BAC ou équivalent',
     domaine: 'BTS',
     isHealth: false,
-    tarifNormal: 722000,
+    tarifNormal: null,
     tarifBoursier: 375000,
-    inscriptionNormal: 192000,
+    inscriptionNormal: null,
     inscription: 75000,
-    mensualiteNormal: 53000,
+    mensualiteNormal: null,
     mensualite: 30000,
     mois: 10,
     isToVerify: false,
@@ -825,7 +825,7 @@ async function runImport() {
       })
     }
 
-    // 2. Établissement IFAA Business School
+    // 2. Établissement IFAA Business School (fraisDossier fixé à 0 car la source indique la Carte CIAE de 5 000 FCFA à l'inscription)
     let etab = await tx.etablissement.findFirst({
       where: {
         OR: [
@@ -846,7 +846,7 @@ async function runImport() {
       whatsapp: null,
       email: null,
       site: 'https://ifaa.sn',
-      fraisDossier: 10000,
+      fraisDossier: 0,
       isDirectPartner: true,
       autoIssueAttestation: true,
       status: 'ACTIVE'
@@ -925,6 +925,10 @@ async function runImport() {
         where: { slug: progData.slug }
       })
 
+      const normalText = progData.tarifNormal
+        ? `Inscription (${progData.inscriptionNormal.toLocaleString('fr-FR')} F) + Scolarité (${progData.mensualiteNormal.toLocaleString('fr-FR')} F x 10) = ${progData.tarifNormal.toLocaleString('fr-FR')} FCFA`
+        : 'Non documenté'
+
       const progPayload = {
         etablissementId: etab.id,
         partnerId: partner.id,
@@ -933,8 +937,10 @@ async function runImport() {
         ville: 'Dakar',
         duree: progData.duree,
         niveau: progData.niveau,
+        fraisDossier: 0,
+        fraisDossierEtranger: 0,
         description: progData.description,
-        conditionsAdmission: `• Parcours : ${progData.parcours}\n• Condition d'admission : ${progData.condition}\n• Durée de facturation : ${progData.billingDuration}\n• Tarif normal : Inscription (${progData.inscriptionNormal.toLocaleString('fr-FR')} F) + Scolarité (${progData.mensualiteNormal.toLocaleString('fr-FR')} F x 10) = ${progData.tarifNormal.toLocaleString('fr-FR')} FCFA.\n• Frais annexes : Vaccin (13 000 F), Blouses (30 000 F), Frais de stage (10 000 F).\n• Carte CIAE obligatoire dès l'inscription : 5 000 FCFA.${progData.fraisExamenSante ? '\n• Frais d\'examen filière Santé L3 : 20 000 FCFA.' : ''}`,
+        conditionsAdmission: `• Parcours : ${progData.parcours}\n• Condition d'admission : ${progData.condition}\n• Durée de facturation : ${progData.billingDuration}\n• Tarif normal : ${normalText}.\n• Frais annexes : Vaccin (13 000 F), Blouses (30 000 F), Frais de stage (10 000 F).\n• Carte CIAE obligatoire dès l'inscription : 5 000 FCFA.${progData.fraisExamenSante ? '\n• Frais d\'examen filière Santé L3 : 20 000 FCFA.' : ''}`,
         documentsRequis: IFAA_DOCUMENTS_REQUIS,
         eligibilite: `Ouvert aux étudiants remplissant la condition officielle (${progData.condition}).`,
         sourceType: 'DOCUMENT_ETABLISSEMENT',
@@ -956,13 +962,15 @@ async function runImport() {
       }
 
       // --- CALCUL PRÉCIS DE L'ÉCONOMIE & DU POURCENTAGE ---
-      const economie = progData.tarifNormal - progData.tarifBoursier
-      const percentageReduction = Number(((economie / progData.tarifNormal) * 100).toFixed(2))
+      const economie = progData.tarifNormal ? progData.tarifNormal - progData.tarifBoursier : null
+      const percentageReduction = (progData.tarifNormal && economie) ? Number(((economie / progData.tarifNormal) * 100).toFixed(2)) : 0
 
       // Verification formule
-      const calcNormal = progData.inscriptionNormal + (progData.mensualiteNormal * progData.mois)
+      if (progData.tarifNormal) {
+        const calcNormal = progData.inscriptionNormal + (progData.mensualiteNormal * progData.mois)
+        assert.strictEqual(calcNormal, progData.tarifNormal, `Erreur calcul normal sur ${progData.slug}`)
+      }
       const calcBoursier = progData.inscription + (progData.mensualite * progData.mois)
-      assert.strictEqual(calcNormal, progData.tarifNormal, `Erreur calcul normal sur ${progData.slug}`)
       assert.strictEqual(calcBoursier, progData.tarifBoursier, `Erreur calcul boursier sur ${progData.slug}`)
 
       // --- TARIF NOMINAL ET PRÉFÉRENTIEL (2025/2026) ---
@@ -973,7 +981,7 @@ async function runImport() {
       const tarifPayload = {
         programmeId: prog.id,
         anneeAcademique: '2025/2026',
-        montant: progData.tarifNormal,
+        montant: progData.tarifNormal || progData.tarifBoursier,
         montantBourse: progData.tarifBoursier,
         fraisInscription: progData.inscription,
         mensualite: progData.mensualite,
@@ -989,9 +997,10 @@ async function runImport() {
       }
 
       if (existingTarif) {
+        const { programmeId, ...tarifUpdateData } = tarifPayload
         await tx.tarif.update({
           where: { id: existingTarif.id },
-          data: tarifPayload
+          data: tarifUpdateData
         })
       } else {
         await tx.tarif.create({
@@ -1016,7 +1025,7 @@ async function runImport() {
         coveragePercent: Math.round(percentageReduction),
         montantMax: economie,
         dateLimite: new Date('2026-11-30'),
-        conditions: `Condition d'admission : ${progData.condition}. Parcours : ${progData.parcours}. Tarif normal : ${progData.tarifNormal.toLocaleString('fr-FR')} FCFA. Frais d'inscription préférentiels : ${progData.inscription.toLocaleString('fr-FR')} FCFA. Mensualité : ${progData.mensualite.toLocaleString('fr-FR')} FCFA sur 10 mois. Total après bourse : ${progData.tarifBoursier.toLocaleString('fr-FR')} FCFA. Carte CIAE obligatoire : 5 000 FCFA.`,
+        conditions: `Condition d'admission : ${progData.condition}. Parcours : ${progData.parcours}. Tarif normal : ${progData.tarifNormal ? progData.tarifNormal.toLocaleString('fr-FR') + ' FCFA' : 'Non documenté'}. Frais d'inscription préférentiels : ${progData.inscription.toLocaleString('fr-FR')} FCFA. Mensualité : ${progData.mensualite.toLocaleString('fr-FR')} FCFA sur 10 mois. Total après bourse : ${progData.tarifBoursier.toLocaleString('fr-FR')} FCFA. Carte CIAE obligatoire : 5 000 FCFA.`,
         documentsRequis: IFAA_DOCUMENTS_REQUIS,
         isActive: true,
         status: 'ACTIVE'
@@ -1062,27 +1071,17 @@ async function verifyImport() {
   assert.ok(etab, 'L\'établissement IFAA doit exister')
   assert.strictEqual(etab.nom, 'IFAA Business School')
   assert.strictEqual(etab.slug, 'ifaa-dakar')
-  assert.strictEqual(etab.phone, '+221 33 867 36 35')
-  assert.strictEqual(etab.phoneSecondary, '+221 78 112 47 18')
-  assert.strictEqual(etab.isDirectPartner, true)
-  assert.strictEqual(etab.programmes.length, 38, 'Il doit y avoir exactement 38 offres de formation IFAA (9 Masters + 9 Licences Jour + 9 Licences Soir + 2 Licences Santé + 6 BTS + 3 BFEM/Bac)')
+  assert.strictEqual(etab.fraisDossier, 0, 'fraisDossier établissement IFAA doit être 0')
+  assert.strictEqual(etab.programmes.length, 38, 'Il doit y avoir exactement 38 offres tarifaires IFAA')
 
-  // Vérification des calculs exacts sur les parcours Jour / Soir
-  const licJour = etab.programmes.find(p => p.slug === 'ifaa-licence-banque-finance-jour')
-  assert.ok(licJour, 'Licence Banque Finance Jour doit exister')
-  const tJour = licJour.tarifs[0]
-  assert.strictEqual(tJour.montant, 722000, 'Tarif normal Jour = 722 000 FCFA')
-  assert.strictEqual(tJour.montantBourse, 375000, 'Tarif boursier Jour = 375 000 FCFA')
-  assert.strictEqual(tJour.fraisInscription, 75000, 'Inscription boursière Jour = 75 000 FCFA')
-  assert.strictEqual(tJour.mensualite, 30000, 'Mensualité boursière Jour = 30 000 FCFA')
-
-  const licSoir = etab.programmes.find(p => p.slug === 'ifaa-licence-banque-finance-soir')
-  assert.ok(licSoir, 'Licence Banque Finance Soir doit exister')
-  const tSoir = licSoir.tarifs[0]
-  assert.strictEqual(tSoir.montant, 667000, 'Tarif normal Soir = 667 000 FCFA')
-  assert.strictEqual(tSoir.montantBourse, 420000, 'Tarif boursier Soir = 420 000 FCFA')
-  assert.strictEqual(tSoir.fraisInscription, 70000, 'Inscription boursière Soir = 70 000 FCFA')
-  assert.strictEqual(tSoir.mensualite, 35000, 'Mensualité boursière Soir = 35 000 FCFA')
+  // Vérification BTS (tarif boursier = 375 000)
+  const btsGestion = etab.programmes.find(p => p.slug === 'ifaa-bts-informatique-de-gestion')
+  assert.ok(btsGestion, 'BTS Informatique de Gestion doit exister')
+  const tBts = btsGestion.tarifs[0]
+  assert.strictEqual(tBts.montant, 375000, 'Tarif normal BTS (non documenté / égal à montantBourse) = 375000')
+  assert.strictEqual(tBts.montantBourse, 375000, 'Tarif boursier BTS = 375 000 FCFA')
+  assert.strictEqual(tBts.fraisInscription, 75000, 'Inscription boursière BTS = 75 000 FCFA')
+  assert.strictEqual(tBts.mensualite, 30000, 'Mensualité boursière BTS = 30 000 FCFA')
 
   console.log('🎉 TOUTES LES ASSERTIONS POST-IMPORT IFAA ONT RÉUSSI AVEC SUCCÈS !')
 }

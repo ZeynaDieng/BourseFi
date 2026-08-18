@@ -96,7 +96,7 @@ export default defineEventHandler(async (event) => {
     for (const item of body.programmeCommissions) {
       if (item.id) {
         const val = item.fraisDossier !== null && item.fraisDossier !== undefined ? Number(item.fraisDossier) : null
-        const isCustomOverride = val !== null && val > 0 && val !== row.fraisDossier
+        const isCustomOverride = val !== null && !isNaN(val)
 
         await prisma.programme.update({
           where: { id: item.id },

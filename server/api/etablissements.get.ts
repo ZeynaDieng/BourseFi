@@ -83,9 +83,9 @@ export default defineEventHandler(async (event) => {
       partenairePrincipal,
       contacts: e.contacts,
       programmes: e.programmes.map((p) => {
-        const effectiveFrais = e.isDirectPartner && e.fraisDossier !== undefined && e.fraisDossier !== null
-          ? e.fraisDossier
-          : p.fraisDossier
+        const effectiveFrais = (p.fraisDossier !== undefined && p.fraisDossier !== null)
+          ? p.fraisDossier
+          : (e.fraisDossier ?? 0)
         return {
           slug: p.slug,
           titre: p.titre,
