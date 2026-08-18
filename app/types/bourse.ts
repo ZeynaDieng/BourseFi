@@ -48,6 +48,12 @@ export type BourseDto = {
   isTarifDirect?: boolean
   fraisDossier: number
   fraisDossierEtranger: number
+  fraisInscription?: number | null
+  mensualite?: number | null
+  nombreMois?: number | null
+  autresFrais?: number | null
+  fraisUniforme?: number | null
+  fraisSoutenance?: number | null
   devise: string
   quota: number
   dateLimite: string
