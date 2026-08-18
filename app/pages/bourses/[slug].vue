@@ -151,34 +151,39 @@ useSiteSeo({
 
       <div v-if="bourse.hasTuitionFee || (bourse.tarifs && bourse.tarifs.length > 0)">
         <div class="grid gap-4 sm:grid-cols-2 md:gap-x-12 text-sm">
-          <div v-if="bourse.economie && bourse.economie > 0" class="flex items-center justify-between border-b border-slate-100 py-3 gap-4">
+          <div v-if="bourse.tuitionFee" class="flex items-center justify-between border-b border-slate-100 py-3 gap-4">
             <span class="text-slate-500 font-medium">Tarif public normal</span>
-            <span class="font-bold text-slate-400 line-through whitespace-nowrap">{{ bourse.tuitionFee?.toLocaleString('fr-FR') }} {{ bourse.devise }} / an</span>
+            <span class="font-bold text-slate-400 line-through whitespace-nowrap">{{ bourse.tuitionFee?.toLocaleString('fr-FR') }} {{ bourse.devise }}</span>
+          </div>
+
+          <div v-if="bourse.fraisInscription" class="flex items-center justify-between border-b border-slate-100 py-3 gap-4">
+            <span class="text-slate-700 font-medium">Frais d'inscription préférentiels</span>
+            <span class="font-bold text-primary whitespace-nowrap">{{ bourse.fraisInscription.toLocaleString('fr-FR') }} {{ bourse.devise }}</span>
+          </div>
+
+          <div v-if="bourse.mensualite" class="flex items-center justify-between border-b border-slate-100 py-3 gap-4">
+            <span class="text-slate-700 font-medium">Mensualité préférentielle</span>
+            <span class="font-bold text-primary whitespace-nowrap">{{ bourse.mensualite.toLocaleString('fr-FR') }} {{ bourse.devise }} / mois (× {{ bourse.nombreMois || 10 }} mois)</span>
           </div>
           
           <div class="flex items-center justify-between border-b border-slate-100 py-3 gap-4">
-            <span class="text-slate-700 font-bold">Votre tarif officiel garanti</span>
-            <span class="font-black text-primary text-base whitespace-nowrap">{{ (bourse.montantBourse || bourse.resteACharge || bourse.tuitionFee || 0).toLocaleString('fr-FR') }} {{ bourse.devise }} / an</span>
+            <span class="text-slate-800 font-bold">Total après bourse</span>
+            <span class="font-black text-emerald-700 text-base whitespace-nowrap">{{ (bourse.montantBourse || bourse.resteACharge || bourse.tuitionFee || 0).toLocaleString('fr-FR') }} {{ bourse.devise }}</span>
           </div>
 
           <div v-if="bourse.economie && bourse.economie > 0" class="flex items-center justify-between border-b border-slate-100 py-3 gap-4">
             <span class="text-amber-900 font-extrabold">VOUS ÉCONOMISEZ</span>
-            <span class="font-black text-amber-800 text-base whitespace-nowrap">{{ bourse.economie.toLocaleString('fr-FR') }} {{ bourse.devise }}</span>
+            <span class="font-black text-amber-800 text-base whitespace-nowrap">{{ bourse.economie.toLocaleString('fr-FR') }} {{ bourse.devise }} <template v-if="bourse.economiePercent">({{ bourse.economiePercent }} %)</template></span>
           </div>
 
-          <div v-if="bourse.coveragePercent && bourse.coveragePercent > 0" class="flex items-center justify-between border-b border-slate-100 py-3 gap-4">
-            <span class="text-emerald-900 font-bold">Prise en charge mensualités</span>
-            <span class="font-bold text-emerald-700 whitespace-nowrap">{{ bourse.coveragePercent }} % sur vos mensualités</span>
+          <div v-if="bourse.etablissementSlug === 'ifaa-dakar'" class="flex items-center justify-between border-b border-slate-100 py-3 gap-4">
+            <span class="text-slate-500 font-medium">Carte CIAE obligatoire (inscription)</span>
+            <span class="font-bold text-slate-800 whitespace-nowrap">5 000 FCFA</span>
           </div>
 
-          <div v-if="showCoveragePercent && bourse.economiePercent" class="flex items-center justify-between border-b border-slate-100 py-3 gap-4">
-            <span class="text-slate-500 font-medium">Économie réelle sur coût annuel</span>
-            <span class="font-bold text-primary whitespace-nowrap">{{ bourse.economiePercent }} %</span>
-          </div>
-
-          <div v-if="bourse.anneeAcademique" class="flex items-center justify-between border-b border-slate-100 py-3 gap-4">
-            <span class="text-slate-500 font-medium">Année académique</span>
-            <span class="font-bold text-slate-700 whitespace-nowrap">{{ bourse.anneeAcademique }}</span>
+          <div v-if="bourse.autresFrais" class="flex items-center justify-between border-b border-slate-100 py-3 gap-4">
+            <span class="text-slate-500 font-medium">Frais d'examen Santé (L3)</span>
+            <span class="font-bold text-slate-800 whitespace-nowrap">{{ bourse.autresFrais.toLocaleString('fr-FR') }} FCFA</span>
           </div>
 
           <div class="flex items-center justify-between border-b border-slate-100 py-3 gap-4">

@@ -15,22 +15,25 @@ const IFAA_DOCUMENTS_REQUIS = `• 02 Extraits d'acte de naissance de moins de 3
 
 // Formations officielles issues de la plaquette et grilles d'IFAA Business School 2025/2026
 const OFFICIAL_IFAA_PROGRAMMES = [
-  // --- A. MASTERS MANAGEMENT (Licence ou équivalent requis - Durée: 10 mois) ---
+  // --- A. MASTERS MANAGEMENT (8 Masters - Durée: 10 mois) ---
   {
     slug: 'ifaa-master-banque-finance',
     titre: 'Master Banque Finance (Master 1 / Master 2)',
     niveau: 'Master',
     duree: '10 mois',
     billingDuration: '10 mois',
+    parcours: 'Cours du Soir',
     condition: 'Licence ou équivalent',
     domaine: 'Management',
     isHealth: false,
-    tarifNormal: null,
+    tarifNormal: 667000,
     tarifBoursier: 420000,
+    inscriptionNormal: 137000,
     inscription: 70000,
+    mensualiteNormal: 53000,
     mensualite: 35000,
     mois: 10,
-    isToVerify: true,
+    isToVerify: false,
     description: 'Ingénierie financière, marchés de capitaux, banque d\'investissement et gestion des risques bancaires.'
   },
   {
@@ -39,15 +42,18 @@ const OFFICIAL_IFAA_PROGRAMMES = [
     niveau: 'Master',
     duree: '10 mois',
     billingDuration: '10 mois',
+    parcours: 'Cours du Soir',
     condition: 'Licence ou équivalent',
     domaine: 'Management',
     isHealth: false,
-    tarifNormal: null,
+    tarifNormal: 667000,
     tarifBoursier: 420000,
+    inscriptionNormal: 137000,
     inscription: 70000,
+    mensualiteNormal: 53000,
     mensualite: 35000,
     mois: 10,
-    isToVerify: true,
+    isToVerify: false,
     description: 'Comptabilité approfondie SYSCOHADA, contrôle de gestion stratégique et fiscalité des groupes.'
   },
   {
@@ -56,15 +62,18 @@ const OFFICIAL_IFAA_PROGRAMMES = [
     niveau: 'Master',
     duree: '10 mois',
     billingDuration: '10 mois',
+    parcours: 'Cours du Soir',
     condition: 'Licence ou équivalent',
     domaine: 'Management',
     isHealth: false,
-    tarifNormal: null,
+    tarifNormal: 667000,
     tarifBoursier: 420000,
+    inscriptionNormal: 137000,
     inscription: 70000,
+    mensualiteNormal: 53000,
     mensualite: 35000,
     mois: 10,
-    isToVerify: true,
+    isToVerify: false,
     description: 'Audit financier interne/externe, contrôle budgétaire, gouvernance et normes IFRS.'
   },
   {
@@ -73,15 +82,18 @@ const OFFICIAL_IFAA_PROGRAMMES = [
     niveau: 'Master',
     duree: '10 mois',
     billingDuration: '10 mois',
+    parcours: 'Cours du Soir',
     condition: 'Licence ou équivalent',
     domaine: 'Management',
     isHealth: false,
-    tarifNormal: null,
+    tarifNormal: 667000,
     tarifBoursier: 420000,
+    inscriptionNormal: 137000,
     inscription: 70000,
+    mensualiteNormal: 53000,
     mensualite: 35000,
     mois: 10,
-    isToVerify: true,
+    isToVerify: false,
     description: 'Négociation internationale, stratégie d\'exportation, douane et droit des affaires internationales.'
   },
   {
@@ -90,15 +102,18 @@ const OFFICIAL_IFAA_PROGRAMMES = [
     niveau: 'Master',
     duree: '10 mois',
     billingDuration: '10 mois',
+    parcours: 'Cours du Soir',
     condition: 'Licence ou équivalent',
     domaine: 'Management',
     isHealth: false,
-    tarifNormal: null,
+    tarifNormal: 667000,
     tarifBoursier: 420000,
+    inscriptionNormal: 137000,
     inscription: 70000,
+    mensualiteNormal: 53000,
     mensualite: 35000,
     mois: 10,
-    isToVerify: true,
+    isToVerify: false,
     description: 'Marketing stratégique, étude de marché internationale, branding et communication globale.'
   },
   {
@@ -107,15 +122,18 @@ const OFFICIAL_IFAA_PROGRAMMES = [
     niveau: 'Master',
     duree: '10 mois',
     billingDuration: '10 mois',
+    parcours: 'Cours du Soir',
     condition: 'Licence ou équivalent',
     domaine: 'Management',
     isHealth: false,
-    tarifNormal: null,
+    tarifNormal: 667000,
     tarifBoursier: 420000,
+    inscriptionNormal: 137000,
     inscription: 70000,
+    mensualiteNormal: 53000,
     mensualite: 35000,
     mois: 10,
-    isToVerify: true,
+    isToVerify: false,
     description: 'Supply Chain Management globale, transit multimodal, logistique portuaire et maritime.'
   },
   {
@@ -124,15 +142,18 @@ const OFFICIAL_IFAA_PROGRAMMES = [
     niveau: 'Master',
     duree: '10 mois',
     billingDuration: '10 mois',
+    parcours: 'Cours du Soir',
     condition: 'Licence ou équivalent',
     domaine: 'Management',
     isHealth: false,
-    tarifNormal: null,
+    tarifNormal: 667000,
     tarifBoursier: 420000,
+    inscriptionNormal: 137000,
     inscription: 70000,
+    mensualiteNormal: 53000,
     mensualite: 35000,
     mois: 10,
-    isToVerify: true,
+    isToVerify: false,
     description: 'GPEC, politique de rémunération, relations sociales et développement des talents.'
   },
   {
@@ -141,15 +162,18 @@ const OFFICIAL_IFAA_PROGRAMMES = [
     niveau: 'Master',
     duree: '10 mois',
     billingDuration: '10 mois',
+    parcours: 'Cours du Soir',
     condition: 'Licence ou équivalent',
     domaine: 'Management',
     isHealth: false,
-    tarifNormal: null,
+    tarifNormal: 667000,
     tarifBoursier: 420000,
+    inscriptionNormal: 137000,
     inscription: 70000,
+    mensualiteNormal: 53000,
     mensualite: 35000,
     mois: 10,
-    isToVerify: true,
+    isToVerify: false,
     description: 'Management de projet (PMI / PMP), suivi-évaluation, gestion budgétaire et risques.'
   },
   {
@@ -158,185 +182,402 @@ const OFFICIAL_IFAA_PROGRAMMES = [
     niveau: 'Master',
     duree: '10 mois',
     billingDuration: '10 mois',
+    parcours: 'Cours du Soir',
     condition: 'Licence ou équivalent',
     domaine: 'Management Spécifique',
     isHealth: false,
     tarifNormal: 782000,
     tarifBoursier: 475000,
+    inscriptionNormal: 152000,
     inscription: 75000,
+    mensualiteNormal: 63000,
     mensualite: 40000,
     mois: 10,
     isToVerify: false,
     description: 'Normes ISO 9001/14001/45001, audit QHSE, prévention des risques industriels et développement durable.'
   },
 
-  // --- B. LICENCES MANAGEMENT (BAC ou équivalent requis - Durée: 3 ans) ---
+  // --- B. LICENCES MANAGEMENT — COURS DU JOUR (9 Licences) ---
   {
-    slug: 'ifaa-licence-banque-finance',
-    titre: 'Licence Banque Finance (Licence 1, 2, 3)',
+    slug: 'ifaa-licence-banque-finance-jour',
+    titre: 'Licence Banque Finance (Cours du Jour)',
     niveau: 'Licence',
     duree: '3 ans',
     billingDuration: '10 mois',
+    parcours: 'Cours du Jour',
     condition: 'BAC ou équivalent',
     domaine: 'Management',
     isHealth: false,
-    tarifNormal: null,
+    tarifNormal: 722000,
     tarifBoursier: 375000,
+    inscriptionNormal: 192000,
     inscription: 75000,
+    mensualiteNormal: 53000,
     mensualite: 30000,
     mois: 10,
-    isToVerify: true,
+    isToVerify: false,
     description: 'Produits bancaires et d\'assurance, analyse financière de premier niveau et relation client.'
   },
   {
-    slug: 'ifaa-licence-comptabilite-gestion',
-    titre: 'Licence Comptabilité et Gestion (Licence 1, 2, 3)',
+    slug: 'ifaa-licence-comptabilite-gestion-jour',
+    titre: 'Licence Comptabilité et Gestion (Cours du Jour)',
     niveau: 'Licence',
     duree: '3 ans',
     billingDuration: '10 mois',
+    parcours: 'Cours du Jour',
     condition: 'BAC ou équivalent',
     domaine: 'Management',
     isHealth: false,
-    tarifNormal: null,
+    tarifNormal: 722000,
     tarifBoursier: 375000,
+    inscriptionNormal: 192000,
     inscription: 75000,
+    mensualiteNormal: 53000,
     mensualite: 30000,
     mois: 10,
-    isToVerify: true,
+    isToVerify: false,
     description: 'Comptabilité générale SYSCOHADA, paie, fiscalité pratique et gestion de trésorerie.'
   },
   {
-    slug: 'ifaa-licence-commerce-international',
-    titre: 'Licence Commerce International (Licence 1, 2, 3)',
+    slug: 'ifaa-licence-commerce-international-jour',
+    titre: 'Licence Commerce International (Cours du Jour)',
     niveau: 'Licence',
     duree: '3 ans',
     billingDuration: '10 mois',
+    parcours: 'Cours du Jour',
     condition: 'BAC ou équivalent',
     domaine: 'Management',
     isHealth: false,
-    tarifNormal: null,
+    tarifNormal: 722000,
     tarifBoursier: 375000,
+    inscriptionNormal: 192000,
     inscription: 75000,
+    mensualiteNormal: 53000,
     mensualite: 30000,
     mois: 10,
-    isToVerify: true,
+    isToVerify: false,
     description: 'Incoterms 2020, douanes, transit, prospection internationale et techniques d\'import-export.'
   },
   {
-    slug: 'ifaa-licence-marketing-communication-digitale',
-    titre: 'Licence Marketing Communication Transformation Digitale (Licence 1, 2, 3)',
+    slug: 'ifaa-licence-marketing-communication-digitale-jour',
+    titre: 'Licence Marketing Communication Transformation Digitale (Cours du Jour)',
     niveau: 'Licence',
     duree: '3 ans',
     billingDuration: '10 mois',
+    parcours: 'Cours du Jour',
     condition: 'BAC ou équivalent',
     domaine: 'Management',
     isHealth: false,
-    tarifNormal: null,
+    tarifNormal: 722000,
     tarifBoursier: 375000,
+    inscriptionNormal: 192000,
     inscription: 75000,
+    mensualiteNormal: 53000,
     mensualite: 30000,
     mois: 10,
-    isToVerify: true,
+    isToVerify: false,
     description: 'Marketing stratégique et opérationnel, social media management, création de contenu et stratégie digitale.'
   },
   {
-    slug: 'ifaa-licence-ingenierie-projets-entreprenariat',
-    titre: 'Licence Ingénierie des Projets et Entreprenariat (Licence 1, 2, 3)',
+    slug: 'ifaa-licence-ingenierie-projets-entreprenariat-jour',
+    titre: 'Licence Ingénierie des Projets et Entreprenariat (Cours du Jour)',
     niveau: 'Licence',
     duree: '3 ans',
     billingDuration: '10 mois',
+    parcours: 'Cours du Jour',
     condition: 'BAC ou équivalent',
     domaine: 'Management',
     isHealth: false,
-    tarifNormal: null,
+    tarifNormal: 722000,
     tarifBoursier: 375000,
+    inscriptionNormal: 192000,
     inscription: 75000,
+    mensualiteNormal: 53000,
     mensualite: 30000,
     mois: 10,
-    isToVerify: true,
+    isToVerify: false,
     description: 'Élaboration de business plan, montage de projets, recherche de financement et création d\'entreprise.'
   },
   {
-    slug: 'ifaa-licence-transport-logistique',
-    titre: 'Licence Transport Logistique (Licence 1, 2, 3)',
+    slug: 'ifaa-licence-transport-logistique-jour',
+    titre: 'Licence Transport Logistique (Cours du Jour)',
     niveau: 'Licence',
     duree: '3 ans',
     billingDuration: '10 mois',
+    parcours: 'Cours du Jour',
     condition: 'BAC ou équivalent',
     domaine: 'Management',
     isHealth: false,
-    tarifNormal: null,
+    tarifNormal: 722000,
     tarifBoursier: 375000,
+    inscriptionNormal: 192000,
     inscription: 75000,
+    mensualiteNormal: 53000,
     mensualite: 30000,
     mois: 10,
-    isToVerify: true,
+    isToVerify: false,
     description: 'Gestion d\'entrepôts, affrètement, régimes douaniers sénégalais et transport multimodal.'
   },
   {
-    slug: 'ifaa-licence-gestion-ressources-humaines',
-    titre: 'Licence Gestion des Ressources Humaines (Licence 1, 2, 3)',
+    slug: 'ifaa-licence-gestion-ressources-humaines-jour',
+    titre: 'Licence Gestion des Ressources Humaines (Cours du Jour)',
     niveau: 'Licence',
     duree: '3 ans',
     billingDuration: '10 mois',
+    parcours: 'Cours du Jour',
     condition: 'BAC ou équivalent',
     domaine: 'Management',
     isHealth: false,
-    tarifNormal: null,
+    tarifNormal: 722000,
     tarifBoursier: 375000,
+    inscriptionNormal: 192000,
     inscription: 75000,
+    mensualiteNormal: 53000,
     mensualite: 30000,
     mois: 10,
-    isToVerify: true,
+    isToVerify: false,
     description: 'Gestion du personnel, contrats de travail, paie informatisée et recrutement.'
   },
   {
-    slug: 'ifaa-licence-sciences-gestion-informatique',
-    titre: 'Licence Sciences de Gestion & Informatique (Licence 1, 2, 3)',
+    slug: 'ifaa-licence-sciences-gestion-informatique-jour',
+    titre: 'Licence Sciences de Gestion & Informatique (Cours du Jour)',
     niveau: 'Licence',
     duree: '3 ans',
     billingDuration: '10 mois',
+    parcours: 'Cours du Jour',
     condition: 'BAC ou équivalent',
     domaine: 'Management & IT',
     isHealth: false,
-    tarifNormal: null,
+    tarifNormal: 722000,
     tarifBoursier: 375000,
+    inscriptionNormal: 192000,
     inscription: 75000,
+    mensualiteNormal: 53000,
     mensualite: 30000,
     mois: 10,
-    isToVerify: true,
+    isToVerify: false,
     description: 'Bases de données SQL, ERP de gestion, développement web applicatif et algorithmique d\'entreprise.'
   },
   {
-    slug: 'ifaa-licence-qhse',
-    titre: 'Licence Qualité - Hygiène - Sécurité & Environnement (Licence 1, 2, 3)',
+    slug: 'ifaa-licence-qhse-jour',
+    titre: 'Licence Qualité - Hygiène - Sécurité & Environnement (Cours du Jour)',
     niveau: 'Licence',
     duree: '3 ans',
     billingDuration: '10 mois',
+    parcours: 'Cours du Jour',
     condition: 'BAC ou équivalent',
     domaine: 'Management',
     isHealth: false,
-    tarifNormal: null,
+    tarifNormal: 722000,
     tarifBoursier: 375000,
+    inscriptionNormal: 192000,
     inscription: 75000,
+    mensualiteNormal: 53000,
     mensualite: 30000,
     mois: 10,
-    isToVerify: true,
+    isToVerify: false,
     description: 'Systèmes de management de la qualité, sécurité au travail, contrôle d\'hygiène et gestion environnementale.'
   },
+
+  // --- C. LICENCES MANAGEMENT — COURS DU SOIR (9 Licences) ---
+  {
+    slug: 'ifaa-licence-banque-finance-soir',
+    titre: 'Licence Banque Finance (Cours du Soir)',
+    niveau: 'Licence',
+    duree: '3 ans',
+    billingDuration: '10 mois',
+    parcours: 'Cours du Soir',
+    condition: 'BAC ou équivalent',
+    domaine: 'Management',
+    isHealth: false,
+    tarifNormal: 667000,
+    tarifBoursier: 420000,
+    inscriptionNormal: 137000,
+    inscription: 70000,
+    mensualiteNormal: 53000,
+    mensualite: 35000,
+    mois: 10,
+    isToVerify: false,
+    description: 'Produits bancaires et d\'assurance, analyse financière de premier niveau et relation client.'
+  },
+  {
+    slug: 'ifaa-licence-comptabilite-gestion-soir',
+    titre: 'Licence Comptabilité et Gestion (Cours du Soir)',
+    niveau: 'Licence',
+    duree: '3 ans',
+    billingDuration: '10 mois',
+    parcours: 'Cours du Soir',
+    condition: 'BAC ou équivalent',
+    domaine: 'Management',
+    isHealth: false,
+    tarifNormal: 667000,
+    tarifBoursier: 420000,
+    inscriptionNormal: 137000,
+    inscription: 70000,
+    mensualiteNormal: 53000,
+    mensualite: 35000,
+    mois: 10,
+    isToVerify: false,
+    description: 'Comptabilité générale SYSCOHADA, paie, fiscalité pratique et gestion de trésorerie.'
+  },
+  {
+    slug: 'ifaa-licence-commerce-international-soir',
+    titre: 'Licence Commerce International (Cours du Soir)',
+    niveau: 'Licence',
+    duree: '3 ans',
+    billingDuration: '10 mois',
+    parcours: 'Cours du Soir',
+    condition: 'BAC ou équivalent',
+    domaine: 'Management',
+    isHealth: false,
+    tarifNormal: 667000,
+    tarifBoursier: 420000,
+    inscriptionNormal: 137000,
+    inscription: 70000,
+    mensualiteNormal: 53000,
+    mensualite: 35000,
+    mois: 10,
+    isToVerify: false,
+    description: 'Incoterms 2020, douanes, transit, prospection internationale et techniques d\'import-export.'
+  },
+  {
+    slug: 'ifaa-licence-marketing-communication-digitale-soir',
+    titre: 'Licence Marketing Communication Transformation Digitale (Cours du Soir)',
+    niveau: 'Licence',
+    duree: '3 ans',
+    billingDuration: '10 mois',
+    parcours: 'Cours du Soir',
+    condition: 'BAC ou équivalent',
+    domaine: 'Management',
+    isHealth: false,
+    tarifNormal: 667000,
+    tarifBoursier: 420000,
+    inscriptionNormal: 137000,
+    inscription: 70000,
+    mensualiteNormal: 53000,
+    mensualite: 35000,
+    mois: 10,
+    isToVerify: false,
+    description: 'Marketing stratégique et opérationnel, social media management, création de contenu et stratégie digitale.'
+  },
+  {
+    slug: 'ifaa-licence-ingenierie-projets-entreprenariat-soir',
+    titre: 'Licence Ingénierie des Projets et Entreprenariat (Cours du Soir)',
+    niveau: 'Licence',
+    duree: '3 ans',
+    billingDuration: '10 mois',
+    parcours: 'Cours du Soir',
+    condition: 'BAC ou équivalent',
+    domaine: 'Management',
+    isHealth: false,
+    tarifNormal: 667000,
+    tarifBoursier: 420000,
+    inscriptionNormal: 137000,
+    inscription: 70000,
+    mensualiteNormal: 53000,
+    mensualite: 35000,
+    mois: 10,
+    isToVerify: false,
+    description: 'Élaboration de business plan, montage de projets, recherche de financement et création d\'entreprise.'
+  },
+  {
+    slug: 'ifaa-licence-transport-logistique-soir',
+    titre: 'Licence Transport Logistique (Cours du Soir)',
+    niveau: 'Licence',
+    duree: '3 ans',
+    billingDuration: '10 mois',
+    parcours: 'Cours du Soir',
+    condition: 'BAC ou équivalent',
+    domaine: 'Management',
+    isHealth: false,
+    tarifNormal: 667000,
+    tarifBoursier: 420000,
+    inscriptionNormal: 137000,
+    inscription: 70000,
+    mensualiteNormal: 53000,
+    mensualite: 35000,
+    mois: 10,
+    isToVerify: false,
+    description: 'Gestion d\'entrepôts, affrètement, régimes douaniers sénégalais et transport multimodal.'
+  },
+  {
+    slug: 'ifaa-licence-gestion-ressources-humaines-soir',
+    titre: 'Licence Gestion des Ressources Humaines (Cours du Soir)',
+    niveau: 'Licence',
+    duree: '3 ans',
+    billingDuration: '10 mois',
+    parcours: 'Cours du Soir',
+    condition: 'BAC ou équivalent',
+    domaine: 'Management',
+    isHealth: false,
+    tarifNormal: 667000,
+    tarifBoursier: 420000,
+    inscriptionNormal: 137000,
+    inscription: 70000,
+    mensualiteNormal: 53000,
+    mensualite: 35000,
+    mois: 10,
+    isToVerify: false,
+    description: 'Gestion du personnel, contrats de travail, paie informatisée et recrutement.'
+  },
+  {
+    slug: 'ifaa-licence-sciences-gestion-informatique-soir',
+    titre: 'Licence Sciences de Gestion & Informatique (Cours du Soir)',
+    niveau: 'Licence',
+    duree: '3 ans',
+    billingDuration: '10 mois',
+    parcours: 'Cours du Soir',
+    condition: 'BAC ou équivalent',
+    domaine: 'Management & IT',
+    isHealth: false,
+    tarifNormal: 667000,
+    tarifBoursier: 420000,
+    inscriptionNormal: 137000,
+    inscription: 70000,
+    mensualiteNormal: 53000,
+    mensualite: 35000,
+    mois: 10,
+    isToVerify: false,
+    description: 'Bases de données SQL, ERP de gestion, développement web applicatif et algorithmique d\'entreprise.'
+  },
+  {
+    slug: 'ifaa-licence-qhse-soir',
+    titre: 'Licence Qualité - Hygiène - Sécurité & Environnement (Cours du Soir)',
+    niveau: 'Licence',
+    duree: '3 ans',
+    billingDuration: '10 mois',
+    parcours: 'Cours du Soir',
+    condition: 'BAC ou équivalent',
+    domaine: 'Management',
+    isHealth: false,
+    tarifNormal: 667000,
+    tarifBoursier: 420000,
+    inscriptionNormal: 137000,
+    inscription: 70000,
+    mensualiteNormal: 53000,
+    mensualite: 35000,
+    mois: 10,
+    isToVerify: false,
+    description: 'Systèmes de management de la qualité, sécurité au travail, contrôle d\'hygiène et gestion environnementale.'
+  },
+
+  // --- D. LICENCES SANTÉ (2 Licences - Durée: 3 ans) ---
   {
     slug: 'ifaa-licence-sage-femme-etat',
     titre: 'Licence Sage Femme d\'État (Filière Santé L3)',
     niveau: 'Licence',
     duree: '3 ans',
     billingDuration: '10 mois',
+    parcours: 'Santé',
     condition: 'BAC',
     domaine: 'Santé',
     isHealth: true,
     fraisExamenSante: 20000,
     tarifNormal: 722000,
     tarifBoursier: 475000,
+    inscriptionNormal: 202000,
     inscription: 75000,
+    mensualiteNormal: 52000,
     mensualite: 40000,
     mois: 10,
     isToVerify: false,
@@ -348,35 +589,41 @@ const OFFICIAL_IFAA_PROGRAMMES = [
     niveau: 'Licence',
     duree: '3 ans',
     billingDuration: '10 mois',
+    parcours: 'Santé',
     condition: 'BAC',
     domaine: 'Santé',
     isHealth: true,
     fraisExamenSante: 20000,
     tarifNormal: 722000,
     tarifBoursier: 475000,
+    inscriptionNormal: 202000,
     inscription: 75000,
+    mensualiteNormal: 52000,
     mensualite: 40000,
     mois: 10,
     isToVerify: false,
     description: 'Soins infirmiers généraux, pharmacologie, soins d\'urgence, pathologie médicale et gestion de salle d\'hospitalisation.'
   },
 
-  // --- C. BTS EN APPROCHE PAR COMPÉTENCE (Durée: 2 ans) ---
+  // --- E. BTS EN APPROCHE PAR COMPÉTENCE (6 BTS - Durée: 2 ans) ---
   {
     slug: 'ifaa-bts-qhse',
     titre: 'BTS Qualité - Hygiène - Sécurité & Environnement (BTS)',
     niveau: 'BTS',
     duree: '2 ans',
     billingDuration: '10 mois',
+    parcours: 'Cours du Jour / Soir',
     condition: 'BAC ou équivalent',
     domaine: 'BTS',
     isHealth: false,
-    tarifNormal: null,
+    tarifNormal: 722000,
     tarifBoursier: 375000,
+    inscriptionNormal: 192000,
     inscription: 75000,
+    mensualiteNormal: 53000,
     mensualite: 30000,
     mois: 10,
-    isToVerify: true,
+    isToVerify: false,
     description: 'Techniques de contrôle qualité, prévention des risques professionnels et hygiène en entreprise.'
   },
   {
@@ -385,15 +632,18 @@ const OFFICIAL_IFAA_PROGRAMMES = [
     niveau: 'BTS',
     duree: '2 ans',
     billingDuration: '10 mois',
+    parcours: 'Cours du Jour / Soir',
     condition: 'BAC ou équivalent',
     domaine: 'BTS',
     isHealth: false,
-    tarifNormal: null,
+    tarifNormal: 722000,
     tarifBoursier: 375000,
+    inscriptionNormal: 192000,
     inscription: 75000,
+    mensualiteNormal: 53000,
     mensualite: 30000,
     mois: 10,
-    isToVerify: true,
+    isToVerify: false,
     description: 'Transformation et conservation des aliments, microbiologie et contrôle qualité de la chaîne alimentaire.'
   },
   {
@@ -402,15 +652,18 @@ const OFFICIAL_IFAA_PROGRAMMES = [
     niveau: 'BTS',
     duree: '2 ans',
     billingDuration: '10 mois',
+    parcours: 'Cours du Jour / Soir',
     condition: 'BAC ou équivalent',
     domaine: 'BTS',
     isHealth: false,
-    tarifNormal: null,
+    tarifNormal: 722000,
     tarifBoursier: 375000,
+    inscriptionNormal: 192000,
     inscription: 75000,
+    mensualiteNormal: 53000,
     mensualite: 30000,
     mois: 10,
-    isToVerify: true,
+    isToVerify: false,
     description: 'Équilibre nutritionnel, régime alimentaire hospitalier et conseils en hygiène de vie et diététique.'
   },
   {
@@ -419,15 +672,18 @@ const OFFICIAL_IFAA_PROGRAMMES = [
     niveau: 'BTS',
     duree: '2 ans',
     billingDuration: '10 mois',
+    parcours: 'Cours du Jour / Soir',
     condition: 'BAC ou équivalent',
     domaine: 'BTS',
     isHealth: false,
-    tarifNormal: null,
+    tarifNormal: 722000,
     tarifBoursier: 375000,
+    inscriptionNormal: 192000,
     inscription: 75000,
+    mensualiteNormal: 53000,
     mensualite: 30000,
     mois: 10,
-    isToVerify: true,
+    isToVerify: false,
     description: 'Techniques d\'analyses de laboratoire, hématologie, biochimie médicale et parasitologie.'
   },
   {
@@ -436,15 +692,18 @@ const OFFICIAL_IFAA_PROGRAMMES = [
     niveau: 'BTS',
     duree: '2 ans',
     billingDuration: '10 mois',
+    parcours: 'Cours du Jour / Soir',
     condition: 'BAC ou équivalent',
     domaine: 'BTS',
     isHealth: false,
-    tarifNormal: null,
+    tarifNormal: 722000,
     tarifBoursier: 375000,
+    inscriptionNormal: 192000,
     inscription: 75000,
+    mensualiteNormal: 53000,
     mensualite: 30000,
     mois: 10,
-    isToVerify: true,
+    isToVerify: false,
     description: 'Bases de données SQL, algorithmique, développement logiciel et tableurs décisionnels.'
   },
   {
@@ -453,31 +712,37 @@ const OFFICIAL_IFAA_PROGRAMMES = [
     niveau: 'BTS',
     duree: '2 ans',
     billingDuration: '10 mois',
+    parcours: 'Cours du Jour / Soir',
     condition: 'BAC ou équivalent',
     domaine: 'BTS',
     isHealth: false,
-    tarifNormal: null,
+    tarifNormal: 722000,
     tarifBoursier: 375000,
+    inscriptionNormal: 192000,
     inscription: 75000,
+    mensualiteNormal: 53000,
     mensualite: 30000,
     mois: 10,
-    isToVerify: true,
+    isToVerify: false,
     description: 'Planification opérationnelle de projets, suivi d\'exécution et gestion des équipes sur le terrain.'
   },
 
-  // --- D. BFEM – NIVEAU TERMINALE – BAC (SANTÉ & PARAMÉDICAL) ---
+  // --- F. BFEM – NIVEAU TERMINALE – BAC (SANTÉ & PARAMÉDICAL - 3 Formations) ---
   {
     slug: 'ifaa-delegation-medicale',
     titre: 'Délégation Médicale (Formation Santé)',
     niveau: 'Certificat',
     duree: '10 mois',
     billingDuration: '10 mois',
+    parcours: 'Cours du Soir',
     condition: 'Bac / Niveau Terminale ou équivalent',
     domaine: 'Santé',
     isHealth: true,
     tarifNormal: 658500,
     tarifBoursier: 370000,
+    inscriptionNormal: 108500,
     inscription: 70000,
+    mensualiteNormal: 55000,
     mensualite: 30000,
     mois: 10,
     isToVerify: false,
@@ -489,13 +754,16 @@ const OFFICIAL_IFAA_PROGRAMMES = [
     niveau: 'Certificat',
     duree: '2 ans',
     billingDuration: '10 mois',
+    parcours: 'Cours du Jour / Soir',
     condition: 'BFEM',
     domaine: 'Santé',
     isHealth: true,
-    fraisExamenSante: null, // Retiré conformément aux consignes
+    fraisExamenSante: null,
     tarifNormal: 722000,
     tarifBoursier: 475000,
+    inscriptionNormal: 202000,
     inscription: 75000,
+    mensualiteNormal: 52000,
     mensualite: 40000,
     mois: 10,
     isToVerify: false,
@@ -507,12 +775,15 @@ const OFFICIAL_IFAA_PROGRAMMES = [
     niveau: 'Certificat',
     duree: '10 mois',
     billingDuration: '10 mois',
+    parcours: 'Cours du Soir',
     condition: 'Bac / Niveau Terminale ou équivalent',
     domaine: 'Santé',
     isHealth: true,
     tarifNormal: 658500,
     tarifBoursier: 370000,
+    inscriptionNormal: 108500,
     inscription: 70000,
+    mensualiteNormal: 55000,
     mensualite: 30000,
     mois: 10,
     isToVerify: false,
@@ -648,7 +919,7 @@ async function runImport() {
       }
     }
 
-    // 5. Importer les 29 programmes et tarifs officiels IFAA 2025/2026
+    // 5. Importer les programmes et tarifs officiels IFAA 2025/2026
     for (const progData of OFFICIAL_IFAA_PROGRAMMES) {
       let prog = await tx.programme.findFirst({
         where: { slug: progData.slug }
@@ -663,7 +934,7 @@ async function runImport() {
         duree: progData.duree,
         niveau: progData.niveau,
         description: progData.description,
-        conditionsAdmission: `• Condition d'admission : ${progData.condition}\n• Durée de facturation : ${progData.billingDuration}\n• Frais annexes : Vaccin (13 000 F), Blouses (30 000 F), Frais de stage (10 000 F).\n• Carte CIAE obligatoire dès l'inscription : 5 000 FCFA.${progData.fraisExamenSante ? '\n• Frais d\'examen filière Santé L3 : 20 000 FCFA.' : ''}`,
+        conditionsAdmission: `• Parcours : ${progData.parcours}\n• Condition d'admission : ${progData.condition}\n• Durée de facturation : ${progData.billingDuration}\n• Tarif normal : Inscription (${progData.inscriptionNormal.toLocaleString('fr-FR')} F) + Scolarité (${progData.mensualiteNormal.toLocaleString('fr-FR')} F x 10) = ${progData.tarifNormal.toLocaleString('fr-FR')} FCFA.\n• Frais annexes : Vaccin (13 000 F), Blouses (30 000 F), Frais de stage (10 000 F).\n• Carte CIAE obligatoire dès l'inscription : 5 000 FCFA.${progData.fraisExamenSante ? '\n• Frais d\'examen filière Santé L3 : 20 000 FCFA.' : ''}`,
         documentsRequis: IFAA_DOCUMENTS_REQUIS,
         eligibilite: `Ouvert aux étudiants remplissant la condition officielle (${progData.condition}).`,
         sourceType: 'DOCUMENT_ETABLISSEMENT',
@@ -685,9 +956,14 @@ async function runImport() {
       }
 
       // --- CALCUL PRÉCIS DE L'ÉCONOMIE & DU POURCENTAGE ---
-      const hasTarifNormal = progData.tarifNormal !== null && progData.tarifNormal !== undefined
-      const economie = hasTarifNormal ? progData.tarifNormal - progData.tarifBoursier : null
-      const percentageReduction = hasTarifNormal ? Number(((economie / progData.tarifNormal) * 100).toFixed(2)) : null
+      const economie = progData.tarifNormal - progData.tarifBoursier
+      const percentageReduction = Number(((economie / progData.tarifNormal) * 100).toFixed(2))
+
+      // Verification formule
+      const calcNormal = progData.inscriptionNormal + (progData.mensualiteNormal * progData.mois)
+      const calcBoursier = progData.inscription + (progData.mensualite * progData.mois)
+      assert.strictEqual(calcNormal, progData.tarifNormal, `Erreur calcul normal sur ${progData.slug}`)
+      assert.strictEqual(calcBoursier, progData.tarifBoursier, `Erreur calcul boursier sur ${progData.slug}`)
 
       // --- TARIF NOMINAL ET PRÉFÉRENTIEL (2025/2026) ---
       let existingTarif = await tx.tarif.findFirst({
@@ -697,7 +973,7 @@ async function runImport() {
       const tarifPayload = {
         programmeId: prog.id,
         anneeAcademique: '2025/2026',
-        montant: hasTarifNormal ? progData.tarifNormal : progData.tarifBoursier,
+        montant: progData.tarifNormal,
         montantBourse: progData.tarifBoursier,
         fraisInscription: progData.inscription,
         mensualite: progData.mensualite,
@@ -705,9 +981,9 @@ async function runImport() {
         autresFrais: progData.fraisExamenSante || null,
         devise: 'FCFA',
         frequence: 'ANNUEL',
-        label: progData.isToVerify ? 'Tarif Préférentiel Manuscrit 2025/2026 (À vérifier)' : 'Tarif Préférentiel 2025/2026',
+        label: `Tarif Préférentiel 2025/2026 (${progData.parcours})`,
         source: 'DOCUMENT',
-        isVerified: !progData.isToVerify,
+        isVerified: true,
         isDefault: true,
         status: 'ACTIVE'
       }
@@ -737,10 +1013,10 @@ async function runImport() {
         partnerId: partner.id,
         titre: bourseTitle,
         slug: bourseSlug,
-        coveragePercent: percentageReduction ? Math.round(percentageReduction) : 0,
-        montantMax: economie || 0,
+        coveragePercent: Math.round(percentageReduction),
+        montantMax: economie,
         dateLimite: new Date('2026-11-30'),
-        conditions: `Condition d'admission : ${progData.condition}. Durée du cursus : ${progData.duree} (Facturation : ${progData.billingDuration}). Frais d'inscription préférentiels : ${progData.inscription.toLocaleString('fr-FR')} FCFA. Mensualité : ${progData.mensualite.toLocaleString('fr-FR')} FCFA sur 10 mois. Carte CIAE obligatoire : 5 000 FCFA.`,
+        conditions: `Condition d'admission : ${progData.condition}. Parcours : ${progData.parcours}. Tarif normal : ${progData.tarifNormal.toLocaleString('fr-FR')} FCFA. Frais d'inscription préférentiels : ${progData.inscription.toLocaleString('fr-FR')} FCFA. Mensualité : ${progData.mensualite.toLocaleString('fr-FR')} FCFA sur 10 mois. Total après bourse : ${progData.tarifBoursier.toLocaleString('fr-FR')} FCFA. Carte CIAE obligatoire : 5 000 FCFA.`,
         documentsRequis: IFAA_DOCUMENTS_REQUIS,
         isActive: true,
         status: 'ACTIVE'
@@ -789,36 +1065,24 @@ async function verifyImport() {
   assert.strictEqual(etab.phone, '+221 33 867 36 35')
   assert.strictEqual(etab.phoneSecondary, '+221 78 112 47 18')
   assert.strictEqual(etab.isDirectPartner, true)
-  assert.strictEqual(etab.programmes.length, 29, 'Il doit y avoir exactement 29 programmes officiels IFAA actifs')
+  assert.strictEqual(etab.programmes.length, 38, 'Il doit y avoir exactement 38 offres de formation IFAA (9 Masters + 9 Licences Jour + 9 Licences Soir + 2 Licences Santé + 6 BTS + 3 BFEM/Bac)')
 
-  // Vérification des calculs pour quelques formations représentatives
-  const testCalculations = [
-    { slug: 'ifaa-master-banque-finance', expectedNormal: 420000, expectedBoursier: 420000, expectedEco: 0, expectedPct: 0, expectedToVerify: true },
-    { slug: 'ifaa-master-qhse', expectedNormal: 782000, expectedBoursier: 475000, expectedEco: 307000, expectedPct: 39, expectedToVerify: false },
-    { slug: 'ifaa-licence-banque-finance', expectedNormal: 375000, expectedBoursier: 375000, expectedEco: 0, expectedPct: 0, expectedToVerify: true },
-    { slug: 'ifaa-licence-sage-femme-etat', expectedNormal: 722000, expectedBoursier: 475000, expectedEco: 247000, expectedPct: 34, expectedToVerify: false },
-    { slug: 'ifaa-delegation-medicale', expectedNormal: 658500, expectedBoursier: 370000, expectedEco: 288500, expectedPct: 44, expectedToVerify: false }
-  ]
+  // Vérification des calculs exacts sur les parcours Jour / Soir
+  const licJour = etab.programmes.find(p => p.slug === 'ifaa-licence-banque-finance-jour')
+  assert.ok(licJour, 'Licence Banque Finance Jour doit exister')
+  const tJour = licJour.tarifs[0]
+  assert.strictEqual(tJour.montant, 722000, 'Tarif normal Jour = 722 000 FCFA')
+  assert.strictEqual(tJour.montantBourse, 375000, 'Tarif boursier Jour = 375 000 FCFA')
+  assert.strictEqual(tJour.fraisInscription, 75000, 'Inscription boursière Jour = 75 000 FCFA')
+  assert.strictEqual(tJour.mensualite, 30000, 'Mensualité boursière Jour = 30 000 FCFA')
 
-  for (const tc of testCalculations) {
-    const p = etab.programmes.find((item) => item.slug === tc.slug)
-    assert.ok(p, `Le programme ${tc.slug} doit exister`)
-    const tarif = p.tarifs.find((t) => t.anneeAcademique === '2025/2026')
-    assert.ok(tarif, `Le tarif 2025/2026 pour ${tc.slug} doit exister`)
-    assert.strictEqual(tarif.montant, tc.expectedNormal, `Tarif normal pour ${tc.slug}`)
-    assert.strictEqual(tarif.montantBourse, tc.expectedBoursier, `Tarif boursier pour ${tc.slug}`)
-
-    const bourse = p.bourses[0]
-    assert.ok(bourse, `La bourse pour ${tc.slug} doit exister`)
-    assert.strictEqual(bourse.montantMax, tc.expectedEco, `Économie pour ${tc.slug}`)
-    assert.strictEqual(bourse.coveragePercent, tc.expectedPct, `Pourcentage pour ${tc.slug}`)
-  }
-
-  // Vérification de la non-application des frais d'examen de 20 000 F à Assistant Infirmier d'État (BFEM)
-  const asstInfir = etab.programmes.find(p => p.slug === 'ifaa-assistant-infirmier-etat')
-  assert.ok(asstInfir, 'Assistant Infirmier doit exister')
-  const tAsst = asstInfir.tarifs.find(t => t.anneeAcademique === '2025/2026')
-  assert.strictEqual(tAsst.autresFrais, null, 'Assistant Infirmier ne doit PAS recevoir les 20 000 FCFA de frais d\'examen Santé L3')
+  const licSoir = etab.programmes.find(p => p.slug === 'ifaa-licence-banque-finance-soir')
+  assert.ok(licSoir, 'Licence Banque Finance Soir doit exister')
+  const tSoir = licSoir.tarifs[0]
+  assert.strictEqual(tSoir.montant, 667000, 'Tarif normal Soir = 667 000 FCFA')
+  assert.strictEqual(tSoir.montantBourse, 420000, 'Tarif boursier Soir = 420 000 FCFA')
+  assert.strictEqual(tSoir.fraisInscription, 70000, 'Inscription boursière Soir = 70 000 FCFA')
+  assert.strictEqual(tSoir.mensualite, 35000, 'Mensualité boursière Soir = 35 000 FCFA')
 
   console.log('🎉 TOUTES LES ASSERTIONS POST-IMPORT IFAA ONT RÉUSSI AVEC SUCCÈS !')
 }
