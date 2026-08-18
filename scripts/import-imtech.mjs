@@ -24,7 +24,7 @@ const OFFICIAL_IMTECH_PROGRAMMES = [
     rentree: '10/11/2025',
     condition: 'Niveau 5e ou 4e collège',
     domaine: 'Gestion',
-    tarifNormal: 670000,
+    tarifNormal: null,
     tarifBoursier: 360000,
     inscription: 110000,
     mensualite: 25000,
@@ -39,7 +39,7 @@ const OFFICIAL_IMTECH_PROGRAMMES = [
     rentree: '10/11/2025',
     condition: 'Niveau 5e ou 4e collège',
     domaine: 'Gestion',
-    tarifNormal: 670000,
+    tarifNormal: null,
     tarifBoursier: 360000,
     inscription: 110000,
     mensualite: 25000,
@@ -176,7 +176,7 @@ const OFFICIAL_IMTECH_PROGRAMMES = [
     rentree: '10/11/2025',
     condition: 'Niveau 4e ou 3e collège',
     domaine: 'Tech',
-    tarifNormal: 840000,
+    tarifNormal: null,
     tarifBoursier: 410000,
     inscription: 110000,
     mensualite: 30000,
@@ -221,7 +221,7 @@ const OFFICIAL_IMTECH_PROGRAMMES = [
     rentree: '10/11/2025',
     condition: 'Niveau 4e ou 3e collège',
     domaine: 'Tech',
-    tarifNormal: 840000,
+    tarifNormal: null,
     tarifBoursier: 410000,
     inscription: 110000,
     mensualite: 30000,
@@ -266,7 +266,7 @@ const OFFICIAL_IMTECH_PROGRAMMES = [
     rentree: '10/11/2025',
     condition: 'Niveau 4e ou 3e collège',
     domaine: 'Tech',
-    tarifNormal: 840000,
+    tarifNormal: null,
     tarifBoursier: 410000,
     inscription: 110000,
     mensualite: 30000,
@@ -982,8 +982,9 @@ async function runImport() {
       }
 
       // --- CALCUL PRÉCIS DE L'ÉCONOMIE & DU POURCENTAGE ---
-      const economie = progData.tarifNormal - progData.tarifBoursier
-      const percentageReduction = Number(((economie / progData.tarifNormal) * 100).toFixed(2))
+      const hasTarifNormal = progData.tarifNormal !== null && progData.tarifNormal !== undefined
+      const economie = hasTarifNormal ? progData.tarifNormal - progData.tarifBoursier : null
+      const percentageReduction = hasTarifNormal ? Number(((economie / progData.tarifNormal) * 100).toFixed(2)) : null
 
       // --- TARIF NOMINAL ET PRÉFÉRENTIEL (2025/2026) ---
       let existingTarif = await tx.tarif.findFirst({
@@ -993,7 +994,7 @@ async function runImport() {
       const tarifPayload = {
         programmeId: prog.id,
         anneeAcademique: '2025/2026',
-        montant: progData.tarifNormal,
+        montant: hasTarifNormal ? progData.tarifNormal : progData.tarifBoursier,
         montantBourse: progData.tarifBoursier,
         fraisInscription: progData.inscription,
         mensualite: progData.mensualite,
@@ -1035,8 +1036,8 @@ async function runImport() {
         partnerId: partner.id,
         titre: bourseTitle,
         slug: bourseSlug,
-        coveragePercent: Math.round(percentageReduction),
-        montantMax: economie,
+        coveragePercent: percentageReduction ? Math.round(percentageReduction) : 0,
+        montantMax: economie || 0,
         dateLimite: new Date('2026-11-30'),
         conditions: `Condition d'admission : ${progData.condition}. Inscription : ${progData.inscription.toLocaleString('fr-FR')} FCFA. Mensualité : ${progData.mensualite.toLocaleString('fr-FR')} FCFA sur 10 mois. Rentrée officielle : ${progData.rentree}.`,
         documentsRequis: IMTECH_DOCUMENTS_REQUIS,
@@ -1086,8 +1087,8 @@ async function verifyImport() {
 
   // Vérification des calculs pour quelques formations représentatives
   const testCalculations = [
-    { slug: 'imtech-cap-dactylographie', expectedNormal: 670000, expectedBoursier: 360000, expectedEco: 310000, expectedPct: 46.27 },
-    { slug: 'imtech-cap-bep-dessin-batiment', expectedNormal: 840000, expectedBoursier: 410000, expectedEco: 430000, expectedPct: 51.19 },
+    { slug: 'imtech-cap-dactylographie', expectedNormal: 360000, expectedBoursier: 360000, expectedEco: 0, expectedPct: 0 },
+    { slug: 'imtech-cap-bep-dessin-batiment', expectedNormal: 410000, expectedBoursier: 410000, expectedEco: 0, expectedPct: 0 },
     { slug: 'imtech-bts2-electrotechnique', expectedNormal: 840000, expectedBoursier: 460000, expectedEco: 380000, expectedPct: 45.24 },
     { slug: 'imtech-l1-cybersecurite', expectedNormal: 840000, expectedBoursier: 510000, expectedEco: 330000, expectedPct: 39.29 },
     { slug: 'imtech-l2-cybersecurite', expectedNormal: 840000, expectedBoursier: 560000, expectedEco: 280000, expectedPct: 33.33 },
