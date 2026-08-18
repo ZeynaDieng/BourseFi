@@ -15,16 +15,17 @@ const IFAA_DOCUMENTS_REQUIS = `• 02 Extraits d'acte de naissance de moins de 3
 
 // Formations officielles issues de la plaquette et grilles d'IFAA Business School 2025/2026
 const OFFICIAL_IFAA_PROGRAMMES = [
-  // --- A. MASTERS (Licence ou équivalent requis - 10 mois) ---
+  // --- A. MASTERS MANAGEMENT (Licence ou équivalent requis - Durée: 10 mois) ---
   {
     slug: 'ifaa-master-banque-finance',
     titre: 'Master Banque Finance (Master 1 / Master 2)',
     niveau: 'Master',
-    duree: '10 mois / an',
+    duree: '10 mois',
+    billingDuration: '10 mois',
     condition: 'Licence ou équivalent',
     domaine: 'Management',
     isHealth: false,
-    tarifNormal: 667000,
+    tarifNormal: null,
     tarifBoursier: 420000,
     inscription: 70000,
     mensualite: 35000,
@@ -36,11 +37,12 @@ const OFFICIAL_IFAA_PROGRAMMES = [
     slug: 'ifaa-master-comptabilite-gestion',
     titre: 'Master Comptabilité et Gestion (Master 1 / Master 2)',
     niveau: 'Master',
-    duree: '10 mois / an',
+    duree: '10 mois',
+    billingDuration: '10 mois',
     condition: 'Licence ou équivalent',
     domaine: 'Management',
     isHealth: false,
-    tarifNormal: 667000,
+    tarifNormal: null,
     tarifBoursier: 420000,
     inscription: 70000,
     mensualite: 35000,
@@ -52,11 +54,12 @@ const OFFICIAL_IFAA_PROGRAMMES = [
     slug: 'ifaa-master-audit-controle-gestion',
     titre: 'Master Audit & Contrôle de Gestion (Master 1 / Master 2)',
     niveau: 'Master',
-    duree: '10 mois / an',
+    duree: '10 mois',
+    billingDuration: '10 mois',
     condition: 'Licence ou équivalent',
     domaine: 'Management',
     isHealth: false,
-    tarifNormal: 667000,
+    tarifNormal: null,
     tarifBoursier: 420000,
     inscription: 70000,
     mensualite: 35000,
@@ -68,11 +71,12 @@ const OFFICIAL_IFAA_PROGRAMMES = [
     slug: 'ifaa-master-commerce-international',
     titre: 'Master Commerce International (Master 1 / Master 2)',
     niveau: 'Master',
-    duree: '10 mois / an',
+    duree: '10 mois',
+    billingDuration: '10 mois',
     condition: 'Licence ou équivalent',
     domaine: 'Management',
     isHealth: false,
-    tarifNormal: 667000,
+    tarifNormal: null,
     tarifBoursier: 420000,
     inscription: 70000,
     mensualite: 35000,
@@ -84,11 +88,12 @@ const OFFICIAL_IFAA_PROGRAMMES = [
     slug: 'ifaa-master-marketing',
     titre: 'Master Marketing (Master 1 / Master 2)',
     niveau: 'Master',
-    duree: '10 mois / an',
+    duree: '10 mois',
+    billingDuration: '10 mois',
     condition: 'Licence ou équivalent',
     domaine: 'Management',
     isHealth: false,
-    tarifNormal: 667000,
+    tarifNormal: null,
     tarifBoursier: 420000,
     inscription: 70000,
     mensualite: 35000,
@@ -100,11 +105,12 @@ const OFFICIAL_IFAA_PROGRAMMES = [
     slug: 'ifaa-master-transport-logistique',
     titre: 'Master Transport Logistique (Master 1 / Master 2)',
     niveau: 'Master',
-    duree: '10 mois / an',
+    duree: '10 mois',
+    billingDuration: '10 mois',
     condition: 'Licence ou équivalent',
     domaine: 'Management',
     isHealth: false,
-    tarifNormal: 667000,
+    tarifNormal: null,
     tarifBoursier: 420000,
     inscription: 70000,
     mensualite: 35000,
@@ -116,11 +122,12 @@ const OFFICIAL_IFAA_PROGRAMMES = [
     slug: 'ifaa-master-gestion-ressources-humaines',
     titre: 'Master Gestion des Ressources Humaines (Master 1 / Master 2)',
     niveau: 'Master',
-    duree: '10 mois / an',
+    duree: '10 mois',
+    billingDuration: '10 mois',
     condition: 'Licence ou équivalent',
     domaine: 'Management',
     isHealth: false,
-    tarifNormal: 667000,
+    tarifNormal: null,
     tarifBoursier: 420000,
     inscription: 70000,
     mensualite: 35000,
@@ -132,11 +139,12 @@ const OFFICIAL_IFAA_PROGRAMMES = [
     slug: 'ifaa-master-gestion-projets',
     titre: 'Master Gestion des Projets (Master 1 / Master 2)',
     niveau: 'Master',
-    duree: '10 mois / an',
+    duree: '10 mois',
+    billingDuration: '10 mois',
     condition: 'Licence ou équivalent',
     domaine: 'Management',
     isHealth: false,
-    tarifNormal: 667000,
+    tarifNormal: null,
     tarifBoursier: 420000,
     inscription: 70000,
     mensualite: 35000,
@@ -148,7 +156,8 @@ const OFFICIAL_IFAA_PROGRAMMES = [
     slug: 'ifaa-master-qhse',
     titre: 'Master Qualité - Hygiène - Sécurité & Environnement (Master QHSE)',
     niveau: 'Master',
-    duree: '10 mois / an',
+    duree: '10 mois',
+    billingDuration: '10 mois',
     condition: 'Licence ou équivalent',
     domaine: 'Management Spécifique',
     isHealth: false,
@@ -157,23 +166,26 @@ const OFFICIAL_IFAA_PROGRAMMES = [
     inscription: 75000,
     mensualite: 40000,
     mois: 10,
+    isToVerify: false,
     description: 'Normes ISO 9001/14001/45001, audit QHSE, prévention des risques industriels et développement durable.'
   },
 
-  // --- B. LICENCES (BAC ou équivalent requis - 3 ans) ---
+  // --- B. LICENCES MANAGEMENT (BAC ou équivalent requis - Durée: 3 ans) ---
   {
     slug: 'ifaa-licence-banque-finance',
     titre: 'Licence Banque Finance (Licence 1, 2, 3)',
     niveau: 'Licence',
     duree: '3 ans',
+    billingDuration: '10 mois',
     condition: 'BAC ou équivalent',
     domaine: 'Management',
     isHealth: false,
-    tarifNormal: 722000,
+    tarifNormal: null,
     tarifBoursier: 375000,
     inscription: 75000,
     mensualite: 30000,
     mois: 10,
+    isToVerify: true,
     description: 'Produits bancaires et d\'assurance, analyse financière de premier niveau et relation client.'
   },
   {
@@ -181,14 +193,16 @@ const OFFICIAL_IFAA_PROGRAMMES = [
     titre: 'Licence Comptabilité et Gestion (Licence 1, 2, 3)',
     niveau: 'Licence',
     duree: '3 ans',
+    billingDuration: '10 mois',
     condition: 'BAC ou équivalent',
     domaine: 'Management',
     isHealth: false,
-    tarifNormal: 722000,
+    tarifNormal: null,
     tarifBoursier: 375000,
     inscription: 75000,
     mensualite: 30000,
     mois: 10,
+    isToVerify: true,
     description: 'Comptabilité générale SYSCOHADA, paie, fiscalité pratique et gestion de trésorerie.'
   },
   {
@@ -196,14 +210,16 @@ const OFFICIAL_IFAA_PROGRAMMES = [
     titre: 'Licence Commerce International (Licence 1, 2, 3)',
     niveau: 'Licence',
     duree: '3 ans',
+    billingDuration: '10 mois',
     condition: 'BAC ou équivalent',
     domaine: 'Management',
     isHealth: false,
-    tarifNormal: 722000,
+    tarifNormal: null,
     tarifBoursier: 375000,
     inscription: 75000,
     mensualite: 30000,
     mois: 10,
+    isToVerify: true,
     description: 'Incoterms 2020, douanes, transit, prospection internationale et techniques d\'import-export.'
   },
   {
@@ -211,14 +227,16 @@ const OFFICIAL_IFAA_PROGRAMMES = [
     titre: 'Licence Marketing Communication Transformation Digitale (Licence 1, 2, 3)',
     niveau: 'Licence',
     duree: '3 ans',
+    billingDuration: '10 mois',
     condition: 'BAC ou équivalent',
     domaine: 'Management',
     isHealth: false,
-    tarifNormal: 722000,
+    tarifNormal: null,
     tarifBoursier: 375000,
     inscription: 75000,
     mensualite: 30000,
     mois: 10,
+    isToVerify: true,
     description: 'Marketing stratégique et opérationnel, social media management, création de contenu et stratégie digitale.'
   },
   {
@@ -226,14 +244,16 @@ const OFFICIAL_IFAA_PROGRAMMES = [
     titre: 'Licence Ingénierie des Projets et Entreprenariat (Licence 1, 2, 3)',
     niveau: 'Licence',
     duree: '3 ans',
+    billingDuration: '10 mois',
     condition: 'BAC ou équivalent',
     domaine: 'Management',
     isHealth: false,
-    tarifNormal: 722000,
+    tarifNormal: null,
     tarifBoursier: 375000,
     inscription: 75000,
     mensualite: 30000,
     mois: 10,
+    isToVerify: true,
     description: 'Élaboration de business plan, montage de projets, recherche de financement et création d\'entreprise.'
   },
   {
@@ -241,14 +261,16 @@ const OFFICIAL_IFAA_PROGRAMMES = [
     titre: 'Licence Transport Logistique (Licence 1, 2, 3)',
     niveau: 'Licence',
     duree: '3 ans',
+    billingDuration: '10 mois',
     condition: 'BAC ou équivalent',
     domaine: 'Management',
     isHealth: false,
-    tarifNormal: 722000,
+    tarifNormal: null,
     tarifBoursier: 375000,
     inscription: 75000,
     mensualite: 30000,
     mois: 10,
+    isToVerify: true,
     description: 'Gestion d\'entrepôts, affrètement, régimes douaniers sénégalais et transport multimodal.'
   },
   {
@@ -256,14 +278,16 @@ const OFFICIAL_IFAA_PROGRAMMES = [
     titre: 'Licence Gestion des Ressources Humaines (Licence 1, 2, 3)',
     niveau: 'Licence',
     duree: '3 ans',
+    billingDuration: '10 mois',
     condition: 'BAC ou équivalent',
     domaine: 'Management',
     isHealth: false,
-    tarifNormal: 722000,
+    tarifNormal: null,
     tarifBoursier: 375000,
     inscription: 75000,
     mensualite: 30000,
     mois: 10,
+    isToVerify: true,
     description: 'Gestion du personnel, contrats de travail, paie informatisée et recrutement.'
   },
   {
@@ -271,14 +295,16 @@ const OFFICIAL_IFAA_PROGRAMMES = [
     titre: 'Licence Sciences de Gestion & Informatique (Licence 1, 2, 3)',
     niveau: 'Licence',
     duree: '3 ans',
+    billingDuration: '10 mois',
     condition: 'BAC ou équivalent',
     domaine: 'Management & IT',
     isHealth: false,
-    tarifNormal: 722000,
+    tarifNormal: null,
     tarifBoursier: 375000,
     inscription: 75000,
     mensualite: 30000,
     mois: 10,
+    isToVerify: true,
     description: 'Bases de données SQL, ERP de gestion, développement web applicatif et algorithmique d\'entreprise.'
   },
   {
@@ -286,21 +312,24 @@ const OFFICIAL_IFAA_PROGRAMMES = [
     titre: 'Licence Qualité - Hygiène - Sécurité & Environnement (Licence 1, 2, 3)',
     niveau: 'Licence',
     duree: '3 ans',
+    billingDuration: '10 mois',
     condition: 'BAC ou équivalent',
     domaine: 'Management',
     isHealth: false,
-    tarifNormal: 722000,
+    tarifNormal: null,
     tarifBoursier: 375000,
     inscription: 75000,
     mensualite: 30000,
     mois: 10,
+    isToVerify: true,
     description: 'Systèmes de management de la qualité, sécurité au travail, contrôle d\'hygiène et gestion environnementale.'
   },
   {
     slug: 'ifaa-licence-sage-femme-etat',
-    titre: 'Licence Sage Femme d\'État (Filière Santé)',
+    titre: 'Licence Sage Femme d\'État (Filière Santé L3)',
     niveau: 'Licence',
     duree: '3 ans',
+    billingDuration: '10 mois',
     condition: 'BAC',
     domaine: 'Santé',
     isHealth: true,
@@ -310,13 +339,15 @@ const OFFICIAL_IFAA_PROGRAMMES = [
     inscription: 75000,
     mensualite: 40000,
     mois: 10,
+    isToVerify: false,
     description: 'Soins obstétricaux, néonatologie, accompagnement de la grossesse, accouchement et santé de la reproduction.'
   },
   {
     slug: 'ifaa-licence-infirmier-etat',
-    titre: 'Licence Infirmier(e) d\'État (Filière Santé)',
+    titre: 'Licence Infirmier(e) d\'État (Filière Santé L3)',
     niveau: 'Licence',
     duree: '3 ans',
+    billingDuration: '10 mois',
     condition: 'BAC',
     domaine: 'Santé',
     isHealth: true,
@@ -326,23 +357,26 @@ const OFFICIAL_IFAA_PROGRAMMES = [
     inscription: 75000,
     mensualite: 40000,
     mois: 10,
+    isToVerify: false,
     description: 'Soins infirmiers généraux, pharmacologie, soins d\'urgence, pathologie médicale et gestion de salle d\'hospitalisation.'
   },
 
-  // --- C. BTS EN APPROCHE PAR COMPÉTENCE (2 ans) ---
+  // --- C. BTS EN APPROCHE PAR COMPÉTENCE (Durée: 2 ans) ---
   {
     slug: 'ifaa-bts-qhse',
     titre: 'BTS Qualité - Hygiène - Sécurité & Environnement (BTS)',
     niveau: 'BTS',
     duree: '2 ans',
+    billingDuration: '10 mois',
     condition: 'BAC ou équivalent',
     domaine: 'BTS',
     isHealth: false,
-    tarifNormal: 722000,
+    tarifNormal: null,
     tarifBoursier: 375000,
     inscription: 75000,
     mensualite: 30000,
     mois: 10,
+    isToVerify: true,
     description: 'Techniques de contrôle qualité, prévention des risques professionnels et hygiène en entreprise.'
   },
   {
@@ -350,14 +384,16 @@ const OFFICIAL_IFAA_PROGRAMMES = [
     titre: 'BTS Industrie Agroalimentaire (BTS)',
     niveau: 'BTS',
     duree: '2 ans',
+    billingDuration: '10 mois',
     condition: 'BAC ou équivalent',
     domaine: 'BTS',
     isHealth: false,
-    tarifNormal: 722000,
+    tarifNormal: null,
     tarifBoursier: 375000,
     inscription: 75000,
     mensualite: 30000,
     mois: 10,
+    isToVerify: true,
     description: 'Transformation et conservation des aliments, microbiologie et contrôle qualité de la chaîne alimentaire.'
   },
   {
@@ -365,14 +401,16 @@ const OFFICIAL_IFAA_PROGRAMMES = [
     titre: 'BTS Nutrition Diététique (BTS)',
     niveau: 'BTS',
     duree: '2 ans',
+    billingDuration: '10 mois',
     condition: 'BAC ou équivalent',
     domaine: 'BTS',
     isHealth: false,
-    tarifNormal: 722000,
+    tarifNormal: null,
     tarifBoursier: 375000,
     inscription: 75000,
     mensualite: 30000,
     mois: 10,
+    isToVerify: true,
     description: 'Équilibre nutritionnel, régime alimentaire hospitalier et conseils en hygiène de vie et diététique.'
   },
   {
@@ -380,14 +418,16 @@ const OFFICIAL_IFAA_PROGRAMMES = [
     titre: 'BTS Analyse Biologique (BTS)',
     niveau: 'BTS',
     duree: '2 ans',
+    billingDuration: '10 mois',
     condition: 'BAC ou équivalent',
     domaine: 'BTS',
     isHealth: false,
-    tarifNormal: 722000,
+    tarifNormal: null,
     tarifBoursier: 375000,
     inscription: 75000,
     mensualite: 30000,
     mois: 10,
+    isToVerify: true,
     description: 'Techniques d\'analyses de laboratoire, hématologie, biochimie médicale et parasitologie.'
   },
   {
@@ -395,14 +435,16 @@ const OFFICIAL_IFAA_PROGRAMMES = [
     titre: 'BTS Informatique de Gestion (BTS)',
     niveau: 'BTS',
     duree: '2 ans',
+    billingDuration: '10 mois',
     condition: 'BAC ou équivalent',
     domaine: 'BTS',
     isHealth: false,
-    tarifNormal: 722000,
+    tarifNormal: null,
     tarifBoursier: 375000,
     inscription: 75000,
     mensualite: 30000,
     mois: 10,
+    isToVerify: true,
     description: 'Bases de données SQL, algorithmique, développement logiciel et tableurs décisionnels.'
   },
   {
@@ -410,14 +452,16 @@ const OFFICIAL_IFAA_PROGRAMMES = [
     titre: 'BTS Gestion de Projet (BTS)',
     niveau: 'BTS',
     duree: '2 ans',
+    billingDuration: '10 mois',
     condition: 'BAC ou équivalent',
     domaine: 'BTS',
     isHealth: false,
-    tarifNormal: 722000,
+    tarifNormal: null,
     tarifBoursier: 375000,
     inscription: 75000,
     mensualite: 30000,
     mois: 10,
+    isToVerify: true,
     description: 'Planification opérationnelle de projets, suivi d\'exécution et gestion des équipes sur le terrain.'
   },
 
@@ -427,6 +471,7 @@ const OFFICIAL_IFAA_PROGRAMMES = [
     titre: 'Délégation Médicale (Formation Santé)',
     niveau: 'Certificat',
     duree: '10 mois',
+    billingDuration: '10 mois',
     condition: 'Bac / Niveau Terminale ou équivalent',
     domaine: 'Santé',
     isHealth: true,
@@ -435,6 +480,7 @@ const OFFICIAL_IFAA_PROGRAMMES = [
     inscription: 70000,
     mensualite: 30000,
     mois: 10,
+    isToVerify: false,
     description: 'Pharmacologie, visite médicale, présentation des spécialités pharmaceutiques aux médecins et éthique.'
   },
   {
@@ -442,15 +488,17 @@ const OFFICIAL_IFAA_PROGRAMMES = [
     titre: 'Assistant(e) Infirmier(e) d\'État (Formation Santé)',
     niveau: 'Certificat',
     duree: '2 ans',
+    billingDuration: '10 mois',
     condition: 'BFEM',
     domaine: 'Santé',
     isHealth: true,
-    fraisExamenSante: 20000,
+    fraisExamenSante: null, // Retiré conformément aux consignes
     tarifNormal: 722000,
     tarifBoursier: 475000,
     inscription: 75000,
     mensualite: 40000,
     mois: 10,
+    isToVerify: false,
     description: 'Soins de santé primaires, hygiène hospitalière, prise de constantes et assistance aux soins infirmiers.'
   },
   {
@@ -458,6 +506,7 @@ const OFFICIAL_IFAA_PROGRAMMES = [
     titre: 'Vendeur(se) en Pharmacie (Formation Santé)',
     niveau: 'Certificat',
     duree: '10 mois',
+    billingDuration: '10 mois',
     condition: 'Bac / Niveau Terminale ou équivalent',
     domaine: 'Santé',
     isHealth: true,
@@ -466,6 +515,7 @@ const OFFICIAL_IFAA_PROGRAMMES = [
     inscription: 70000,
     mensualite: 30000,
     mois: 10,
+    isToVerify: false,
     description: 'Gestion des stocks d\'officine, conseil en parapharmacie, délivrance d\'ordonnances et encaissement.'
   }
 ]
@@ -613,7 +663,7 @@ async function runImport() {
         duree: progData.duree,
         niveau: progData.niveau,
         description: progData.description,
-        conditionsAdmission: `• Condition d'admission : ${progData.condition}\n• Frais annexes : Vaccin (13 000 F), Blouses (30 000 F), Frais de stage (10 000 F).\n• Carte CIAE obligatoire dès l'inscription : 5 000 FCFA.${progData.fraisExamenSante ? '\n• Frais d\'examen filière Santé : 20 000 FCFA.' : ''}`,
+        conditionsAdmission: `• Condition d'admission : ${progData.condition}\n• Durée de facturation : ${progData.billingDuration}\n• Frais annexes : Vaccin (13 000 F), Blouses (30 000 F), Frais de stage (10 000 F).\n• Carte CIAE obligatoire dès l'inscription : 5 000 FCFA.${progData.fraisExamenSante ? '\n• Frais d\'examen filière Santé L3 : 20 000 FCFA.' : ''}`,
         documentsRequis: IFAA_DOCUMENTS_REQUIS,
         eligibilite: `Ouvert aux étudiants remplissant la condition officielle (${progData.condition}).`,
         sourceType: 'DOCUMENT_ETABLISSEMENT',
@@ -690,7 +740,7 @@ async function runImport() {
         coveragePercent: percentageReduction ? Math.round(percentageReduction) : 0,
         montantMax: economie || 0,
         dateLimite: new Date('2026-11-30'),
-        conditions: `Condition d'admission : ${progData.condition}. Frais d'inscription préférentiels : ${progData.inscription.toLocaleString('fr-FR')} FCFA. Mensualité : ${progData.mensualite.toLocaleString('fr-FR')} FCFA sur 10 mois. Carte CIAE obligatoire : 5 000 FCFA.`,
+        conditions: `Condition d'admission : ${progData.condition}. Durée du cursus : ${progData.duree} (Facturation : ${progData.billingDuration}). Frais d'inscription préférentiels : ${progData.inscription.toLocaleString('fr-FR')} FCFA. Mensualité : ${progData.mensualite.toLocaleString('fr-FR')} FCFA sur 10 mois. Carte CIAE obligatoire : 5 000 FCFA.`,
         documentsRequis: IFAA_DOCUMENTS_REQUIS,
         isActive: true,
         status: 'ACTIVE'
@@ -743,11 +793,11 @@ async function verifyImport() {
 
   // Vérification des calculs pour quelques formations représentatives
   const testCalculations = [
-    { slug: 'ifaa-master-banque-finance', expectedNormal: 667000, expectedBoursier: 420000, expectedEco: 247000, expectedPct: 37 },
-    { slug: 'ifaa-master-qhse', expectedNormal: 782000, expectedBoursier: 475000, expectedEco: 307000, expectedPct: 39 },
-    { slug: 'ifaa-licence-banque-finance', expectedNormal: 722000, expectedBoursier: 375000, expectedEco: 347000, expectedPct: 48 },
-    { slug: 'ifaa-licence-sage-femme-etat', expectedNormal: 722000, expectedBoursier: 475000, expectedEco: 247000, expectedPct: 34 },
-    { slug: 'ifaa-delegation-medicale', expectedNormal: 658500, expectedBoursier: 370000, expectedEco: 288500, expectedPct: 44 }
+    { slug: 'ifaa-master-banque-finance', expectedNormal: 420000, expectedBoursier: 420000, expectedEco: 0, expectedPct: 0, expectedToVerify: true },
+    { slug: 'ifaa-master-qhse', expectedNormal: 782000, expectedBoursier: 475000, expectedEco: 307000, expectedPct: 39, expectedToVerify: false },
+    { slug: 'ifaa-licence-banque-finance', expectedNormal: 375000, expectedBoursier: 375000, expectedEco: 0, expectedPct: 0, expectedToVerify: true },
+    { slug: 'ifaa-licence-sage-femme-etat', expectedNormal: 722000, expectedBoursier: 475000, expectedEco: 247000, expectedPct: 34, expectedToVerify: false },
+    { slug: 'ifaa-delegation-medicale', expectedNormal: 658500, expectedBoursier: 370000, expectedEco: 288500, expectedPct: 44, expectedToVerify: false }
   ]
 
   for (const tc of testCalculations) {
@@ -763,6 +813,12 @@ async function verifyImport() {
     assert.strictEqual(bourse.montantMax, tc.expectedEco, `Économie pour ${tc.slug}`)
     assert.strictEqual(bourse.coveragePercent, tc.expectedPct, `Pourcentage pour ${tc.slug}`)
   }
+
+  // Vérification de la non-application des frais d'examen de 20 000 F à Assistant Infirmier d'État (BFEM)
+  const asstInfir = etab.programmes.find(p => p.slug === 'ifaa-assistant-infirmier-etat')
+  assert.ok(asstInfir, 'Assistant Infirmier doit exister')
+  const tAsst = asstInfir.tarifs.find(t => t.anneeAcademique === '2025/2026')
+  assert.strictEqual(tAsst.autresFrais, null, 'Assistant Infirmier ne doit PAS recevoir les 20 000 FCFA de frais d\'examen Santé L3')
 
   console.log('🎉 TOUTES LES ASSERTIONS POST-IMPORT IFAA ONT RÉUSSI AVEC SUCCÈS !')
 }
