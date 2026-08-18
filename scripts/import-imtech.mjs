@@ -1066,8 +1066,13 @@ async function runImport() {
 async function verifyImport() {
   console.log('\n🧪 DÉBUT DES VÉRIFICATIONS AUTOMATISÉES POST-IMPORT IMTECH...')
 
-  const etab = await prisma.etablissement.findUnique({
-    where: { id: 'cmrghuce00001gny4nx5v3dvb' },
+  const etab = await prisma.etablissement.findFirst({
+    where: {
+      OR: [
+        { slug: 'imtech-dakar' },
+        { nom: { contains: 'IMTECH', mode: 'insensitive' } }
+      ]
+    },
     include: {
       contacts: true,
       programmes: {
