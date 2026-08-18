@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { getAdminErrorMessage } from '~/utils/admin-error'
 
 definePageMeta({ layout: 'portal', middleware: 'admin-auth' })
@@ -66,15 +66,24 @@ const commissionForm = ref({
 })
 
 async function loadData() {
-  const [schoolsData, fundersData] = await Promise.all([
-    $fetch<DirectPartnerSchool[]>('/api/admin/partenaires-directs'),
-    $fetch<FunderPartnerRow[]>('/api/admin/partners')
-  ])
-  directSchools.value = schoolsData
-  funders.value = fundersData
+  const headers = useRequestHeaders(['cookie']) as Record<string, string>
+  try {
+    const [schoolsData, fundersData] = await Promise.all([
+      $fetch<DirectPartnerSchool[]>('/api/admin/partenaires-directs', { headers }),
+      $fetch<FunderPartnerRow[]>('/api/admin/partners', { headers })
+    ])
+    directSchools.value = schoolsData
+    funders.value = fundersData
+  } catch (err: unknown) {
+    console.error('Error loading partners data:', err)
+  }
 }
 
-await loadData()
+if (import.meta.client) {
+  onMounted(loadData)
+} else {
+  await loadData()
+}
 
 // Métriques globales pour les partenaires directs
 const globalMetrics = computed(() => {
