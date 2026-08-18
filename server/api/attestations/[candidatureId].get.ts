@@ -61,8 +61,11 @@ export default defineEventHandler(async (event) => {
   })
 
   const ecoleName = candidature.programme.etablissement.nom
+  const ecoleSlug = candidature.programme.etablissement.slug
   const programmeTitle = candidature.programme.titre
   const niveau = candidature.programme.niveau
+  const modalite = candidature.programme.modalites || 'Non précisée'
+  const typeBourseLabel = ecoleSlug === 'hecm-dakar' ? 'BOURSE ENTIÈRE' : (candidature.bourse?.coveragePercent ? `Bourse ${candidature.bourse.coveragePercent}%` : 'Bourse d\'études')
   const studentName = candidature.fullName || `${candidature.firstName} ${candidature.lastName}`
   const anneeAcademique = candidature.programme.tarifs?.[0]?.anneeAcademique || 'Année académique en cours'
   const isDirect = candidature.programme.etablissement.isDirectPartner
@@ -302,12 +305,17 @@ export default defineEventHandler(async (event) => {
 
             <div class="info-group">
               <div class="info-label">Formation</div>
-              <div class="info-val">${programmeTitle} — ${niveau}</div>
+              <div class="info-val">${programmeTitle}</div>
             </div>
 
             <div class="info-group">
-              <div class="info-label">Niveau</div>
-              <div class="info-val">${niveau}</div>
+              <div class="info-label">Niveau &amp; Modalité</div>
+              <div class="info-val">${niveau} (${modalite})</div>
+            </div>
+
+            <div class="info-group">
+              <div class="info-label">Type de Bourse</div>
+              <div class="info-val" style="color: #C28F0E; font-weight: 800;">${typeBourseLabel}</div>
             </div>
 
             <div class="info-group">
@@ -319,7 +327,7 @@ export default defineEventHandler(async (event) => {
 
         <section class="decision-box">
           <div class="decision-sub">Décision de bourse</div>
-          <div class="decision-main">Bourse d’études accordée</div>
+          <div class="decision-main">${typeBourseLabel} ACCORDÉE</div>
           <p class="decision-desc">Dans le cadre du programme de bourses BourseFi Sénégal.</p>
         </section>
 
