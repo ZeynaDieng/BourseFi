@@ -54,6 +54,7 @@ const FILIERES_SVT = [
 const GRILLE_GESTION = {
   L1: {
     niveau: 'Licence',
+    levelLabel: 'Licence 1',
     tarifNormal: 500000,
     forfaitBourse: 300000,
     fraisInscription: 30000,
@@ -67,6 +68,7 @@ const GRILLE_GESTION = {
   },
   L2: {
     niveau: 'Licence',
+    levelLabel: 'Licence 2',
     tarifNormal: 500000,
     forfaitBourse: 300000,
     fraisInscription: 30000,
@@ -80,6 +82,7 @@ const GRILLE_GESTION = {
   },
   L3: {
     niveau: 'Licence',
+    levelLabel: 'Licence 3',
     tarifNormal: 700000,
     forfaitBourse: 300000,
     fraisInscription: 30000,
@@ -93,6 +96,7 @@ const GRILLE_GESTION = {
   },
   M1: {
     niveau: 'Master',
+    levelLabel: 'Master 1',
     tarifNormal: 770000,
     forfaitBourse: 390000,
     fraisInscription: 75000,
@@ -106,6 +110,7 @@ const GRILLE_GESTION = {
   },
   M2: {
     niveau: 'Master',
+    levelLabel: 'Master 2',
     tarifNormal: 945000,
     forfaitBourse: 440000,
     fraisInscription: 80000,
@@ -123,6 +128,7 @@ const GRILLE_GESTION = {
 const GRILLE_INFO = {
   L1: {
     niveau: 'Licence',
+    levelLabel: 'Licence 1',
     tarifNormal: 455000,
     forfaitBourse: 300000,
     fraisInscription: 30000,
@@ -136,6 +142,7 @@ const GRILLE_INFO = {
   },
   L2: {
     niveau: 'Licence',
+    levelLabel: 'Licence 2',
     tarifNormal: 455000,
     forfaitBourse: 300000,
     fraisInscription: 30000,
@@ -149,6 +156,7 @@ const GRILLE_INFO = {
   },
   L3: {
     niveau: 'Licence',
+    levelLabel: 'Licence 3',
     tarifNormal: 650000,
     forfaitBourse: 300000,
     fraisInscription: 30000,
@@ -162,6 +170,7 @@ const GRILLE_INFO = {
   },
   M1: {
     niveau: 'Master',
+    levelLabel: 'Master 1',
     tarifNormal: 770000,
     forfaitBourse: 390000,
     fraisInscription: 75000,
@@ -175,6 +184,7 @@ const GRILLE_INFO = {
   },
   M2: {
     niveau: 'Master',
+    levelLabel: 'Master 2',
     tarifNormal: 845000,
     forfaitBourse: 440000,
     fraisInscription: 80000,
@@ -192,6 +202,7 @@ const GRILLE_INFO = {
 const GRILLE_CIVIL = {
   L1: {
     niveau: 'Licence',
+    levelLabel: 'Licence 1',
     tarifNormal: 630000,
     forfaitBourse: 350000,
     fraisInscription: 35000,
@@ -205,6 +216,7 @@ const GRILLE_CIVIL = {
   },
   L2: {
     niveau: 'Licence',
+    levelLabel: 'Licence 2',
     tarifNormal: 630000,
     forfaitBourse: 350000,
     fraisInscription: 35000,
@@ -219,6 +231,7 @@ const GRILLE_CIVIL = {
   },
   L3: {
     niveau: 'Licence',
+    levelLabel: 'Licence 3',
     tarifNormal: 855000,
     forfaitBourse: 350000,
     fraisInscription: 35000,
@@ -236,6 +249,7 @@ const GRILLE_CIVIL = {
 const GRILLE_SVT = {
   L1: {
     niveau: 'Licence',
+    levelLabel: 'Licence 1',
     tarifNormal: 605000,
     forfaitBourse: 350000,
     fraisInscription: 35000,
@@ -249,6 +263,7 @@ const GRILLE_SVT = {
   },
   L2: {
     niveau: 'Licence',
+    levelLabel: 'Licence 2',
     tarifNormal: 605000,
     forfaitBourse: 350000,
     fraisInscription: 35000,
@@ -397,12 +412,16 @@ async function runImportPassage(passageNumber) {
 
     let progId = existingProg?.id
 
+    const progTitre = isWeekEnd
+      ? `${filiere} (${cfg.levelLabel}) [Week-end]`
+      : `${filiere} (${cfg.levelLabel})`
+
     if (!existingProg) {
       const created = await prisma.programme.create({
         data: {
           slug: progSlug,
-          titre: `${filiere} (${cfg.niveau})`,
-          description: `${filiere} — Domaine: ${domaine}. Formation officielle ISCA 2026/2027 (${cfg.niveau}, ${modalite}).`,
+          titre: progTitre,
+          description: `${filiere} — Domaine: ${domaine}. Formation officielle ISCA 2026/2027 (${cfg.levelLabel}, ${modalite}).`,
           niveau: cfg.niveau,
           modalites: modalite,
           duree: `${cfg.nombreMois} mois`,
@@ -421,8 +440,8 @@ async function runImportPassage(passageNumber) {
       await prisma.programme.update({
         where: { id: existingProg.id },
         data: {
-          titre: `${filiere} (${cfg.niveau})`,
-          description: `${filiere} — Domaine: ${domaine}. Formation officielle ISCA 2026/2027 (${cfg.niveau}, ${modalite}).`,
+          titre: progTitre,
+          description: `${filiere} — Domaine: ${domaine}. Formation officielle ISCA 2026/2027 (${cfg.levelLabel}, ${modalite}).`,
           niveau: cfg.niveau,
           modalites: modalite,
           duree: `${cfg.nombreMois} mois`,
@@ -478,8 +497,8 @@ async function runImportPassage(passageNumber) {
     })
 
     const bourseTitre = isWeekEnd
-      ? `${filiere} (${cfg.niveau}) — Bourse ISCA (Week-end)`
-      : `${filiere} (${cfg.niveau}) — Bourse ISCA`
+      ? `${filiere} (${cfg.levelLabel}) — Bourse ISCA (Week-end)`
+      : `${filiere} (${cfg.levelLabel}) — Bourse ISCA`
     const descriptionBourse = `Offre officielle ISCA 2026/2027 (FORFAIT BOURSE : ${cfg.forfaitBourse.toLocaleString('fr-FR')} FCFA). Inscription: ${cfg.fraisInscription.toLocaleString('fr-FR')} FCFA, Mensualité: ${cfg.mensualite.toLocaleString('fr-FR')} FCFA sur ${cfg.nombreMois} mois.`
 
     const bourseData = {
