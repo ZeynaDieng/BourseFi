@@ -53,7 +53,7 @@ const FILIERES_SVT = [
 // Grille 1 : GESTION (Jour & Soir / Week-end)
 const GRILLE_GESTION = {
   L1: {
-    niveau: 'Licence 1',
+    niveau: 'Licence',
     tarifNormal: 500000,
     forfaitBourse: 300000,
     fraisInscription: 30000,
@@ -66,7 +66,7 @@ const GRILLE_GESTION = {
     reductionPercent: 40.00
   },
   L2: {
-    niveau: 'Licence 2',
+    niveau: 'Licence',
     tarifNormal: 500000,
     forfaitBourse: 300000,
     fraisInscription: 30000,
@@ -79,7 +79,7 @@ const GRILLE_GESTION = {
     reductionPercent: 40.00
   },
   L3: {
-    niveau: 'Licence 3',
+    niveau: 'Licence',
     tarifNormal: 700000,
     forfaitBourse: 300000,
     fraisInscription: 30000,
@@ -92,7 +92,7 @@ const GRILLE_GESTION = {
     reductionPercent: 53.57
   },
   M1: {
-    niveau: 'Master 1',
+    niveau: 'Master',
     tarifNormal: 770000,
     forfaitBourse: 390000,
     fraisInscription: 75000,
@@ -105,7 +105,7 @@ const GRILLE_GESTION = {
     reductionPercent: 49.35
   },
   M2: {
-    niveau: 'Master 2',
+    niveau: 'Master',
     tarifNormal: 945000,
     forfaitBourse: 440000,
     fraisInscription: 80000,
@@ -122,7 +122,7 @@ const GRILLE_GESTION = {
 // Grille 2 : GÉNIE INFORMATIQUE (Jour & Soir)
 const GRILLE_INFO = {
   L1: {
-    niveau: 'Licence 1',
+    niveau: 'Licence',
     tarifNormal: 455000,
     forfaitBourse: 300000,
     fraisInscription: 30000,
@@ -135,7 +135,7 @@ const GRILLE_INFO = {
     reductionPercent: 34.07
   },
   L2: {
-    niveau: 'Licence 2',
+    niveau: 'Licence',
     tarifNormal: 455000,
     forfaitBourse: 300000,
     fraisInscription: 30000,
@@ -148,7 +148,7 @@ const GRILLE_INFO = {
     reductionPercent: 34.07
   },
   L3: {
-    niveau: 'Licence 3',
+    niveau: 'Licence',
     tarifNormal: 650000,
     forfaitBourse: 300000,
     fraisInscription: 30000,
@@ -161,7 +161,7 @@ const GRILLE_INFO = {
     reductionPercent: 50.00
   },
   M1: {
-    niveau: 'Master 1',
+    niveau: 'Master',
     tarifNormal: 770000,
     forfaitBourse: 390000,
     fraisInscription: 75000,
@@ -174,7 +174,7 @@ const GRILLE_INFO = {
     reductionPercent: 49.35
   },
   M2: {
-    niveau: 'Master 2',
+    niveau: 'Master',
     tarifNormal: 845000,
     forfaitBourse: 440000,
     fraisInscription: 80000,
@@ -191,7 +191,7 @@ const GRILLE_INFO = {
 // Grille 3 : GÉNIE CIVIL & CONSTRUCTION (Jour & Soir - L1 à L3 uniquement)
 const GRILLE_CIVIL = {
   L1: {
-    niveau: 'Licence 1',
+    niveau: 'Licence',
     tarifNormal: 630000,
     forfaitBourse: 350000,
     fraisInscription: 35000,
@@ -204,7 +204,7 @@ const GRILLE_CIVIL = {
     reductionPercent: 44.44
   },
   L2: {
-    niveau: 'Licence 2',
+    niveau: 'Licence',
     tarifNormal: 630000,
     forfaitBourse: 350000,
     fraisInscription: 35000,
@@ -218,7 +218,7 @@ const GRILLE_CIVIL = {
     reductionPercent: 44.44
   },
   L3: {
-    niveau: 'Licence 3',
+    niveau: 'Licence',
     tarifNormal: 855000,
     forfaitBourse: 350000,
     fraisInscription: 35000,
@@ -235,7 +235,7 @@ const GRILLE_CIVIL = {
 // Grille 4 : SCIENCES DE LA VIE ET DE LA TERRE (Jour & Soir - L1 & L2 uniquement)
 const GRILLE_SVT = {
   L1: {
-    niveau: 'Licence 1',
+    niveau: 'Licence',
     tarifNormal: 605000,
     forfaitBourse: 350000,
     fraisInscription: 35000,
@@ -248,7 +248,7 @@ const GRILLE_SVT = {
     reductionPercent: 42.15
   },
   L2: {
-    niveau: 'Licence 2',
+    niveau: 'Licence',
     tarifNormal: 605000,
     forfaitBourse: 350000,
     fraisInscription: 35000,
@@ -323,23 +323,23 @@ async function runImportPassage(passageNumber) {
     const validSlugs = new Set()
     // Génération de la liste des 203 slugs attendus
     for (const f of FILIERES_GESTION) {
-      for (const lvl of ['Licence 1', 'Licence 2', 'Licence 3', 'Master 1', 'Master 2']) {
+      for (const lvl of ['L1', 'L2', 'L3', 'M1', 'M2']) {
         validSlugs.add(`isca-${slugify(f)}-${slugify(lvl)}-cours-jour`)
         validSlugs.add(`isca-${slugify(f)}-${slugify(lvl)}-week-end`)
       }
     }
     for (const f of FILIERES_INFO) {
-      for (const lvl of ['Licence 1', 'Licence 2', 'Licence 3', 'Master 1', 'Master 2']) {
+      for (const lvl of ['L1', 'L2', 'L3', 'M1', 'M2']) {
         validSlugs.add(`isca-${slugify(f)}-${slugify(lvl)}-cours-jour`)
       }
     }
     for (const f of FILIERES_CIVIL) {
-      for (const lvl of ['Licence 1', 'Licence 2', 'Licence 3']) {
+      for (const lvl of ['L1', 'L2', 'L3']) {
         validSlugs.add(`isca-${slugify(f)}-${slugify(lvl)}-cours-jour`)
       }
     }
     for (const f of FILIERES_SVT) {
-      for (const lvl of ['Licence 1', 'Licence 2']) {
+      for (const lvl of ['L1', 'L2']) {
         validSlugs.add(`isca-${slugify(f)}-${slugify(lvl)}-cours-jour`)
       }
     }
@@ -375,8 +375,8 @@ async function runImportPassage(passageNumber) {
     const isDay = modalite === 'Cours du jour'
     const modaliteSlug = isWeekEnd ? 'week-end' : (isDay ? 'cours-jour' : 'cours-soir')
 
-    const progSlug = `isca-${slugify(filiere)}-${slugify(cfg.niveau)}-${modaliteSlug}`
-    const bourseSlug = `bourse-isca-${slugify(filiere)}-${slugify(cfg.niveau)}-${modaliteSlug}`
+    const progSlug = `isca-${slugify(filiere)}-${slugify(niveauCode)}-${modaliteSlug}`
+    const bourseSlug = `bourse-isca-${slugify(filiere)}-${slugify(niveauCode)}-${modaliteSlug}`
 
     const conditionText = cfg.niveau.startsWith('Master')
       ? 'BAC + 3 ou diplôme équivalent (pour M1) / BAC + 4 (pour M2)'
@@ -623,25 +623,25 @@ async function verifyAssertions() {
   assert.strictEqual(etab.programmes.length, 203, `Assertion 3 Échouée : ${etab.programmes.length} programmes au lieu de 203.`)
   console.log('✔ Assertion 3 OK: Exactement 203 programmes créés pour ISCA.')
 
-  // Assertion 4: Verification Comptabilité Gestion Licence 1 Jour
-  const cgL1 = etab.programmes.find(p => p.slug === 'isca-comptabilite-gestion-licence-1-cours-jour')
-  assert.ok(cgL1, 'Assertion 4 Échouée : Comptabilité Gestion Licence 1 Jour introuvable.')
+  // Assertion 4: Verification Comptabilité Gestion L1 Jour
+  const cgL1 = etab.programmes.find(p => p.slug === 'isca-comptabilite-gestion-l1-cours-jour')
+  assert.ok(cgL1, 'Assertion 4 Échouée : Comptabilité Gestion L1 Jour introuvable.')
   assert.strictEqual(cgL1.tarifs[0].montantBourse, 300000)
   assert.strictEqual(cgL1.tarifs[0].montant, 500000)
   assert.strictEqual(cgL1.tarifs[0].fraisInscription, 30000)
   assert.strictEqual(cgL1.tarifs[0].mensualite, 30000)
-  console.log('✔ Assertion 4 OK: Comptabilité Gestion Licence 1 Jour (Normal: 500k, Bourse: 300k, Insc: 30k, Mens: 30k).')
+  console.log('✔ Assertion 4 OK: Comptabilité Gestion L1 Jour (Normal: 500k, Bourse: 300k, Insc: 30k, Mens: 30k).')
 
-  // Assertion 5: Verification Comptabilité Gestion Licence 3 Jour avec Soutenance
-  const cgL3 = etab.programmes.find(p => p.slug === 'isca-comptabilite-gestion-licence-3-cours-jour')
-  assert.ok(cgL3, 'Assertion 5 Échouée : Comptabilité Gestion Licence 3 Jour introuvable.')
+  // Assertion 5: Verification Comptabilité Gestion L3 Jour avec Soutenance
+  const cgL3 = etab.programmes.find(p => p.slug === 'isca-comptabilite-gestion-l3-cours-jour')
+  assert.ok(cgL3, 'Assertion 5 Échouée : Comptabilité Gestion L3 Jour introuvable.')
   assert.strictEqual(cgL3.tarifs[0].montantBourse, 300000)
   assert.strictEqual(cgL3.tarifs[0].fraisSoutenance, 25000)
   assert.strictEqual(cgL3.tarifs[0].montant, 700000)
-  console.log('✔ Assertion 5 OK: Comptabilité Gestion Licence 3 Jour (Forfait: 300k, Soutenance séparée: 25k).')
+  console.log('✔ Assertion 5 OK: Comptabilité Gestion L3 Jour (Forfait: 300k, Soutenance séparée: 25k).')
 
   // Assertion 6: Verification Master 1 Gestion
-  const cgM1 = etab.programmes.find(p => p.slug === 'isca-comptabilite-gestion-master-1-cours-jour')
+  const cgM1 = etab.programmes.find(p => p.slug === 'isca-comptabilite-gestion-m1-cours-jour')
   assert.ok(cgM1, 'Assertion 6 Échouée : Master 1 Gestion introuvable.')
   assert.strictEqual(cgM1.tarifs[0].montantBourse, 390000)
   assert.strictEqual(cgM1.tarifs[0].fraisInscription, 75000)
@@ -649,54 +649,54 @@ async function verifyAssertions() {
   console.log('✔ Assertion 6 OK: Master 1 Gestion (Forfait Bourse: 390k, Insc: 75k, Mens: 35k).')
 
   // Assertion 7: Verification Master 2 Gestion avec Soutenance 50k
-  const cgM2 = etab.programmes.find(p => p.slug === 'isca-comptabilite-gestion-master-2-cours-jour')
+  const cgM2 = etab.programmes.find(p => p.slug === 'isca-comptabilite-gestion-m2-cours-jour')
   assert.ok(cgM2, 'Assertion 7 Échouée : Master 2 Gestion introuvable.')
   assert.strictEqual(cgM2.tarifs[0].montantBourse, 440000)
   assert.strictEqual(cgM2.tarifs[0].fraisSoutenance, 50000)
   assert.strictEqual(cgM2.tarifs[0].montant, 945000)
   console.log('✔ Assertion 7 OK: Master 2 Gestion (Forfait Bourse: 440k, Soutenance: 50k).')
 
-  // Assertion 8: Verification Génie Informatique (Réseaux & Télécoms Licence 1)
-  const infoL1 = etab.programmes.find(p => p.slug === 'isca-reseaux-telecommunications-licence-1-cours-jour')
-  assert.ok(infoL1, 'Assertion 8 Échouée : Réseaux & Télécoms Licence 1 introuvable.')
+  // Assertion 8: Verification Génie Informatique (Réseaux & Télécoms L1)
+  const infoL1 = etab.programmes.find(p => p.slug === 'isca-reseaux-telecommunications-l1-cours-jour')
+  assert.ok(infoL1, 'Assertion 8 Échouée : Réseaux & Télécoms L1 introuvable.')
   assert.strictEqual(infoL1.tarifs[0].montantBourse, 300000)
   assert.strictEqual(infoL1.tarifs[0].montant, 455000)
-  console.log('✔ Assertion 8 OK: Génie Info Réseaux & Télécoms Licence 1 (Normal: 455k, Bourse: 300k).')
+  console.log('✔ Assertion 8 OK: Génie Info Réseaux & Télécoms L1 (Normal: 455k, Bourse: 300k).')
 
-  // Assertion 9: Verification Génie Civil Licence 1 (350k Bourse, 630k Normal)
-  const gcL1 = etab.programmes.find(p => p.slug === 'isca-genie-civil-licence-1-cours-jour')
-  assert.ok(gcL1, 'Assertion 9 Échouée : Génie Civil Licence 1 introuvable.')
+  // Assertion 9: Verification Génie Civil L1 (350k Bourse, 630k Normal)
+  const gcL1 = etab.programmes.find(p => p.slug === 'isca-genie-civil-l1-cours-jour')
+  assert.ok(gcL1, 'Assertion 9 Échouée : Génie Civil L1 introuvable.')
   assert.strictEqual(gcL1.tarifs[0].montantBourse, 350000)
   assert.strictEqual(gcL1.tarifs[0].montant, 630000)
   assert.strictEqual(gcL1.tarifs[0].fraisInscription, 35000)
-  console.log('✔ Assertion 9 OK: Génie Civil Licence 1 (Normal: 630k, Bourse: 350k, Insc: 35k).')
+  console.log('✔ Assertion 9 OK: Génie Civil L1 (Normal: 630k, Bourse: 350k, Insc: 35k).')
 
-  // Assertion 10: Verification Génie Civil Licence 2 avec TP Labo 20k
-  const gcL2 = etab.programmes.find(p => p.slug === 'isca-genie-civil-licence-2-cours-jour')
-  assert.ok(gcL2, 'Assertion 10 Échouée : Génie Civil Licence 2 introuvable.')
+  // Assertion 10: Verification Génie Civil L2 avec TP Labo 20k
+  const gcL2 = etab.programmes.find(p => p.slug === 'isca-genie-civil-l2-cours-jour')
+  assert.ok(gcL2, 'Assertion 10 Échouée : Génie Civil L2 introuvable.')
   assert.strictEqual(gcL2.tarifs[0].autresFrais, 20000)
-  console.log('✔ Assertion 10 OK: Génie Civil Licence 2 contient les TP Labo 20 000 F séparés.')
+  console.log('✔ Assertion 10 OK: Génie Civil L2 contient les TP Labo 20 000 F séparés.')
 
   // Assertion 11: ABSENCE de M1 / M2 en Bourse pour Génie Civil
-  const gcM1 = etab.programmes.find(p => p.slug === 'isca-genie-civil-master-1-cours-jour')
+  const gcM1 = etab.programmes.find(p => p.slug === 'isca-genie-civil-m1-cours-jour')
   assert.strictEqual(gcM1, undefined, 'Assertion 11 Échouée : Master 1 Génie Civil Bourse inventé !')
   console.log('✔ Assertion 11 OK: Aucun Master 1 Bourse inventé pour Génie Civil.')
 
-  // Assertion 12: Verification SVT Licence 1 & Licence 2 (350k Bourse, 605k Normal)
-  const svtL1 = etab.programmes.find(p => p.slug === 'isca-exploration-exploitation-des-mines-licence-1-cours-jour')
-  assert.ok(svtL1, 'Assertion 12 Échouée : SVT Mines Licence 1 introuvable.')
+  // Assertion 12: Verification SVT L1 & L2 (350k Bourse, 605k Normal)
+  const svtL1 = etab.programmes.find(p => p.slug === 'isca-exploration-exploitation-des-mines-l1-cours-jour')
+  assert.ok(svtL1, 'Assertion 12 Échouée : SVT Mines L1 introuvable.')
   assert.strictEqual(svtL1.tarifs[0].montantBourse, 350000)
   assert.strictEqual(svtL1.tarifs[0].montant, 605000)
-  console.log('✔ Assertion 12 OK: SVT Mines Licence 1 (Normal: 605k, Bourse: 350k).')
+  console.log('✔ Assertion 12 OK: SVT Mines L1 (Normal: 605k, Bourse: 350k).')
 
-  // Assertion 13: ABSENCE de Licence 3 / M1 / M2 en Bourse pour SVT
-  const svtL3 = etab.programmes.find(p => p.slug === 'isca-exploration-exploitation-des-mines-licence-3-cours-jour')
-  assert.strictEqual(svtL3, undefined, 'Assertion 13 Échouée : Licence 3 SVT Bourse inventé !')
-  console.log('✔ Assertion 13 OK: Aucun niveau Licence 3/M1/M2 Bourse inventé pour SVT.')
+  // Assertion 13: ABSENCE de L3 / M1 / M2 en Bourse pour SVT
+  const svtL3 = etab.programmes.find(p => p.slug === 'isca-exploration-exploitation-des-mines-l3-cours-jour')
+  assert.strictEqual(svtL3, undefined, 'Assertion 13 Échouée : L3 SVT Bourse inventé !')
+  console.log('✔ Assertion 13 OK: Aucun niveau L3/M1/M2 Bourse inventé pour SVT.')
 
   // Assertion 14: Verification Week-End distinction
-  const weekL1 = etab.programmes.find(p => p.slug === 'isca-comptabilite-gestion-licence-1-week-end')
-  assert.ok(weekL1, 'Assertion 14 Échouée : Comptabilité Gestion Licence 1 Week-end introuvable.')
+  const weekL1 = etab.programmes.find(p => p.slug === 'isca-comptabilite-gestion-l1-week-end')
+  assert.ok(weekL1, 'Assertion 14 Échouée : Comptabilité Gestion L1 Week-end introuvable.')
   assert.strictEqual(weekL1.modalites, 'Cours de week-end')
   console.log('✔ Assertion 14 OK: Offres Week-end correctement séparées des Cours du jour.')
 
