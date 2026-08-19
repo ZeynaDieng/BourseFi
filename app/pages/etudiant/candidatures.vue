@@ -72,7 +72,7 @@ useSeoMeta({ title: 'Mes candidatures  BourseFi' })
                 Payer {{ c.fraisDossier.toLocaleString('fr-FR') }} {{ c.devise }}
               </NuxtLink>
               <a
-                v-if="c.documentUrl"
+                v-if="c.documentUrl && c.status !== 'EN_ATTENTE_PAIEMENT'"
                 :href="c.documentUrl"
                 target="_blank"
                 rel="noopener noreferrer"

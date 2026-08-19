@@ -14,7 +14,10 @@ export function buildStudentDocuments(
   candidatures: Array<{
     id: string
     programmeTitre: string
+    status?: string | null
+    fraisDossier?: number | null
     documentUrl?: string | null
+    attestationUrl?: string | null
     identityCardRectoUrl?: string | null
     identityCardVersoUrl?: string | null
   }> | null | undefined,
@@ -56,13 +59,22 @@ export function buildStudentDocuments(
   }
 
   for (const c of candidatures || []) {
-    const attUrl = c.documentUrl || c.attestationUrl || `/api/attestations/${c.id}`
-    list.push({
-      id: `doc-${c.id}`,
-      label: `Attestation officielle — ${c.programmeTitre}`,
-      url: attUrl,
-      group: 'attestation',
-    })
+    const isPendingPayment = c.status === 'EN_ATTENTE_PAIEMENT'
+    const canAccessAttestation = Boolean(
+      c.documentUrl ||
+      c.attestationUrl ||
+      (!isPendingPayment && ['VALIDE', 'EN_REVUE_PARTENAIRE', 'ACCEPTE', 'DOCUMENT_EMIS'].includes(c.status || ''))
+    )
+
+    if (canAccessAttestation) {
+      const attUrl = c.documentUrl || c.attestationUrl || `/api/attestations/${c.id}`
+      list.push({
+        id: `doc-${c.id}`,
+        label: `Attestation officielle — ${c.programmeTitre}`,
+        url: attUrl,
+        group: 'attestation',
+      })
+    }
     pushIdentity(c.identityCardRectoUrl, c.identityCardVersoUrl, c.id)
   }
 

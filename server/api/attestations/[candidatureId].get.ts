@@ -41,6 +41,23 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 403, statusMessage: 'Accès non autorisé.' })
   }
 
+  // RÈGLE MÉTIER SÉCURITÉ : L'attestation n'est téléchargeable QUE SI les frais de dossier ont été réglés (ou s'il s'agit d'une formation sans frais de dossier).
+  if (isOwner && !isAdmin && !isPartner) {
+    const hasPaid = Boolean(candidature.paiement && candidature.paiement.status === 'Valide')
+    const effectiveFrais = (candidature.programme.fraisDossier !== undefined && candidature.programme.fraisDossier !== null)
+      ? candidature.programme.fraisDossier
+      : (candidature.programme.etablissement?.fraisDossier ?? 0)
+
+    const isPendingPayment = candidature.status === 'EN_ATTENTE_PAIEMENT' || (effectiveFrais > 0 && !hasPaid && candidature.status !== 'DOCUMENT_EMIS' && candidature.status !== 'ACCEPTE')
+
+    if (isPendingPayment) {
+      throw createError({
+        statusCode: 402,
+        statusMessage: 'Veuillez d\'abord régler les frais de dossier pour accéder à votre attestation officielle.',
+      })
+    }
+  }
+
   // Génération automatique du numéro d'attestation s'il n'existe pas encore
   let attestationNum = candidature.attestationNumber
   if (!attestationNum) {
