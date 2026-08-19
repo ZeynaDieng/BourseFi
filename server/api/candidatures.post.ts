@@ -193,6 +193,7 @@ export default defineEventHandler(async (event) => {
 
   const siteUrl = String(process.env.NUXT_PUBLIC_SITE_URL || 'https://boursefi.sn').replace(/\/+$/, '')
   const needsPayment = initialStatus === 'EN_ATTENTE_PAIEMENT'
+  const formattedFrais = (effectiveFraisDossier || 0).toLocaleString('fr-FR')
   await sendEmail({
     to: { email, name: fullName },
     subject: 'Votre candidature a bien été reçue — BourseFi',
@@ -202,7 +203,7 @@ export default defineEventHandler(async (event) => {
         <p>Votre demande de bourse pour <strong>${programme.titre}</strong> a bien été enregistrée.</p>
         ${
           needsPayment
-            ? `<p>Pour finaliser votre dossier, il reste à régler les frais de dossier (${programme.fraisDossier.toLocaleString('fr-FR')} ${programme.devise}) depuis votre espace.</p>`
+            ? `<p>Pour finaliser votre dossier, il reste à régler les frais de dossier (${formattedFrais} ${programme.devise}) depuis votre espace.</p>`
             : `<p>Votre dossier est transmis pour analyse. Vous serez notifié dès qu'il y a du nouveau.</p>`
         }`,
       ctaLabel: needsPayment ? 'Régler les frais de dossier' : 'Suivre ma candidature',
@@ -228,7 +229,7 @@ export default defineEventHandler(async (event) => {
     candidature: {
       id: candidature.id,
       status: initialStatus,
-      fraisDossier: programme.fraisDossier,
+      fraisDossier: effectiveFraisDossier || 0,
       devise: programme.devise,
     },
   }
