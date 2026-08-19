@@ -4,7 +4,7 @@ import assert from 'node:assert'
 const prisma = new PrismaClient()
 
 const IMG_SLUG = 'img-rufisque'
-const IMG_NAME = 'IMG (Rufisque) — Institut de Management et de Gestion'
+const IMG_NAME = 'IMG Rufisque — Institut de Management et de Gestion'
 
 // Définition officielle des offres IMG 2026/2027 (Gestion, Santé & Restauration)
 const IMG_OFFERS = [
