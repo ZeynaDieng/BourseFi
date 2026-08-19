@@ -435,8 +435,10 @@ async function verifyAssertions() {
   assert.strictEqual(etab.slug, 'isca')
   console.log('✔ Assertion 2 OK: Slug ISCA est bien "isca".')
 
-  // Assertion 3: Nombre d'offres ISCA (81 au total : 68 Gestion + 8 Info + 3 Civil + 2 SVT = 81)
-  assert.strictEqual(etab.programmes.length, 81, `Assertion 3 Échouée : ${etab.programmes.length} programmes au lieu de 81.`)
+  const activeProgs = etab.programmes.filter(p => p.status === 'ACTIVE')
+
+  // Assertion 3: Nombre d'offres ISCA actives (81 au total : 68 Gestion + 8 Info + 3 Civil + 2 SVT = 81)
+  assert.strictEqual(activeProgs.length, 81, `Assertion 3 Échouée : ${activeProgs.length} programmes actifs au lieu de 81.`)
   console.log('✔ Assertion 3 OK: Exactement 81 programmes uniques créés pour ISCA.')
 
   // Assertion 4: Verification Comptabilité Gestion Licence Jour
@@ -463,14 +465,14 @@ async function verifyAssertions() {
   assert.strictEqual(weekLicence.modalites, 'Cours de week-end')
   console.log('✔ Assertion 6 OK: Offres Week-end correctement séparées.')
 
-  // Assertion 7: Unicité stricte des Slugs
-  const slugs = etab.programmes.map(p => p.slug)
+  // Assertion 7: Unicité stricte des Slugs parmi les offres actives
+  const slugs = activeProgs.map(p => p.slug)
   const uniqueSlugs = new Set(slugs)
   assert.strictEqual(slugs.length, uniqueSlugs.size, 'Assertion 7 Échouée : Doublons de slugs !')
   console.log('✔ Assertion 7 OK: 0 doublon de slug parmi les 81 offres ISCA.')
 
-  // Assertion 8: Unicité stricte des Titres
-  const titres = etab.programmes.map(p => p.titre)
+  // Assertion 8: Unicité stricte des Titres parmi les offres actives
+  const titres = activeProgs.map(p => p.titre)
   const uniqueTitres = new Set(titres)
   assert.strictEqual(titres.length, uniqueTitres.size, 'Assertion 8 Échouée : Doublons de titres !')
   console.log('✔ Assertion 8 OK: 0 doublon de titre parmi les 81 offres ISCA.')

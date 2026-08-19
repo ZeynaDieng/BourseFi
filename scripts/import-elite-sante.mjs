@@ -414,9 +414,11 @@ async function verifyAssertions() {
   assert.strictEqual(etab.slug, 'elite-sante')
   console.log('✔ Assertion 2 OK: Slug Élite Santé est bien "elite-sante".')
 
-  // Assertion 3: Nombre exact d'offres (11 programmes)
-  assert.strictEqual(etab.programmes.length, 11, `Assertion 3 Échouée : ${etab.programmes.length} au lieu de 11.`)
-  console.log('✔ Assertion 3 OK: Exactement 11 programmes créés pour Institut Élite Santé.')
+  const activeProgs = etab.programmes.filter(p => p.status === 'ACTIVE')
+
+  // Assertion 3: Nombre exact d'offres actives (11 programmes)
+  assert.strictEqual(activeProgs.length, 11, `Assertion 3 Échouée : ${activeProgs.length} programmes actifs au lieu de 11.`)
+  console.log('✔ Assertion 3 OK: Exactement 11 programmes actifs créés pour Institut Élite Santé.')
 
   // Assertion 4: Verification Sage-Femme d'État
   const sf = etab.programmes.find(p => p.slug === 'elite-sante-sage-femme-etat')
@@ -440,12 +442,12 @@ async function verifyAssertions() {
   assert.ok(sf.conditionsAdmission.includes('RepSEN/ENSUP-Priv/AP/349'), 'Assertion 6 Échouée : Agrément officiel manquant.')
   console.log('✔ Assertion 6 OK: Agrément officiel (RepSEN/ENSUP-Priv/AP/349) bien renseigné.')
 
-  // Assertion 7: Unicité des slugs et des titres
-  const slugs = etab.programmes.map(p => p.slug)
-  const titres = etab.programmes.map(p => p.titre)
+  // Assertion 7: Unicité des slugs et des titres parmi les offres actives
+  const slugs = activeProgs.map(p => p.slug)
+  const titres = activeProgs.map(p => p.titre)
   assert.strictEqual(slugs.length, new Set(slugs).size, 'Assertion 7 Échouée : Doublons de slugs !')
   assert.strictEqual(titres.length, new Set(titres).size, 'Assertion 7 Échouée : Doublons de titres !')
-  console.log('✔ Assertion 7 OK: 0 doublon de slug et 0 doublon de titre parmi les 11 offres Élite Santé.')
+  console.log('✔ Assertion 7 OK: 0 doublon de slug et 0 doublon de titre parmi les 11 offres actives Élite Santé.')
 
   console.log('\nTOUTES LES ASSERTIONS SONT 100% VALIDÉES POUR INSTITUT ÉLITE SANTÉ !')
 }

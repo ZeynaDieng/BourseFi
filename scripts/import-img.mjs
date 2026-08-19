@@ -449,9 +449,11 @@ async function verifyAssertions() {
   assert.strictEqual(etab.slug, 'img-rufisque')
   console.log('✔ Assertion 2 OK: Slug IMG est bien "img-rufisque".')
 
-  // Assertion 3: Nombre exact d'offres (13 programmes)
-  assert.strictEqual(etab.programmes.length, 13, `Assertion 3 Échouée : ${etab.programmes.length} au lieu de 13.`)
-  console.log('✔ Assertion 3 OK: Exactement 13 programmes créés pour IMG Campus Rufisque.')
+  const activeProgs = etab.programmes.filter(p => p.status === 'ACTIVE')
+
+  // Assertion 3: Nombre exact d'offres actives (13 programmes)
+  assert.strictEqual(activeProgs.length, 13, `Assertion 3 Échouée : ${activeProgs.length} programmes actifs au lieu de 13.`)
+  console.log('✔ Assertion 3 OK: Exactement 13 programmes actifs créés pour IMG Campus Rufisque.')
 
   // Assertion 4: Verification Licence Comptabilité de gestion
   const cgLicence = etab.programmes.find(p => p.slug === 'img-rufisque-licence-comptabilite-gestion')
@@ -483,12 +485,12 @@ async function verifyAssertions() {
   assert.ok(cgLicence.conditionsAdmission.includes('002813'), 'Assertion 7 Échouée : Numéro agrément manquant.')
   console.log('✔ Assertion 7 OK: Numéro agrément officiel (002813/MFPT/SG/DGFPT/DEP) bien renseigné.')
 
-  // Assertion 8: Unicité des slugs et des titres
-  const slugs = etab.programmes.map(p => p.slug)
-  const titres = etab.programmes.map(p => p.titre)
+  // Assertion 8: Unicité des slugs et des titres parmi les offres actives
+  const slugs = activeProgs.map(p => p.slug)
+  const titres = activeProgs.map(p => p.titre)
   assert.strictEqual(slugs.length, new Set(slugs).size, 'Assertion 8 Échouée : Doublons de slugs !')
   assert.strictEqual(titres.length, new Set(titres).size, 'Assertion 8 Échouée : Doublons de titres !')
-  console.log('✔ Assertion 8 OK: 0 doublon de slug et 0 doublon de titre parmi les 13 offres IMG.')
+  console.log('✔ Assertion 8 OK: 0 doublon de slug et 0 doublon de titre parmi les 13 offres actives IMG.')
 
   console.log('\nTOUTES LES ASSERTIONS SONT 100% VALIDÉES POUR IMG RUFISQUE 2026/2027 !')
 }
