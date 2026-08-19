@@ -125,10 +125,13 @@ export function serializeBourse(b: BourseRow) {
     b.programme.devise,
   )
 
+  const typeBourse = etab.slug === 'hecm-dakar' ? 'BOURSE ENTIÈRE' : (etab.slug === 'isca' ? 'FORFAIT BOURSE' : 'REDUCTION')
+
   return {
     id: b.id,
     slug: b.slug,
     titre: b.titre,
+    typeBourse,
     programmeId: b.programmeId,
     partnerId: b.partnerId,
     programmeSlug: b.programme.slug,

@@ -82,7 +82,7 @@ export default defineEventHandler(async (event) => {
   const programmeTitle = candidature.programme.titre
   const niveau = candidature.programme.niveau
   const modalite = candidature.programme.modalites || 'Non précisée'
-  const typeBourseLabel = ecoleSlug === 'hecm-dakar' ? 'BOURSE ENTIÈRE' : (candidature.bourse?.coveragePercent ? `Bourse ${candidature.bourse.coveragePercent}%` : 'Bourse d\'études')
+  const typeBourseLabel = ecoleSlug === 'hecm-dakar' ? 'BOURSE ENTIÈRE' : (ecoleSlug === 'isca' ? 'FORFAIT BOURSE' : (candidature.bourse?.coveragePercent ? `Bourse ${candidature.bourse.coveragePercent}%` : 'Bourse d\'études'))
   const studentName = candidature.fullName || `${candidature.firstName} ${candidature.lastName}`
   const anneeAcademique = candidature.programme.tarifs?.[0]?.anneeAcademique || 'Année académique en cours'
   const isDirect = candidature.programme.etablissement.isDirectPartner
