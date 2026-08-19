@@ -443,7 +443,9 @@ async function runImportPassage(passageNumber) {
       where: { slug: bourseSlug }
     })
 
-    const bourseTitre = `Offre ISCA 2026-2027 AVEC BOURSE — ${filiere} (${cfg.niveau}) [${modalite}]`
+    const bourseTitre = isWeekEnd
+      ? `${filiere} (${cfg.niveau}) — Bourse ISCA (Week-end)`
+      : `${filiere} (${cfg.niveau}) — Bourse ISCA`
     const descriptionBourse = `Offre officielle ISCA 2026/2027 (FORFAIT BOURSE : ${cfg.forfaitBourse.toLocaleString('fr-FR')} FCFA). Inscription: ${cfg.fraisInscription.toLocaleString('fr-FR')} FCFA, Mensualité: ${cfg.mensualite.toLocaleString('fr-FR')} FCFA sur ${cfg.nombreMois} mois.`
 
     const bourseData = {
