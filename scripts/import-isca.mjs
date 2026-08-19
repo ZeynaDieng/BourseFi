@@ -233,8 +233,8 @@ async function runImportPassage(passageNumber) {
       : `${filiere} (${spec.cycle})`
 
     const bourseTitre = isWeekEnd
-      ? `${filiere} (${spec.cycle}) — Bourse ISCA (Week-end)`
-      : `${filiere} (${spec.cycle}) — Bourse ISCA`
+      ? `Bourse ${filiere} (${spec.cycle}) [Week-end]`
+      : `Bourse ${filiere} (${spec.cycle})`
 
     const conditionsAdmissionText = [
       spec.detailsCondition,
