@@ -684,6 +684,8 @@ useSeoMeta({
                 <li class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-emerald-600">check</span>{{ form.firstName }} {{ form.lastName }}</li>
                 <li class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-emerald-600">check</span>{{ form.email }}</li>
                 <li class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-emerald-600">check</span>{{ form.phone }}</li>
+                <li v-if="form.address" class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-emerald-600">check</span>{{ form.address }}</li>
+                <li v-else class="flex items-center gap-2 text-amber-700 font-medium"><span class="material-symbols-outlined text-[18px] text-amber-600">warning</span>Adresse non renseignée</li>
               </ul>
             </div>
 

@@ -19,17 +19,17 @@ const candidatureSchema = z.object({
   institution: z.string().max(200).optional().default(''),
   field: z.string().max(300).optional().default(''),
   level: z.string().max(80).optional().default('Non precise'),
-  lastEducationLevel: z.string().min(2).max(120).trim(),
-  lastDiploma: z.string().min(1).max(200).trim(),
+  lastEducationLevel: z.string().min(1, "Veuillez préciser votre dernier niveau d'études").max(120).trim(),
+  lastDiploma: z.string().min(1, "Veuillez préciser votre dernier diplôme").max(200).trim(),
   graduationDate: z.string().max(40).optional().default(''),
   gpa: z.string().max(30).optional().default(''),
   // Profil (utilisé en repli si le compte n'est pas encore complété)
-  phone: z.string().min(8).max(32).trim().optional(),
-  address: z.string().min(5).max(600).trim().optional(),
-  identityCardRecto: documentDataUrl.optional(),
-  identityCardVerso: documentDataUrl.optional(),
-  bfemAttestation: documentDataUrl.optional(),
-  bacTranscript: documentDataUrl.optional(),
+  phone: z.string().trim().optional().or(z.literal('')),
+  address: z.string().trim().optional().or(z.literal('')),
+  identityCardRecto: documentDataUrl.optional().or(z.literal('')),
+  identityCardVerso: documentDataUrl.optional().or(z.literal('')),
+  bfemAttestation: documentDataUrl.optional().or(z.literal('')),
+  bacTranscript: documentDataUrl.optional().or(z.literal('')),
 })
 
 export default defineEventHandler(async (event) => {
@@ -37,9 +37,12 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event)
   const parsed = candidatureSchema.safeParse(body)
   if (!parsed.success) {
+    const firstIssue = parsed.error.issues[0]
+    const issuePath = firstIssue?.path?.join('.') || ''
+    const msg = firstIssue?.message || 'Informations candidature invalides ou incomplètes.'
     throw createError({
       statusCode: 400,
-      statusMessage: 'Informations candidature invalides ou incomplètes.',
+      statusMessage: issuePath ? `Champ ${issuePath} invalide : ${msg}` : msg,
     })
   }
 
@@ -136,10 +139,16 @@ export default defineEventHandler(async (event) => {
   const hasSchoolDoc = Boolean(bfemUrl || bacUrl)
 
   if (!firstName || !lastName || !phone || !address || !rectoUrl || !versoUrl || !hasSchoolDoc) {
+    const missing: string[] = []
+    if (!firstName || !lastName) missing.push('Prénom / Nom')
+    if (!phone) missing.push('Téléphone')
+    if (!address) missing.push('Adresse (ville, quartier)')
+    if (!rectoUrl || !versoUrl) missing.push("Carte d'identité (Recto / Verso)")
+    if (!hasSchoolDoc) missing.push('Document scolaire (BAC ou BFEM)')
+
     throw createError({
       statusCode: 400,
-      statusMessage:
-        'Complétez votre profil (nom, téléphone, adresse, carte d\'identité et document scolaire) avant de postuler.',
+      statusMessage: `Informations manquantes : ${missing.join(', ')}. Veuillez compléter votre dossier.`,
     })
   }
 
