@@ -234,7 +234,16 @@ async function runImportPassage(passageNumber) {
       where: { etablissementId: etab.id, NOT: { slug: { in: validSlugs } } }
     })
     for (const p of obsoleteProgs) {
-      await prisma.programme.delete({ where: { id: p.id } })
+      try {
+        await prisma.bourse.deleteMany({ where: { programmeId: p.id } })
+        await prisma.tarif.deleteMany({ where: { programmeId: p.id } })
+        await prisma.programme.delete({ where: { id: p.id } })
+      } catch (err) {
+        await prisma.programme.update({
+          where: { id: p.id },
+          data: { status: 'INACTIVE' }
+        })
+      }
     }
   }
 
