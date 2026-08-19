@@ -16,6 +16,7 @@ export function buildStudentDocuments(
     programmeTitre: string
     status?: string | null
     fraisDossier?: number | null
+    hasPaid?: boolean
     documentUrl?: string | null
     attestationUrl?: string | null
     identityCardRectoUrl?: string | null
@@ -59,11 +60,12 @@ export function buildStudentDocuments(
   }
 
   for (const c of candidatures || []) {
-    const isPendingPayment = c.status === 'EN_ATTENTE_PAIEMENT'
+    const requiresPayment = Boolean(c.fraisDossier && c.fraisDossier > 0)
+    const isPaid = c.hasPaid || !requiresPayment
     const canAccessAttestation = Boolean(
       c.documentUrl ||
       c.attestationUrl ||
-      (!isPendingPayment && ['VALIDE', 'EN_REVUE_PARTENAIRE', 'ACCEPTE', 'DOCUMENT_EMIS'].includes(c.status || ''))
+      (isPaid && c.status !== 'EN_ATTENTE_PAIEMENT' && ['VALIDE', 'EN_REVUE_PARTENAIRE', 'ACCEPTE', 'DOCUMENT_EMIS'].includes(c.status || ''))
     )
 
     if (canAccessAttestation) {

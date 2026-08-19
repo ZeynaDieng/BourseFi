@@ -11,7 +11,8 @@ const includeRelations = {
     }
   },
   partner: true,
-  bourse: { select: { slug: true, titre: true } }
+  bourse: { select: { slug: true, titre: true } },
+  paiement: true,
 } as const
 
 export default defineEventHandler(async (event) => {
@@ -78,12 +79,22 @@ function formatCandidature(raw: {
     ville: string
     fraisDossier: number
     devise: string
-    etablissement: { nom: string; slug: string }
+    etablissement: { nom: string; slug: string; isDirectPartner?: boolean; fraisDossier?: number | null }
     partner: { name: string; slug: string }
   }
   partner: { id: string; name: string; slug: string }
   bourse: { slug: string; titre: string } | null
+  paiement?: { status: string } | null
 }) {
+  const effectiveFrais =
+    raw.programme.etablissement?.isDirectPartner &&
+    raw.programme.etablissement?.fraisDossier !== undefined &&
+    raw.programme.etablissement?.fraisDossier !== null
+      ? raw.programme.etablissement.fraisDossier
+      : (raw.programme.fraisDossier ?? 0)
+
+  const hasPaid = Boolean(raw.paiement && raw.paiement.status === 'Valide')
+
   return {
     id: raw.id,
     userId: raw.userId,
@@ -117,12 +128,8 @@ function formatCandidature(raw: {
     etablissementSlug: raw.programme.etablissement.slug,
     partnerName: raw.partner.name,
     partnerSlug: raw.partner.slug,
-    fraisDossier:
-      raw.programme.etablissement.isDirectPartner &&
-      raw.programme.etablissement.fraisDossier !== undefined &&
-      raw.programme.etablissement.fraisDossier !== null
-        ? raw.programme.etablissement.fraisDossier
-        : raw.programme.fraisDossier,
+    fraisDossier: effectiveFrais,
+    hasPaid,
     devise: raw.programme.devise
   }
 }
