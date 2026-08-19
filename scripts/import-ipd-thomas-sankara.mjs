@@ -573,7 +573,7 @@ async function runImport() {
     console.log(`  [${countImported}/30] ${programme.titre} | Normal: ${progData.montantNormal.toLocaleString('fr-FR')} F -> BourseFi: ${progData.montantReduit.toLocaleString('fr-FR')} F (-${economie.toLocaleString('fr-FR')} FCFA / ${economiePercent}%)`)
   }
 
-  console.log(`\n🎉 IMPORTATION RÉUSSIE ! ${countImported} programmes officiels IPD Thomas Sankara mis à jour.`)
+  console.log(`\n IMPORTATION RÉUSSIE ! ${countImported} programmes officiels IPD Thomas Sankara mis à jour.`)
 }
 
 runImport()

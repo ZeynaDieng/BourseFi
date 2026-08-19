@@ -1115,7 +1115,7 @@ async function verifyImport() {
     assert.strictEqual(bourse.coveragePercent, Math.round(tc.expectedPct), `Pourcentage pour ${tc.slug}`)
   }
 
-  console.log('🎉 TOUTES LES ASSERTIONS POST-IMPORT IMTECH ONT RÉUSSI AVEC SUCCÈS !')
+  console.log(' TOUTES LES ASSERTIONS POST-IMPORT IMTECH ONT RÉUSSI AVEC SUCCÈS !')
 }
 
 async function main() {

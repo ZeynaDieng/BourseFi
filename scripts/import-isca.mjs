@@ -466,7 +466,7 @@ async function verifyAssertions() {
   assert.strictEqual(titres.length, uniqueTitres.size, 'Assertion 8 Échouée : Doublons de titres !')
   console.log('✔ Assertion 8 OK: 0 doublon de titre parmi les 81 offres ISCA.')
 
-  console.log('\n🎉 TOUTES LES ASSERTIONS SONT 100% VALIDÉES POUR ISCA (81 OFFRES CONSOLIDÉES) !')
+  console.log('\n TOUTES LES ASSERTIONS SONT 100% VALIDÉES POUR ISCA (81 OFFRES CONSOLIDÉES) !')
 }
 
 async function main() {

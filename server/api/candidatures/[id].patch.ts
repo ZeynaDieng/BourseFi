@@ -113,7 +113,7 @@ export default defineEventHandler(async (event) => {
       to: { email: dossier.email, name: dossier.fullName },
       subject: 'Votre attestation est disponible  BourseFi',
       html: renderEmail({
-        title: 'Votre attestation est prête 🎉',
+        title: 'Votre attestation est prête',
         bodyHtml: `<p>Bonjour ${dossier.firstName || dossier.fullName},</p>
           <p>Votre attestation pour <strong>${dossier.targetProgram}</strong> a été validée et déposée par notre équipe.</p>
           <p>Vous pouvez la consulter et la télécharger dès maintenant depuis votre espace BourseFi.</p>`,

@@ -156,7 +156,7 @@ async function runEnrichAll() {
     }
   }
 
-  console.log(`\n🎉 ENRICHISSEMENT GLOBAL RÉUSSI ! ${enrichedCount} programmes BourseFi disposent désormais d'un contenu académique 100% complet et illustré.`)
+  console.log(`\n ENRICHISSEMENT GLOBAL RÉUSSI ! ${enrichedCount} programmes BourseFi disposent désormais d'un contenu académique 100% complet et illustré.`)
 }
 
 runEnrichAll()

@@ -516,7 +516,7 @@ async function runImport() {
   assert.strictEqual(sampleTarifL1.montantBourse, 355000, '[9b] Tarif Bourse L1/L2 = 355 000')
   assert.strictEqual(sampleTarifL1.montant - sampleTarifL1.montantBourse, 225000, '[13] Économie L1/L2 = 225 000 FCFA')
 
-  console.log('🎉 TOUTES LES ASSERTIONS POST-IMPORT ONT RÉUSSI AVEC SUCCÈS !')
+  console.log(' TOUTES LES ASSERTIONS POST-IMPORT ONT RÉUSSI AVEC SUCCÈS !')
 
   return stats
 }

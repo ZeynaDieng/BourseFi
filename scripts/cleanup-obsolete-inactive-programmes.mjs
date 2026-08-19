@@ -55,7 +55,7 @@ async function cleanupObsoleteProgrammes() {
     console.log(`✅ SANCTUARISATION CONFIRMÉE : Programme historique "${historicalProg.titre}" toujours intact avec ${historicalProg.candidatures.length} candidature.`)
   }
 
-  console.log(`\n🎉 NETTOYAGE RÉUSSI ! ${deletedCount} programmes obsolètes supprimés avec succès.`)
+  console.log(`\n NETTOYAGE RÉUSSI ! ${deletedCount} programmes obsolètes supprimés avec succès.`)
 }
 
 cleanupObsoleteProgrammes()

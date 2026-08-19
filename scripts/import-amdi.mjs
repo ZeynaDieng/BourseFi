@@ -583,7 +583,7 @@ async function runImportAMDI() {
   })
   assert.strictEqual(activeBoursesCount, OFFICIAL_AMDI_PROGRAMMES.length, `[3] Exactement ${OFFICIAL_AMDI_PROGRAMMES.length} bourses AMDI ACTIVE`)
 
-  console.log('🎉 TOUTES LES ASSERTIONS POST-IMPORT AMDI ONT RÉUSSI AVEC SUCCÈS !')
+  console.log(' TOUTES LES ASSERTIONS POST-IMPORT AMDI ONT RÉUSSI AVEC SUCCÈS !')
 
   return stats
 }

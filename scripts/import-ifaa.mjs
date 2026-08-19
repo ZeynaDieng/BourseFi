@@ -1083,7 +1083,7 @@ async function verifyImport() {
   assert.strictEqual(tBts.fraisInscription, 75000, 'Inscription boursière BTS = 75 000 FCFA')
   assert.strictEqual(tBts.mensualite, 30000, 'Mensualité boursière BTS = 30 000 FCFA')
 
-  console.log('🎉 TOUTES LES ASSERTIONS POST-IMPORT IFAA ONT RÉUSSI AVEC SUCCÈS !')
+  console.log(' TOUTES LES ASSERTIONS POST-IMPORT IFAA ONT RÉUSSI AVEC SUCCÈS !')
 }
 
 async function main() {

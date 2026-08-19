@@ -36,7 +36,7 @@ async function cleanDefaultProgrammeFees() {
     }
   })
 
-  console.log(`\n🎉 SUCCÈS ! ${updatedCount} programmes ont été nettoyés pour hériter automatiquement des frais de leur école.`)
+  console.log(`\n SUCCÈS ! ${updatedCount} programmes ont été nettoyés pour hériter automatiquement des frais de leur école.`)
 }
 
 cleanDefaultProgrammeFees()

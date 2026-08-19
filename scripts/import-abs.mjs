@@ -412,7 +412,7 @@ async function verifyAssertions() {
     assert(activeBourse !== undefined, `La bourse active doit exister pour "${progData.titre}"`)
   }
 
-  console.log('🎉 TOUTES LES ASSERTIONS POST-IMPORT ABS ONT RÉUSSI AVEC SUCCÈS !')
+  console.log(' TOUTES LES ASSERTIONS POST-IMPORT ABS ONT RÉUSSI AVEC SUCCÈS !')
 }
 
 async function main() {

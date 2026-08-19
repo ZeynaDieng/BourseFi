@@ -140,7 +140,7 @@ useSiteSeo({
       <!-- Message Commercial Dynamique d'Économie -->
       <div v-if="bourse.economie && bourse.economie > 0" class="mb-6 rounded-2xl bg-amber-50/80 border border-amber-200 p-4 text-center shadow-sm">
         <p class="font-headline text-base font-extrabold text-amber-950">
-          🎉 Cette opportunité vous permet d'économiser {{ bourse.economie.toLocaleString('fr-FR') }} {{ bourse.devise }} sur le tarif normal !
+          Cette opportunité vous permet d'économiser {{ bourse.economie.toLocaleString('fr-FR') }} {{ bourse.devise }} sur le tarif normal !
         </p>
       </div>
       <div v-else class="mb-6 rounded-2xl bg-emerald-50/80 border border-emerald-200 p-4 text-center shadow-sm">

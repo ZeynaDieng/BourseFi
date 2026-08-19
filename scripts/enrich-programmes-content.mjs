@@ -150,7 +150,7 @@ async function runEnrichment() {
     console.log(`  [${updatedCount}/${programmes.length}] Enrichi : ${prog.titre} (${prog.etablissement.nom})`)
   }
 
-  console.log(`\n🎉 ENRICHISSEMENT REUSSI ! ${updatedCount} programmes IPD et ESTG mis à jour avec du contenu académique complet.`)
+  console.log(`\n ENRICHISSEMENT REUSSI ! ${updatedCount} programmes IPD et ESTG mis à jour avec du contenu académique complet.`)
 }
 
 runEnrichment()

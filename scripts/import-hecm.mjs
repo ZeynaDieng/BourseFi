@@ -425,7 +425,7 @@ async function verifyImport() {
   const ifaa = await prisma.etablissement.findFirst({ where: { slug: 'ifaa-dakar' } })
   assert(ifaa, "21. L'établissement IFAA doit continuer d'exister intact")
 
-  console.log("🎉 TOUTES LES 22 ASSERTIONS POST-IMPORT HECM ONT RÉUSSI AVEC SUCCÈS !")
+  console.log(" TOUTES LES 22 ASSERTIONS POST-IMPORT HECM ONT RÉUSSI AVEC SUCCÈS !")
 }
 
 async function main() {
