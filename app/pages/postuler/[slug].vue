@@ -21,6 +21,64 @@ const authMode = ref<'register' | 'login'>('register')
 const authLoading = ref(false)
 const authJustCompleted = ref(false)
 
+const promoInput = ref('')
+const promoLoading = ref(false)
+const promoError = ref('')
+const appliedPromo = ref<{
+  code: string
+  reduction: number
+  montantInitial: number
+  montantFinal: number
+  message: string
+} | null>(null)
+
+async function applyPromoCode() {
+  if (!promoInput.value.trim() || !bourse.value) return
+  promoLoading.value = true
+  promoError.value = ''
+  try {
+    const res = await $fetch<{
+      valid: boolean
+      promo?: { id: string; code: string; type: string; valeur: number }
+      reduction: number
+      montantInitial: number
+      montantFinal: number
+      message: string
+    }>('/api/promos/validate', {
+      method: 'POST',
+      body: {
+        code: promoInput.value.trim(),
+        montant: bourse.value.fraisDossier || 20000,
+        etablissementId: bourse.value.etablissementSlug
+      }
+    })
+
+    if (res.valid) {
+      appliedPromo.value = {
+        code: res.promo?.code || promoInput.value.trim().toUpperCase(),
+        reduction: res.reduction,
+        montantInitial: res.montantInitial,
+        montantFinal: res.montantFinal,
+        message: res.message
+      }
+    } else {
+      appliedPromo.value = null
+      promoError.value = res.message || 'Code promo invalide.'
+    }
+  } catch (e: any) {
+    appliedPromo.value = null
+    promoError.value = e?.data?.statusMessage || e?.data?.message || 'Erreur lors de la vérification du code.'
+  } finally {
+    promoLoading.value = false
+  }
+}
+
+function removePromoCode() {
+  appliedPromo.value = null
+  promoInput.value = ''
+  promoError.value = ''
+}
+
 const registerForm = reactive({
   firstName: '',
   lastName: '',
@@ -389,6 +447,7 @@ async function submit() {
         lastDiploma: form.lastDiploma.trim(),
         graduationDate: form.graduationDate.trim(),
         gpa: '',
+        ...(appliedPromo.value ? { promoCode: appliedPromo.value.code } : {}),
         ...(form.identityCardRecto ? { identityCardRecto: form.identityCardRecto } : {}),
         ...(form.identityCardVerso ? { identityCardVerso: form.identityCardVerso } : {}),
         ...(form.bfemAttestation ? { bfemAttestation: form.bfemAttestation } : {}),
@@ -708,6 +767,63 @@ useSeoMeta({
                 <li v-else class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-emerald-600">check</span>Relevé BAC / Diplôme téléchargé</li>
               </ul>
             </div>
+
+            <!-- Bloc Code Promo -->
+            <div class="rounded-2xl border border-slate-100 bg-slate-50/60 p-4">
+              <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Code Promo / Réduction</p>
+              
+              <div v-if="!appliedPromo" class="mt-3 flex gap-2">
+                <input
+                  v-model="promoInput"
+                  type="text"
+                  placeholder="Ex: BF50, BF100..."
+                  class="flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm uppercase font-semibold tracking-wider text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  @keyup.enter.prevent="applyPromoCode"
+                />
+                <button
+                  type="button"
+                  class="rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white transition hover:opacity-90 disabled:opacity-50"
+                  :disabled="promoLoading || !promoInput.trim()"
+                  @click="applyPromoCode"
+                >
+                  {{ promoLoading ? 'Vérification…' : 'Appliquer' }}
+                </button>
+              </div>
+
+              <div v-else class="mt-3 flex items-center justify-between rounded-xl bg-emerald-50 border border-emerald-200 p-3">
+                <div class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-emerald-600 text-lg">local_offer</span>
+                  <div>
+                    <p class="text-xs font-bold text-emerald-900">Code {{ appliedPromo.code }} appliqué</p>
+                    <p class="text-[11px] font-semibold text-emerald-700">{{ appliedPromo.message }}</p>
+                  </div>
+                </div>
+                <button type="button" class="text-xs font-bold text-red-600 hover:underline" @click="removePromoCode">Retirer</button>
+              </div>
+
+              <p v-if="promoError" class="mt-2 text-xs font-semibold text-red-600 flex items-center gap-1">
+                <span class="material-symbols-outlined text-sm">error</span>
+                {{ promoError }}
+              </p>
+
+              <!-- Récapitulatif Financier -->
+              <div v-if="bourse.fraisDossier > 0" class="mt-4 pt-3 border-t border-slate-200/60 space-y-2 text-sm">
+                <div class="flex justify-between text-slate-500">
+                  <span>Frais de dossier initiaux</span>
+                  <span class="font-semibold">{{ formatFcfa(bourse.fraisDossier) }} FCFA</span>
+                </div>
+                <div v-if="appliedPromo && appliedPromo.reduction > 0" class="flex justify-between text-emerald-600 font-semibold">
+                  <span>Réduction appliquée</span>
+                  <span>-{{ formatFcfa(appliedPromo.reduction) }} FCFA</span>
+                </div>
+                <div class="flex justify-between text-slate-900 font-extrabold text-base pt-2 border-t border-slate-200">
+                  <span>Montant final à payer</span>
+                  <span :class="appliedPromo && appliedPromo.montantFinal === 0 ? 'text-emerald-600' : 'text-primary'">
+                    {{ appliedPromo ? formatFcfa(appliedPromo.montantFinal) : formatFcfa(bourse.fraisDossier) }} FCFA
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div v-if="errorMessage" class="error-alert-container mt-4 flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50/60 p-3.5 text-sm text-red-800 shadow-sm backdrop-blur-sm transition duration-300">
@@ -740,7 +856,7 @@ useSeoMeta({
               :disabled="isSubmitting"
               @click="submit"
             >
-              {{ isSubmitting ? 'Envoi…' : 'Envoyer ma candidature' }}
+              {{ isSubmitting ? 'Envoi…' : (appliedPromo && appliedPromo.montantFinal === 0 ? 'Envoyer ma candidature gratuitement' : 'Envoyer ma candidature') }}
             </button>
           </div>
           <div v-else class="mt-6">

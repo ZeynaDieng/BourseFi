@@ -29,6 +29,14 @@
         Paiements
       </NuxtLink>
 
+      <NuxtLink
+        to="/admin/promos"
+        class="block rounded-lg px-4 py-3 font-semibold text-slate-600 hover:bg-slate-50 hover:text-primary"
+        active-class="bg-slate-50 text-primary"
+      >
+        Codes Promo
+      </NuxtLink>
+
       <p class="mt-4 px-4 text-[10px] font-bold uppercase tracking-widest text-slate-400">Catalogue bourses</p>
       <NuxtLink
         to="/admin/catalogue/bourses"

@@ -283,6 +283,11 @@ model Candidature {
   identityCardVersoUrl String?
   bfemAttestationUrl   String?
   bacTranscriptUrl     String?
+  montantInitial       Int?
+  montantReduction     Int?
+  montantFinal         Int?
+  promoCodeId          String?
+  promoCode            PromoCode?        @relation(fields: [promoCodeId], references: [id])
   createdAt            DateTime          @default(now())
   bourseId             String?
   bourse               Bourse?           @relation(fields: [bourseId], references: [id])
@@ -294,7 +299,32 @@ model Candidature {
   @@index([partnerId])
   @@index([programmeId])
   @@index([bourseId])
+  @@index([promoCodeId])
   @@index([status])
+}
+
+enum PromoType {
+  PERCENTAGE
+  FIXED
+}
+
+model PromoCode {
+  id              String        @id @default(cuid())
+  code            String        @unique @db.VarChar(50)
+  type            PromoType
+  valeur          Float
+  maxUses         Int?
+  usedCount       Int           @default(0)
+  expiresAt       DateTime?
+  isActive        Boolean       @default(true)
+  etablissementId String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  candidatures    Candidature[]
+
+  @@index([code])
+  @@index([etablissementId])
 }
 
 model Notification {

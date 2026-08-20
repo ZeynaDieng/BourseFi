@@ -26,6 +26,7 @@ const candidatureSchema = z.object({
   // Profil (utilisé en repli si le compte n'est pas encore complété)
   phone: z.string().trim().optional().or(z.literal('')),
   address: z.string().trim().optional().or(z.literal('')),
+  promoCode: z.string().trim().optional().or(z.literal('')),
   identityCardRecto: documentDataUrl.optional().or(z.literal('')),
   identityCardVerso: documentDataUrl.optional().or(z.literal('')),
   bfemAttestation: documentDataUrl.optional().or(z.literal('')),
@@ -75,6 +76,42 @@ export default defineEventHandler(async (event) => {
       ? programme.etablissement.fraisDossier
       : programme.fraisDossier
 
+  // Traitement du code promo si fourni
+  let promoCodeId: string | null = null
+  let montantInitial: number | null = effectiveFraisDossier
+  let montantReduction: number | null = 0
+  let montantFinal: number = effectiveFraisDossier
+
+  if (parsed.data.promoCode && parsed.data.promoCode.trim().length > 0) {
+    const codeFormatted = parsed.data.promoCode.trim().toUpperCase()
+    const promo = await prisma.promoCode.findUnique({
+      where: { code: codeFormatted }
+    })
+
+    if (promo && promo.isActive) {
+      const isExpired = promo.expiresAt && new Date() > new Date(promo.expiresAt)
+      const isLimitReached = promo.maxUses !== null && promo.usedCount >= promo.maxUses
+      const isScopeMismatch = promo.etablissementId && programme.etablissementId !== promo.etablissementId
+
+      if (!isExpired && !isLimitReached && !isScopeMismatch) {
+        promoCodeId = promo.id
+        if (promo.type === 'PERCENTAGE') {
+          montantReduction = Math.round(effectiveFraisDossier * (promo.valeur / 100))
+        } else if (promo.type === 'FIXED') {
+          montantReduction = Math.round(promo.valeur)
+        }
+        montantReduction = Math.min(effectiveFraisDossier, Math.max(0, montantReduction))
+        montantFinal = Math.max(0, effectiveFraisDossier - montantReduction)
+
+        // Incrémenter le nombre d'utilisations du code promo
+        await prisma.promoCode.update({
+          where: { id: promo.id },
+          data: { usedCount: { increment: 1 } }
+        })
+      }
+    }
+  }
+
   let commissionAmount = 0
   if (programme.etablissement?.commissionValue) {
     if (programme.etablissement.commissionType === 'PERCENTAGE') {
@@ -86,7 +123,7 @@ export default defineEventHandler(async (event) => {
   }
 
   let initialStatus: CandidatureStatus = 'SOUMIS'
-  if (effectiveFraisDossier > 0) {
+  if (montantFinal > 0) {
     initialStatus = 'EN_ATTENTE_PAIEMENT'
   } else {
     initialStatus = 'EN_REVUE_PARTENAIRE'
@@ -184,6 +221,10 @@ export default defineEventHandler(async (event) => {
       targetProgram: programme.titre,
       status: initialStatus,
       commissionAmount,
+      montantInitial,
+      montantReduction,
+      montantFinal,
+      promoCodeId,
       identityCardRectoUrl: rectoUrl,
       identityCardVersoUrl: versoUrl,
       bfemAttestationUrl: bfemUrl || null,
