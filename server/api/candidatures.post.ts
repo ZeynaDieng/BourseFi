@@ -123,10 +123,20 @@ export default defineEventHandler(async (event) => {
   }
 
   let initialStatus: CandidatureStatus = 'SOUMIS'
+  let attestationNumber: string | null = null
+  let attestationIssuedAt: Date | null = null
+
   if (montantFinal > 0) {
     initialStatus = 'EN_ATTENTE_PAIEMENT'
   } else {
-    initialStatus = 'EN_REVUE_PARTENAIRE'
+    // Si la candidature est 100% gratuite (code promo BF100 ou frais = 0) OU si l'établissement délivre automatiquement
+    if (montantFinal === 0 || programme.etablissement?.autoIssueAttestation) {
+      initialStatus = 'DOCUMENT_EMIS'
+      attestationNumber = `BF-ATT-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`
+      attestationIssuedAt = new Date()
+    } else {
+      initialStatus = 'EN_REVUE_PARTENAIRE'
+    }
   }
 
   const nameParts = (user.name || '').trim().split(/\s+/).filter(Boolean)
@@ -225,6 +235,8 @@ export default defineEventHandler(async (event) => {
       montantReduction,
       montantFinal,
       promoCodeId,
+      attestationNumber,
+      attestationIssuedAt,
       identityCardRectoUrl: rectoUrl,
       identityCardVersoUrl: versoUrl,
       bfemAttestationUrl: bfemUrl || null,
