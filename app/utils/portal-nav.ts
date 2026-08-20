@@ -37,6 +37,7 @@ export const adminMobileNav: Omit<PortalNavItem, 'badge'>[] = [
 ]
 
 export const adminDrawerLinks: PortalDrawerLink[] = [
+  { to: '/admin/promos', icon: 'local_offer', label: 'Codes Promo' },
   { to: '/admin/catalogue/programmes', icon: 'menu_book', label: 'Formations' },
   { to: '/admin/catalogue/ecoles', icon: 'apartment', label: 'Écoles' },
   { to: '/admin/catalogue/partenaires', icon: 'handshake', label: 'Partenaires' },

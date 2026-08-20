@@ -2,8 +2,8 @@
 import { ref, computed, reactive } from 'vue'
 
 definePageMeta({
-  middleware: ['auth', 'admin'],
-  layout: 'admin',
+  layout: 'portal',
+  middleware: 'admin-auth',
 })
 
 type PromoCode = {
@@ -168,7 +168,9 @@ function formatDate(dStr: string | null) {
 </script>
 
 <template>
-  <div class="p-6 md:p-8 max-w-7xl mx-auto space-y-8">
+  <div class="flex min-h-screen">
+    <AdminSidebar />
+    <main class="flex-1 bg-slate-50 p-4 md:p-8 space-y-8 max-w-7xl">
     <!-- Header -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-6">
       <div>
@@ -430,5 +432,6 @@ function formatDate(dStr: string | null) {
         </form>
       </div>
     </div>
+    </main>
   </div>
 </template>
