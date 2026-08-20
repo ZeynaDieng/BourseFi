@@ -279,7 +279,7 @@ export default defineEventHandler(async (event) => {
     candidature: {
       id: candidature.id,
       status: initialStatus,
-      fraisDossier: effectiveFraisDossier || 0,
+      fraisDossier: montantFinal,
       devise: programme.devise,
     },
   }

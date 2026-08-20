@@ -68,7 +68,9 @@ export default defineEventHandler(async (event) => {
       ? candidature.programme.etablissement.fraisDossier
       : candidature.programme.fraisDossier
 
-  const total = effectiveFraisDossier
+  const total = (candidature.montantFinal !== null && candidature.montantFinal !== undefined)
+    ? candidature.montantFinal
+    : effectiveFraisDossier
   if (total <= 0) {
     throw createError({ statusCode: 400, statusMessage: 'Aucun frais de dossier a regler.' })
   }

@@ -73,6 +73,9 @@ function formatCandidature(raw: {
   identityCardRectoUrl: string | null
   identityCardVersoUrl: string | null
   createdAt: Date
+  montantInitial?: number | null
+  montantReduction?: number | null
+  montantFinal?: number | null
   programme: {
     titre: string
     slug: string
@@ -86,12 +89,16 @@ function formatCandidature(raw: {
   bourse: { slug: string; titre: string } | null
   paiement?: { status: string } | null
 }) {
-  const effectiveFrais =
+  const catalogFrais =
     raw.programme.etablissement?.isDirectPartner &&
     raw.programme.etablissement?.fraisDossier !== undefined &&
     raw.programme.etablissement?.fraisDossier !== null
       ? raw.programme.etablissement.fraisDossier
       : (raw.programme.fraisDossier ?? 0)
+
+  const effectiveFrais = (raw.montantFinal !== null && raw.montantFinal !== undefined)
+    ? raw.montantFinal
+    : catalogFrais
 
   const hasPaid = Boolean(raw.paiement && raw.paiement.status === 'Valide')
 
