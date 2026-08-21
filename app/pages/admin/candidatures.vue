@@ -124,12 +124,12 @@ const singleRelanceSending = ref<string | null>(null)
 const statusChoices = CANDIDATURE_STATUS_CHOICES
 
 // Libellés CRM Commercial
-const INTEREST_OPTIONS: Record<string, { label: string; icon: string; className: string }> = {
-  HOT_HIGH: { label: '🔥 Très chaud', icon: 'local_fire_department', className: 'bg-red-50 text-red-700 border-red-200' },
-  HOT_MED: { label: '🟡 Chaud', icon: 'local_fire_department', className: 'bg-amber-50 text-amber-700 border-amber-200' },
-  WARM: { label: '🟠 Tiède', icon: 'thermostat', className: 'bg-orange-50 text-orange-700 border-orange-200' },
-  COLD: { label: '❄️ Froid', icon: 'ac_unit', className: 'bg-blue-50 text-blue-700 border-blue-200' },
-  NOT_INTERESTED: { label: '🚫 Non intéressé', icon: 'block', className: 'bg-slate-100 text-slate-600 border-slate-200' },
+const INTEREST_OPTIONS: Record<string, { label: string; className: string }> = {
+  HOT_HIGH: { label: '🔥 Très chaud', className: 'bg-red-50 text-red-700 border-red-200' },
+  HOT_MED: { label: '🟡 Chaud', className: 'bg-amber-50 text-amber-700 border-amber-200' },
+  WARM: { label: '🟠 Tiède', className: 'bg-orange-50 text-orange-700 border-orange-200' },
+  COLD: { label: '❄️ Froid', className: 'bg-blue-50 text-blue-700 border-blue-200' },
+  NOT_INTERESTED: { label: '🚫 Non intéressé', className: 'bg-slate-100 text-slate-600 border-slate-200' },
 }
 
 const BLOCKING_OPTIONS: Record<string, string> = {
@@ -171,7 +171,7 @@ const statusFilters = [
   { value: 'COMPLEMENT_DEMANDE', label: 'Complément' },
   { value: 'ACCEPTE', label: 'Acceptés' },
   { value: 'REFUSE', label: 'Refusés' },
-  { value: 'DOCUMENT_EMIS', label: 'Attestation disponible' },
+  { value: 'DOCUMENT_EMIS', label: 'Attestation' },
 ]
 
 const draft = reactive({ status: '', documentDataUrl: '' })
@@ -582,119 +582,121 @@ async function submitNote() {
         </div>
       </div>
 
-      <!-- Tableau des Dossiers -->
-      <div class="mt-4">
-        <AdminTable :columns="6">
-          <template #head>
-            <tr>
-              <th class="px-4 py-3 text-center">
-                <input
-                  type="checkbox"
-                  :checked="isAllSelected"
-                  class="rounded border-slate-300 text-primary focus:ring-primary"
-                  @change="toggleSelectAll"
-                />
-              </th>
-              <th class="cursor-pointer px-4 py-3" @click="toggleSort('fullName')">
-                Candidat {{ sortIcon('fullName') }}
-              </th>
-              <th class="cursor-pointer px-4 py-3" @click="toggleSort('programmeTitre')">
-                Programme & Partenaire {{ sortIcon('programmeTitre') }}
-              </th>
-              <th class="px-4 py-3">Statut Dossier</th>
-              <th class="px-4 py-3">Intérêt & Suivi</th>
-              <th class="cursor-pointer px-4 py-3 text-right" @click="toggleSort('createdAt')">
-                Date {{ sortIcon('createdAt') }}
-              </th>
-              <th class="px-4 py-3 text-center">Relance 1-Clic</th>
-            </tr>
-          </template>
+      <!-- Tableau des Dossiers Intégral -->
+      <div class="admin-card overflow-hidden mt-4">
+        <div class="overflow-x-auto">
+          <table class="admin-table min-w-[1000px]">
+            <thead>
+              <tr>
+                <th class="admin-th text-center w-10">
+                  <input
+                    type="checkbox"
+                    :checked="isAllSelected"
+                    class="rounded border-slate-300 text-primary focus:ring-primary"
+                    @change="toggleSelectAll"
+                  />
+                </th>
+                <th class="admin-th cursor-pointer" @click="toggleSort('fullName')">
+                  Candidat
+                  <span class="material-symbols-outlined text-[16px]">{{ sortIcon('fullName') }}</span>
+                </th>
+                <th class="admin-th cursor-pointer" @click="toggleSort('programmeTitre')">
+                  Programme & Partenaire
+                </th>
+                <th class="admin-th">Statut</th>
+                <th class="admin-th">Intérêt & Relances</th>
+                <th class="admin-th cursor-pointer" @click="toggleSort('createdAt')">
+                  Déposé le
+                  <span class="material-symbols-outlined text-[16px]">{{ sortIcon('createdAt') }}</span>
+                </th>
+                <th class="admin-th text-center">Relance 1-Clic</th>
+                <th class="admin-th text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="d in paginated"
+                :key="d.id"
+                class="hover:bg-slate-50/80 cursor-pointer"
+                :class="{ 'bg-amber-50/30': d.status === 'EN_ATTENTE_PAIEMENT' }"
+                @click="openDetail(d)"
+              >
+                <td class="admin-td text-center" @click.stop>
+                  <input
+                    type="checkbox"
+                    :checked="selectedIds.includes(d.id)"
+                    class="rounded border-slate-300 text-primary focus:ring-primary"
+                    @change="toggleSelect(d.id)"
+                  />
+                </td>
 
-          <template #body>
-            <tr
-              v-for="d in paginated"
-              :key="d.id"
-              class="cursor-pointer transition hover:bg-slate-50/80"
-              :class="{ 'bg-amber-50/30': d.status === 'EN_ATTENTE_PAIEMENT' }"
-              @click="openDetail(d)"
-            >
-              <td class="px-4 py-3 text-center" @click.stop>
-                <input
-                  type="checkbox"
-                  :checked="selectedIds.includes(d.id)"
-                  class="rounded border-slate-300 text-primary focus:ring-primary"
-                  @change="toggleSelect(d.id)"
-                />
-              </td>
+                <td class="admin-td">
+                  <p class="font-bold text-primary">{{ d.fullName }}</p>
+                  <p class="text-xs text-slate-500">{{ d.email }} • {{ d.phone || 'Sans tel' }}</p>
+                </td>
 
-              <td class="px-4 py-3 font-medium">
-                <div class="flex items-center gap-2">
-                  <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
-                    {{ (d.fullName[0] || 'C').toUpperCase() }}
+                <td class="admin-td">
+                  <p class="text-sm font-medium">{{ d.programmeTitre }}</p>
+                  <p class="text-xs text-slate-400">{{ d.partnerName }}</p>
+                </td>
+
+                <td class="admin-td">
+                  <ApplicationStatusBadge :status="d.status" />
+                  <p class="mt-1 text-[11px] text-slate-400">{{ d.statusLabel }}</p>
+                </td>
+
+                <td class="admin-td">
+                  <div class="flex flex-col gap-1">
+                    <span
+                      class="inline-flex items-center gap-1 rounded-lg border px-2 py-0.5 text-[10px] font-bold w-fit"
+                      :class="INTEREST_OPTIONS[d.interestLevel || 'HOT_MED']?.className"
+                    >
+                      {{ INTEREST_OPTIONS[d.interestLevel || 'HOT_MED']?.label }}
+                    </span>
+                    <span class="text-[10px] text-slate-400">
+                      {{ d.relanceCount ? `${d.relanceCount} relance(s)` : '0 relance' }}
+                    </span>
                   </div>
-                  <div class="min-w-0">
-                    <p class="font-bold text-slate-900 truncate">{{ d.fullName }}</p>
-                    <p class="truncate text-[11px] text-slate-400">{{ d.email }} • {{ d.phone || 'Sans tel' }}</p>
+                </td>
+
+                <td class="admin-td text-xs text-slate-500">
+                  {{ formatDate(d.createdAt) }}
+                </td>
+
+                <td class="admin-td text-center" @click.stop>
+                  <div class="flex items-center justify-center gap-1.5">
+                    <button
+                      type="button"
+                      class="inline-flex h-8 items-center gap-1 rounded-lg bg-emerald-600 px-2.5 text-[11px] font-bold text-white shadow-2xs transition hover:bg-emerald-700 active:scale-95"
+                      :disabled="singleRelanceSending === d.id"
+                      title="Envoyer un message WhatsApp avec lien de paiement"
+                      @click="triggerRelance(d.id, 'WHATSAPP')"
+                    >
+                      <span class="material-symbols-outlined text-[15px]">chat</span>
+                      WhatsApp
+                    </button>
+
+                    <button
+                      type="button"
+                      class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 transition hover:bg-slate-50 active:scale-95"
+                      :disabled="singleRelanceSending === d.id"
+                      title="Envoyer un email de relance"
+                      @click="triggerRelance(d.id, 'EMAIL')"
+                    >
+                      <span class="material-symbols-outlined text-[16px]">mail</span>
+                    </button>
                   </div>
-                </div>
-              </td>
+                </td>
 
-              <td class="px-4 py-3">
-                <p class="font-semibold text-slate-800 truncate max-w-xs">{{ d.programmeTitre }}</p>
-                <p class="text-[11px] text-slate-500">{{ d.partnerName }}</p>
-              </td>
-
-              <td class="px-4 py-3">
-                <AdminStatusBadge :status="d.status" :label="d.statusLabel" />
-              </td>
-
-              <td class="px-4 py-3">
-                <div class="flex flex-col gap-1">
-                  <span
-                    class="inline-flex items-center gap-1 rounded-lg border px-2 py-0.5 text-[10px] font-bold w-fit"
-                    :class="INTEREST_OPTIONS[d.interestLevel || 'HOT_MED']?.className"
-                  >
-                    {{ INTEREST_OPTIONS[d.interestLevel || 'HOT_MED']?.label }}
-                  </span>
-                  <span class="text-[10px] text-slate-400">
-                    {{ d.relanceCount ? `${d.relanceCount} relance(s)` : '0 relance' }}
-                  </span>
-                </div>
-              </td>
-
-              <td class="px-4 py-3 text-right font-mono text-[11px] text-slate-400">
-                {{ formatDate(d.createdAt) }}
-              </td>
-
-              <td class="px-4 py-3 text-center" @click.stop>
-                <div class="flex items-center justify-center gap-1.5">
-                  <!-- Bouton WhatsApp Direct -->
-                  <button
-                    type="button"
-                    class="inline-flex h-8 items-center gap-1 rounded-lg bg-emerald-600 px-2.5 text-[11px] font-bold text-white shadow-2xs transition hover:bg-emerald-700 active:scale-95"
-                    :disabled="singleRelanceSending === d.id"
-                    title="Envoyer un message WhatsApp avec lien de paiement"
-                    @click="triggerRelance(d.id, 'WHATSAPP')"
-                  >
-                    <span class="material-symbols-outlined text-[15px]">chat</span>
-                    WhatsApp
+                <td class="admin-td text-right" @click.stop>
+                  <button type="button" class="admin-btn-ghost" @click="openDetail(d)">
+                    Gérer le dossier
                   </button>
-
-                  <!-- Bouton Email Direct -->
-                  <button
-                    type="button"
-                    class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 transition hover:bg-slate-50 active:scale-95"
-                    :disabled="singleRelanceSending === d.id"
-                    title="Envoyer un email de relance"
-                    @click="triggerRelance(d.id, 'EMAIL')"
-                  >
-                    <span class="material-symbols-outlined text-[16px]">mail</span>
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </template>
-        </AdminTable>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
         <AdminPagination
           v-model:page="page"
