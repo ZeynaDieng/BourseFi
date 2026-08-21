@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { prisma } from '../../../utils/prisma'
-import { requireAdminSession } from '../../../utils/auth'
+import { requireRole } from '../../../utils/auth'
 import { writeAuditLog } from '../../../utils/audit'
 
 const noteSchema = z.object({
@@ -16,7 +16,7 @@ const noteSchema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
-  const admin = await requireAdminSession(event)
+  const admin = await requireRole(event, ['ADMIN'])
   const body = await readBody(event)
   const parsed = noteSchema.safeParse(body)
 

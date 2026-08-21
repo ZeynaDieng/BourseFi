@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { prisma } from '../../../utils/prisma'
-import { requireAdminSession } from '../../../utils/auth'
+import { requireRole } from '../../../utils/auth'
 import { writeAuditLog } from '../../../utils/audit'
 import { sendEmail, renderEmail } from '../../../utils/email'
 
@@ -12,7 +12,7 @@ const relancerSchema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
-  const admin = await requireAdminSession(event)
+  const admin = await requireRole(event, ['ADMIN'])
   const body = await readBody(event)
   const parsed = relancerSchema.safeParse(body)
 
