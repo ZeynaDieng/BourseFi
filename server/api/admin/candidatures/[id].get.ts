@@ -31,6 +31,12 @@ export default defineEventHandler(async (event) => {
           createdAt: true,
         },
       },
+      crmNotes: {
+        orderBy: [
+          { isPinned: 'desc' },
+          { createdAt: 'desc' },
+        ],
+      },
     },
   })
 
@@ -63,6 +69,17 @@ export default defineEventHandler(async (event) => {
     identityCardRectoUrl: c.identityCardRectoUrl,
     identityCardVersoUrl: c.identityCardVersoUrl,
     createdAt: c.createdAt.toISOString(),
+    montantInitial: c.montantInitial,
+    montantReduction: c.montantReduction,
+    montantFinal: c.montantFinal,
+    interestLevel: c.interestLevel ?? 'HOT_MED',
+    blockingReason: c.blockingReason ?? null,
+    relanceCount: c.relanceCount ?? 0,
+    lastRelanceAt: c.lastRelanceAt?.toISOString() ?? null,
+    lastChannelUsed: c.lastChannelUsed ?? null,
+    nextRelanceAt: c.nextRelanceAt?.toISOString() ?? null,
+    conversionScore: c.conversionScore ?? 75,
+    crmNotes: c.crmNotes || [],
     programme: {
       titre: c.programme.titre,
       slug: c.programme.slug,

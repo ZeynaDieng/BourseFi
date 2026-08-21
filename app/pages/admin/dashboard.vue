@@ -256,6 +256,43 @@ function statusTone(status: string) {
           </article>
         </div>
 
+        <!-- Widget Candidats Prioritaires CRM -->
+        <section v-if="candidatures?.some(c => c.status === 'EN_ATTENTE_PAIEMENT')" class="rounded-2xl border border-amber-200 bg-amber-50/40 p-5 space-y-3">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-[22px] text-amber-600">local_fire_department</span>
+              <h3 class="font-headline text-base font-bold text-amber-900">🔥 Candidats Prioritaires (Paiements en attente)</h3>
+            </div>
+            <NuxtLink to="/admin/candidatures?filterStatus=EN_ATTENTE_PAIEMENT" class="text-xs font-bold text-amber-800 hover:underline">
+              Voir tout ({{ candidatures?.filter(c => c.status === 'EN_ATTENTE_PAIEMENT').length }})
+            </NuxtLink>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div
+              v-for="cp in (candidatures?.filter(c => c.status === 'EN_ATTENTE_PAIEMENT') || []).slice(0, 3)"
+              :key="cp.id"
+              class="rounded-xl border border-amber-200/70 bg-white p-3 shadow-2xs space-y-2"
+            >
+              <div class="flex items-start justify-between">
+                <div>
+                  <p class="font-bold text-slate-900 text-xs">{{ cp.fullName }}</p>
+                  <p class="text-[11px] text-slate-500 truncate max-w-[180px]">{{ cp.programmeTitre }}</p>
+                </div>
+                <span class="rounded bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800">En attente</span>
+              </div>
+              <div class="flex items-center justify-between pt-1 border-t border-slate-100">
+                <span class="text-[10px] text-slate-400">{{ cp.phone || 'Sans tel' }}</span>
+                <NuxtLink
+                  :to="`/admin/candidatures?id=${cp.id}`"
+                  class="inline-flex items-center gap-1 text-[11px] font-bold text-primary hover:underline"
+                >
+                  <span class="material-symbols-outlined text-[14px]">chat</span> Relancer
+                </NuxtLink>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <!-- Raccourcis + flux -->
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:items-start lg:gap-8">
           <section class="lg:col-span-4">

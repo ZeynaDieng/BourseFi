@@ -13,6 +13,12 @@ const includeRelations = {
   partner: true,
   bourse: { select: { slug: true, titre: true } },
   paiement: true,
+  crmNotes: {
+    orderBy: [
+      { isPinned: 'desc' },
+      { createdAt: 'desc' }
+    ]
+  }
 } as const
 
 export default defineEventHandler(async (event) => {
@@ -76,6 +82,26 @@ function formatCandidature(raw: {
   montantInitial?: number | null
   montantReduction?: number | null
   montantFinal?: number | null
+  interestLevel?: string | null
+  blockingReason?: string | null
+  relanceCount?: number | null
+  lastRelanceAt?: Date | null
+  lastChannelUsed?: string | null
+  nextRelanceAt?: Date | null
+  conversionScore?: number | null
+  crmNotes?: Array<{
+    id: string
+    agentName: string
+    exchangeType: string
+    content: string
+    interestLevel: string | null
+    blockingReason: string | null
+    nextAction: string | null
+    nextRelanceAt: Date | null
+    isPinned: boolean
+    attachmentUrl: string | null
+    createdAt: Date
+  }>
   programme: {
     titre: string
     slug: string
@@ -136,6 +162,17 @@ function formatCandidature(raw: {
     partnerName: raw.partner.name,
     partnerSlug: raw.partner.slug,
     fraisDossier: effectiveFrais,
+    montantInitial: raw.montantInitial,
+    montantReduction: raw.montantReduction,
+    montantFinal: raw.montantFinal,
+    interestLevel: raw.interestLevel ?? 'HOT_MED',
+    blockingReason: raw.blockingReason ?? null,
+    relanceCount: raw.relanceCount ?? 0,
+    lastRelanceAt: raw.lastRelanceAt ?? null,
+    lastChannelUsed: raw.lastChannelUsed ?? null,
+    nextRelanceAt: raw.nextRelanceAt ?? null,
+    conversionScore: raw.conversionScore ?? 75,
+    crmNotes: raw.crmNotes || [],
     hasPaid,
     devise: raw.programme.devise
   }

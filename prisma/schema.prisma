@@ -287,6 +287,13 @@ model Candidature {
   montantReduction     Int?
   montantFinal         Int?
   promoCodeId          String?
+  interestLevel        InterestLevel?    @default(HOT_MED)
+  blockingReason       BlockingReason?
+  relanceCount         Int               @default(0)
+  lastRelanceAt        DateTime?
+  lastChannelUsed      String?
+  nextRelanceAt        DateTime?
+  conversionScore      Int               @default(75)
   promoCode            PromoCode?        @relation(fields: [promoCodeId], references: [id])
   createdAt            DateTime          @default(now())
   bourseId             String?
@@ -295,12 +302,75 @@ model Candidature {
   programme            Programme         @relation(fields: [programmeId], references: [id])
   user                 User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   paiement             Paiement?
+  crmNotes             CandidatureNote[]
 
   @@index([partnerId])
   @@index([programmeId])
   @@index([bourseId])
   @@index([promoCodeId])
   @@index([status])
+  @@index([interestLevel])
+  @@index([nextRelanceAt])
+}
+
+enum InterestLevel {
+  HOT_HIGH
+  HOT_MED
+  WARM
+  COLD
+  NOT_INTERESTED
+}
+
+enum BlockingReason {
+  PARENT_APPROVAL
+  FINANCIAL_DIFFICULTY
+  MISSING_DOCS
+  SCHOOL_HESITATION
+  PROGRAM_HESITATION
+  TECHNICAL_ISSUE
+  WAITING_RESPONSE
+  NO_LONGER_INTERESTED
+  EXPIRED
+  OTHER
+}
+
+enum ExchangeType {
+  CALL
+  WHATSAPP
+  EMAIL
+  MEETING
+  SUPPORT
+  OTHER
+}
+
+enum NextAction {
+  CALL_TOMORROW
+  SEND_BROCHURE
+  SEND_PROMO
+  SEND_PAYMENT_LINK
+  WAIT_CANDIDATE
+  SCHEDULE_MEETING
+  VERIFY_DOCS
+}
+
+model CandidatureNote {
+  id             String          @id @default(cuid())
+  candidatureId  String
+  agentName      String          @default("Admin BourseFi")
+  exchangeType   ExchangeType    @default(WHATSAPP)
+  content        String
+  interestLevel  InterestLevel?
+  blockingReason BlockingReason?
+  nextAction     NextAction?
+  nextRelanceAt  DateTime?
+  isPinned       Boolean         @default(false)
+  attachmentUrl  String?
+  createdAt      DateTime        @default(now())
+
+  candidature    Candidature     @relation(fields: [candidatureId], references: [id], onDelete: Cascade)
+
+  @@index([candidatureId])
+  @@index([nextRelanceAt])
 }
 
 enum PromoType {
