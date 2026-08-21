@@ -64,6 +64,7 @@ type DossierDetail = DossierRow & {
   gpa: string
   targetProgram: string
   documentIssuedAt: string | null
+  attestationNumber?: string | null
   montantInitial: number | null
   montantReduction: number | null
   programme: {
@@ -72,7 +73,7 @@ type DossierDetail = DossierRow & {
     ville: string
     fraisDossier: number
     devise: string
-    etablissement: { nom: string; slug: string }
+    etablissement: { nom: string; slug: string; fraisDossier?: number | null }
   }
   partner: { id: string; name: string; slug: string }
   bourse: { titre: string; slug: string } | null
@@ -98,6 +99,7 @@ const drawerOpen = ref(false)
 const selectedId = ref<string | null>(null)
 const detail = ref<DossierDetail | null>(null)
 const detailLoading = ref(false)
+const previewDoc = ref<{ url: string; label: string } | null>(null)
 const activeTab = ref<'summary' | 'notes' | 'documents'>('summary')
 
 // Multi-sélection & Relance en masse
@@ -117,11 +119,11 @@ const noteForm = reactive({
   isPinned: false,
 })
 const savingNote = ref(false)
-
-// Action relance unitaire rapide
 const singleRelanceSending = ref<string | null>(null)
 
-// Libellés CRM
+const statusChoices = CANDIDATURE_STATUS_CHOICES
+
+// Libellés CRM Commercial
 const INTEREST_OPTIONS: Record<string, { label: string; icon: string; className: string }> = {
   HOT_HIGH: { label: '🔥 Très chaud', icon: 'local_fire_department', className: 'bg-red-50 text-red-700 border-red-200' },
   HOT_MED: { label: '🟡 Chaud', icon: 'local_fire_department', className: 'bg-amber-50 text-amber-700 border-amber-200' },
@@ -168,11 +170,13 @@ const statusFilters = [
   { value: 'EN_REVUE_PARTENAIRE', label: 'En revue' },
   { value: 'COMPLEMENT_DEMANDE', label: 'Complément' },
   { value: 'ACCEPTE', label: 'Acceptés' },
+  { value: 'REFUSE', label: 'Refusés' },
   { value: 'DOCUMENT_EMIS', label: 'Attestation disponible' },
 ]
 
 const draft = reactive({ status: '', documentDataUrl: '' })
 const saving = ref(false)
+const deleting = ref(false)
 
 function formatDate(iso?: string | null) {
   if (!iso) return 'N/A'
@@ -191,13 +195,13 @@ function formatDateTime(iso?: string | null) {
 
 const stats = computed(() => {
   const list = dossiers.value ?? []
-  const todayStr = new Date().toISOString().split('T')[0]
   return {
     total: list.length,
     pendingPayment: list.filter((d) => d.status === 'EN_ATTENTE_PAIEMENT').length,
+    inReview: list.filter((d) => d.status === 'EN_REVUE_PARTENAIRE').length,
     hotCount: list.filter((d) => d.interestLevel === 'HOT_HIGH' || d.interestLevel === 'HOT_MED').length,
-    relanceToday: list.filter((d) => d.nextRelanceAt && d.nextRelanceAt.split('T')[0] === todayStr).length,
     accepted: list.filter((d) => d.status === 'ACCEPTE' || d.status === 'DOCUMENT_EMIS' || d.status === 'TERMINE').length,
+    refused: list.filter((d) => d.status === 'REFUSE').length,
   }
 })
 
@@ -300,7 +304,58 @@ function onDrawerClose() {
   linkClose()
 }
 
-// Action WhatsApp / Email 1-Clic
+function exportDossiers() {
+  downloadCsv('candidatures-boursefi.csv', sorted.value, [
+    { key: 'fullName', header: 'Candidat' },
+    { key: 'email', header: 'Email' },
+    { key: 'programmeTitre', header: 'Programme' },
+    { key: 'partnerName', header: 'Partenaire' },
+    { key: 'statusLabel', header: 'Statut' },
+    { key: 'createdAt', header: 'Date', format: (v) => formatDate(String(v)) },
+  ])
+}
+
+async function savePatch() {
+  if (!selectedId.value) return
+  saving.value = true
+  try {
+    await $fetch(`/api/candidatures/${selectedId.value}`, {
+      method: 'PATCH',
+      body: { status: draft.status, documentDataUrl: draft.documentDataUrl || undefined },
+    })
+    draft.documentDataUrl = ''
+    await refresh()
+    if (detail.value) {
+      await loadDetail(selectedId.value)
+    }
+  } catch (e: unknown) {
+    alert(getAdminErrorMessage(e))
+  } finally {
+    saving.value = false
+  }
+}
+
+async function deleteDossier() {
+  if (!selectedId.value || !detail.value) return
+  if (detail.value.paiement) {
+    alert('Impossible de supprimer : un paiement est lié à ce dossier.')
+    return
+  }
+  if (!confirm(`Supprimer la candidature de ${detail.value.fullName} pour ${detail.value.programme.titre} ?`)) return
+
+  deleting.value = true
+  try {
+    await $fetch(`/api/admin/candidatures/${selectedId.value}`, { method: 'DELETE' })
+    await refresh()
+    onDrawerClose()
+  } catch (e: unknown) {
+    alert(getAdminErrorMessage(e))
+  } finally {
+    deleting.value = false
+  }
+}
+
+// Relances WhatsApp & Email 1-Clic
 async function triggerRelance(candidatureId: string, channel: 'WHATSAPP' | 'EMAIL', codePromo = 'RENTREE2026') {
   singleRelanceSending.value = candidatureId
   try {
@@ -328,7 +383,7 @@ async function triggerRelance(candidatureId: string, channel: 'WHATSAPP' | 'EMAI
   }
 }
 
-// Action Relance en Masse
+// Relance en Masse
 async function executeBulkRelance() {
   if (!selectedIds.value.length) return
   bulkSending.value = true
@@ -348,7 +403,6 @@ async function executeBulkRelance() {
     await refresh()
     alert(`Relance exécutée avec succès pour ${res.count} candidat(s) !`)
 
-    // Si WhatsApp, ouvrir les fenêtres pour les 3 premiers
     if (bulkChannel.value === 'WHATSAPP') {
       res.results.slice(0, 3).forEach((r) => {
         if (r.whatsappUrl) window.open(r.whatsappUrl, '_blank')
@@ -362,7 +416,7 @@ async function executeBulkRelance() {
   }
 }
 
-// Soumission d'une Note Commerciale
+// Soumettre une Note Commerciale
 async function submitNote() {
   if (!selectedId.value || !noteForm.content.trim()) return
   savingNote.value = true
@@ -392,198 +446,146 @@ async function submitNote() {
     savingNote.value = false
   }
 }
-
-async function saveStatusPatch() {
-  if (!selectedId.value) return
-  saving.value = true
-  try {
-    await $fetch(`/api/candidatures/${selectedId.value}`, {
-      method: 'PATCH',
-      body: { status: draft.status, documentDataUrl: draft.documentDataUrl || undefined },
-    })
-    draft.documentDataUrl = ''
-    await refresh()
-    if (detail.value) {
-      await loadDetail(selectedId.value)
-    }
-  } catch (e: unknown) {
-    alert(getAdminErrorMessage(e, 'Impossible de modifier le dossier.'))
-  } finally {
-    saving.value = false
-  }
-}
-
-function exportDossiers() {
-  downloadCsv('candidatures-boursefi.csv', sorted.value, [
-    { key: 'fullName', header: 'Candidat' },
-    { key: 'email', header: 'Email' },
-    { key: 'programmeTitre', header: 'Programme' },
-    { key: 'partnerName', header: 'Partenaire' },
-    { key: 'statusLabel', header: 'Statut' },
-    { key: 'createdAt', header: 'Date', format: (v) => formatDate(String(v)) },
-  ])
-}
 </script>
 
 <template>
-  <AdminLayout title="Gestion & Relance des Candidatures">
-    <!-- En-tête & Bouton Export -->
-    <template #actions>
-      <button
-        type="button"
-        class="admin-btn-secondary inline-flex items-center gap-1.5 text-xs shadow-xs"
-        @click="exportDossiers"
-      >
-        <span class="material-symbols-outlined text-[18px]">download</span>
-        Exporter CSV
-      </button>
-    </template>
-
-    <!-- Cartes KPI & Suivi CRM Commercial -->
-    <div class="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-5">
-      <div class="rounded-2xl border border-slate-100 bg-white p-4 shadow-2xs">
-        <div class="flex items-center justify-between text-slate-400">
-          <span class="text-xs font-semibold uppercase tracking-wider">Total Dossiers</span>
-          <span class="material-symbols-outlined text-[20px] text-primary">folder</span>
+  <div class="flex min-h-screen">
+    <AdminSidebar />
+    <main class="flex-1 bg-slate-50 p-4 md:p-8">
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 class="admin-page-title">Candidatures & CRM Relances</h1>
+          <p class="admin-page-desc">
+            Validation des dossiers, relances WhatsApp/Email, émission d'attestations et suivi commercial.
+          </p>
         </div>
-        <p class="mt-2 font-headline text-2xl font-extrabold text-slate-800">{{ stats.total }}</p>
-      </div>
-
-      <div
-        class="cursor-pointer rounded-2xl border p-4 shadow-2xs transition hover:shadow-md"
-        :class="relanceFilter === 'PENDING' ? 'border-amber-400 bg-amber-50/50 ring-2 ring-amber-200' : 'border-slate-100 bg-white'"
-        @click="relanceFilter = relanceFilter === 'PENDING' ? '' : 'PENDING'"
-      >
-        <div class="flex items-center justify-between text-amber-600">
-          <span class="text-xs font-semibold uppercase tracking-wider">Paiements En Attente</span>
-          <span class="material-symbols-outlined text-[20px]">payments</span>
-        </div>
-        <p class="mt-2 font-headline text-2xl font-extrabold text-amber-700">{{ stats.pendingPayment }}</p>
-        <span class="mt-1 block text-[11px] text-amber-600 font-medium">À relancer en priorité</span>
-      </div>
-
-      <div
-        class="cursor-pointer rounded-2xl border p-4 shadow-2xs transition hover:shadow-md"
-        :class="relanceFilter === 'HOT_HIGH' ? 'border-red-400 bg-red-50/50 ring-2 ring-red-200' : 'border-slate-100 bg-white'"
-        @click="relanceFilter = relanceFilter === 'HOT_HIGH' ? '' : 'HOT_HIGH'"
-      >
-        <div class="flex items-center justify-between text-red-600">
-          <span class="text-xs font-semibold uppercase tracking-wider">🔥 Très Chauds</span>
-          <span class="material-symbols-outlined text-[20px]">local_fire_department</span>
-        </div>
-        <p class="mt-2 font-headline text-2xl font-extrabold text-red-700">{{ stats.hotCount }}</p>
-        <span class="mt-1 block text-[11px] text-red-600 font-medium">Fort potentiel conversion</span>
-      </div>
-
-      <div class="rounded-2xl border border-slate-100 bg-white p-4 shadow-2xs">
-        <div class="flex items-center justify-between text-emerald-600">
-          <span class="text-xs font-semibold uppercase tracking-wider">Attestations Émises</span>
-          <span class="material-symbols-outlined text-[20px]">verified</span>
-        </div>
-        <p class="mt-2 font-headline text-2xl font-extrabold text-emerald-700">{{ stats.accepted }}</p>
-      </div>
-
-      <div class="col-span-2 sm:col-span-4 lg:col-span-1 rounded-2xl border border-slate-100 bg-gradient-to-br from-primary to-slate-800 p-4 text-white shadow-2xs">
-        <span class="text-xs font-semibold uppercase tracking-wider text-amber-300">Conversion BourseFi</span>
-        <p class="mt-1 font-headline text-2xl font-extrabold">{{ Math.round((stats.accepted / (stats.total || 1)) * 100) }}%</p>
-        <span class="text-[11px] text-slate-300">Taux global d'admission</span>
-      </div>
-    </div>
-
-    <!-- Barre de Filtres Avancés & Recherche -->
-    <div class="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-100 bg-white p-4 shadow-2xs">
-      <div class="flex flex-1 flex-wrap items-center gap-3">
-        <!-- Recherche -->
-        <div class="relative min-w-[220px] flex-1 sm:max-w-xs">
-          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-slate-400">search</span>
-          <input
-            v-model="search"
-            type="text"
-            placeholder="Nom, email, téléphone..."
-            class="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2 pl-9 pr-3 text-xs text-slate-800 placeholder-slate-400 focus:border-primary focus:bg-white focus:outline-none"
-          />
-        </div>
-
-        <!-- Filtre Statut Candidature -->
-        <select
-          v-model="filterStatus"
-          class="rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs font-medium text-slate-700 focus:border-primary focus:outline-none"
-        >
-          <option v-for="s in statusFilters" :key="s.value" :value="s.value">{{ s.label }}</option>
-        </select>
-
-        <!-- Filtre Partenaire -->
-        <select
-          v-model="partnerFilter"
-          class="rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs font-medium text-slate-700 focus:border-primary focus:outline-none"
-        >
-          <option value="">Tous les partenaires</option>
-          <option v-for="p in partnerOptions" :key="p" :value="p">{{ p }}</option>
-        </select>
-
-        <!-- Filtre Rapide Relance -->
         <button
           type="button"
-          class="inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-bold transition active:scale-95"
-          :class="relanceFilter === 'PENDING' ? 'bg-amber-600 text-white border-amber-600' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'"
+          class="admin-btn-secondary inline-flex items-center gap-1.5 text-xs shadow-xs"
+          @click="exportDossiers"
+        >
+          <span class="material-symbols-outlined text-[18px]">download</span>
+          Exporter CSV
+        </button>
+      </div>
+
+      <!-- Stats KPIs -->
+      <div class="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        <div class="admin-dash-card p-4">
+          <p class="text-2xl font-bold text-primary">{{ stats.total }}</p>
+          <p class="text-xs text-slate-500">Total Dossiers</p>
+        </div>
+        <div
+          class="admin-dash-card p-4 cursor-pointer transition hover:scale-[1.02]"
+          :class="{ 'ring-2 ring-amber-500 bg-amber-50/40': relanceFilter === 'PENDING' }"
           @click="relanceFilter = relanceFilter === 'PENDING' ? '' : 'PENDING'"
         >
-          <span class="material-symbols-outlined text-[16px]">schedule</span>
-          À relancer (Paiement)
-        </button>
-      </div>
-    </div>
-
-    <!-- Barre d'Action Flottante de Relance en Masse -->
-    <div
-      v-if="selectedIds.length > 0"
-      class="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-primary/20 bg-primary/5 p-3 px-4 shadow-sm"
-    >
-      <div class="flex items-center gap-2">
-        <span class="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">
-          {{ selectedIds.length }}
-        </span>
-        <span class="text-xs font-bold text-primary">candidat(s) sélectionné(s)</span>
-      </div>
-
-      <div class="flex flex-wrap items-center gap-2">
-        <select v-model="bulkChannel" class="rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700">
-          <option value="WHATSAPP">🟢 WhatsApp Direct</option>
-          <option value="EMAIL">✉️ Email Officiel</option>
-        </select>
-
-        <select v-model="bulkPromoCode" class="rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700">
-          <option value="">Aucun code promo</option>
-          <option value="RENTREE2026">RENTREE2026 (-5 000 FCFA)</option>
-          <option value="BF50">BF50 (-50%)</option>
-          <option value="BF100">BF100 (100% Gratuit)</option>
-        </select>
-
-        <button
-          type="button"
-          class="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-white shadow-xs transition hover:bg-primary-hover active:scale-95"
-          :disabled="bulkSending"
-          @click="executeBulkRelance"
+          <p class="text-2xl font-bold text-amber-600">{{ stats.pendingPayment }}</p>
+          <p class="text-xs text-slate-500">Paiement en attente</p>
+        </div>
+        <div
+          class="admin-dash-card p-4 cursor-pointer transition hover:scale-[1.02]"
+          :class="{ 'ring-2 ring-red-500 bg-red-50/40': relanceFilter === 'HOT_HIGH' }"
+          @click="relanceFilter = relanceFilter === 'HOT_HIGH' ? '' : 'HOT_HIGH'"
         >
-          <span class="material-symbols-outlined text-[16px]">send</span>
-          {{ bulkSending ? 'Envoi en cours...' : 'Exécuter la relance groupée' }}
-        </button>
-
-        <button
-          type="button"
-          class="text-xs font-medium text-slate-500 hover:text-slate-700"
-          @click="selectedIds = []"
-        >
-          Annuler
-        </button>
+          <p class="text-2xl font-bold text-red-600">{{ stats.hotCount }}</p>
+          <p class="text-xs text-slate-500">🔥 Très Chauds</p>
+        </div>
+        <div class="admin-dash-card p-4">
+          <p class="text-2xl font-bold text-blue-600">{{ stats.inReview }}</p>
+          <p class="text-xs text-slate-500">En revue</p>
+        </div>
+        <div class="admin-dash-card p-4">
+          <p class="text-2xl font-bold text-emerald-600">{{ stats.accepted }}</p>
+          <p class="text-xs text-slate-500">Attestations émises</p>
+        </div>
       </div>
-    </div>
 
-    <!-- Tableau des Candidatures -->
-    <div class="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-2xs">
-      <div class="overflow-x-auto">
-        <table class="w-full text-left text-xs">
-          <thead class="border-b border-slate-100 bg-slate-50/70 text-slate-500 font-semibold">
+      <!-- Barre de Recherche & Filtres -->
+      <div class="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-100 bg-white p-4 shadow-2xs">
+        <div class="flex flex-1 flex-wrap items-center gap-3">
+          <div class="relative min-w-[200px] flex-1 sm:max-w-xs">
+            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-slate-400">search</span>
+            <input
+              v-model="search"
+              type="text"
+              placeholder="Nom, email, téléphone..."
+              class="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2 pl-9 pr-3 text-xs text-slate-800 placeholder-slate-400 focus:border-primary focus:bg-white focus:outline-none"
+            />
+          </div>
+
+          <select
+            v-model="filterStatus"
+            class="rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs font-medium text-slate-700 focus:border-primary focus:outline-none"
+          >
+            <option v-for="s in statusFilters" :key="s.value" :value="s.value">{{ s.label }}</option>
+          </select>
+
+          <select
+            v-model="partnerFilter"
+            class="rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs font-medium text-slate-700 focus:border-primary focus:outline-none"
+          >
+            <option value="">Tous les partenaires</option>
+            <option v-for="p in partnerOptions" :key="p" :value="p">{{ p }}</option>
+          </select>
+
+          <button
+            type="button"
+            class="inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-bold transition active:scale-95"
+            :class="relanceFilter === 'PENDING' ? 'bg-amber-600 text-white border-amber-600' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'"
+            @click="relanceFilter = relanceFilter === 'PENDING' ? '' : 'PENDING'"
+          >
+            <span class="material-symbols-outlined text-[16px]">schedule</span>
+            À relancer (Paiement)
+          </button>
+        </div>
+      </div>
+
+      <!-- Barre de Relance en Masse -->
+      <div
+        v-if="selectedIds.length > 0"
+        class="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-primary/20 bg-primary/5 p-3 px-4 shadow-sm"
+      >
+        <div class="flex items-center gap-2">
+          <span class="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">
+            {{ selectedIds.length }}
+          </span>
+          <span class="text-xs font-bold text-primary">candidat(s) sélectionné(s)</span>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <select v-model="bulkChannel" class="rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700">
+            <option value="WHATSAPP">🟢 WhatsApp Direct</option>
+            <option value="EMAIL">✉️ Email Officiel</option>
+          </select>
+
+          <select v-model="bulkPromoCode" class="rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700">
+            <option value="">Aucun code promo</option>
+            <option value="RENTREE2026">RENTREE2026 (-5 000 FCFA)</option>
+            <option value="BF50">BF50 (-50%)</option>
+            <option value="BF100">BF100 (100% Gratuit)</option>
+          </select>
+
+          <button
+            type="button"
+            class="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-white shadow-xs transition hover:bg-primary-hover active:scale-95"
+            :disabled="bulkSending"
+            @click="executeBulkRelance"
+          >
+            <span class="material-symbols-outlined text-[16px]">send</span>
+            {{ bulkSending ? 'Envoi...' : 'Exécuter la relance groupée' }}
+          </button>
+
+          <button type="button" class="text-xs font-medium text-slate-500 hover:text-slate-700" @click="selectedIds = []">
+            Annuler
+          </button>
+        </div>
+      </div>
+
+      <!-- Tableau des Dossiers -->
+      <div class="mt-4">
+        <AdminTable :columns="6">
+          <template #head>
             <tr>
               <th class="px-4 py-3 text-center">
                 <input
@@ -597,26 +599,26 @@ function exportDossiers() {
                 Candidat {{ sortIcon('fullName') }}
               </th>
               <th class="cursor-pointer px-4 py-3" @click="toggleSort('programmeTitre')">
-                Programme & École {{ sortIcon('programmeTitre') }}
+                Programme & Partenaire {{ sortIcon('programmeTitre') }}
               </th>
               <th class="px-4 py-3">Statut Dossier</th>
-              <th class="px-4 py-3">Niveau d'Intérêt</th>
-              <th class="px-4 py-3">Suivi Relance</th>
+              <th class="px-4 py-3">Intérêt & Suivi</th>
               <th class="cursor-pointer px-4 py-3 text-right" @click="toggleSort('createdAt')">
                 Date {{ sortIcon('createdAt') }}
               </th>
-              <th class="px-4 py-3 text-center">Actions Relance 1-Clic</th>
+              <th class="px-4 py-3 text-center">Relance 1-Clic</th>
             </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-100 text-slate-700">
+          </template>
+
+          <template #body>
             <tr
               v-for="d in paginated"
               :key="d.id"
-              class="transition hover:bg-slate-50/60"
+              class="cursor-pointer transition hover:bg-slate-50/80"
               :class="{ 'bg-amber-50/30': d.status === 'EN_ATTENTE_PAIEMENT' }"
+              @click="openDetail(d)"
             >
-              <!-- Checkbox -->
-              <td class="px-4 py-3 text-center">
+              <td class="px-4 py-3 text-center" @click.stop>
                 <input
                   type="checkbox"
                   :checked="selectedIds.includes(d.id)"
@@ -625,420 +627,435 @@ function exportDossiers() {
                 />
               </td>
 
-              <!-- Candidat -->
               <td class="px-4 py-3 font-medium">
                 <div class="flex items-center gap-2">
                   <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
                     {{ (d.fullName[0] || 'C').toUpperCase() }}
                   </div>
                   <div class="min-w-0">
-                    <button
-                      type="button"
-                      class="text-left font-bold text-slate-900 hover:text-primary"
-                      @click="openDetail(d)"
-                    >
-                      {{ d.fullName }}
-                    </button>
+                    <p class="font-bold text-slate-900 truncate">{{ d.fullName }}</p>
                     <p class="truncate text-[11px] text-slate-400">{{ d.email }} • {{ d.phone || 'Sans tel' }}</p>
                   </div>
                 </div>
               </td>
 
-              <!-- Programme -->
               <td class="px-4 py-3">
-                <p class="font-semibold text-slate-800">{{ d.programmeTitre }}</p>
-                <p class="text-[11px] text-slate-500">{{ d.etablissementNom || d.partnerName }}</p>
+                <p class="font-semibold text-slate-800 truncate max-w-xs">{{ d.programmeTitre }}</p>
+                <p class="text-[11px] text-slate-500">{{ d.partnerName }}</p>
               </td>
 
-              <!-- Statut -->
               <td class="px-4 py-3">
-                <span
-                  class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold"
-                  :class="{
-                    'bg-amber-100 text-amber-800': d.status === 'EN_ATTENTE_PAIEMENT',
-                    'bg-sky-100 text-sky-800': d.status === 'EN_REVUE_PARTENAIRE',
-                    'bg-emerald-100 text-emerald-800': d.status === 'ACCEPTE' || d.status === 'DOCUMENT_EMIS',
-                    'bg-red-100 text-red-800': d.status === 'REFUSE',
-                    'bg-slate-100 text-slate-700': d.status === 'SOUMIS'
-                  }"
-                >
-                  {{ d.statusLabel }}
-                </span>
+                <AdminStatusBadge :status="d.status" :label="d.statusLabel" />
               </td>
 
-              <!-- Niveau d'intérêt -->
               <td class="px-4 py-3">
-                <span
-                  class="inline-flex items-center gap-1 rounded-lg border px-2 py-0.5 text-[11px] font-bold"
-                  :class="INTEREST_OPTIONS[d.interestLevel || 'HOT_MED']?.className"
-                >
-                  {{ INTEREST_OPTIONS[d.interestLevel || 'HOT_MED']?.label }}
-                </span>
-              </td>
-
-              <!-- Relances -->
-              <td class="px-4 py-3">
-                <div class="flex flex-col text-[11px]">
-                  <span class="font-bold text-slate-700">
-                    {{ d.relanceCount ? `${d.relanceCount} relance(s)` : 'Aucune relance' }}
+                <div class="flex flex-col gap-1">
+                  <span
+                    class="inline-flex items-center gap-1 rounded-lg border px-2 py-0.5 text-[10px] font-bold w-fit"
+                    :class="INTEREST_OPTIONS[d.interestLevel || 'HOT_MED']?.className"
+                  >
+                    {{ INTEREST_OPTIONS[d.interestLevel || 'HOT_MED']?.label }}
                   </span>
-                  <span v-if="d.lastRelanceAt" class="text-slate-400">
-                    Dernière: {{ formatDate(d.lastRelanceAt) }} ({{ d.lastChannelUsed || 'WhatsApp' }})
+                  <span class="text-[10px] text-slate-400">
+                    {{ d.relanceCount ? `${d.relanceCount} relance(s)` : '0 relance' }}
                   </span>
                 </div>
               </td>
 
-              <!-- Date -->
-              <td class="px-4 py-3 text-right text-slate-500 font-mono text-[11px]">
+              <td class="px-4 py-3 text-right font-mono text-[11px] text-slate-400">
                 {{ formatDate(d.createdAt) }}
               </td>
 
-              <!-- Action WhatsApp / Email 1-Clic -->
-              <td class="px-4 py-3 text-center">
+              <td class="px-4 py-3 text-center" @click.stop>
                 <div class="flex items-center justify-center gap-1.5">
-                  <!-- Bouton WhatsApp 1-Clic -->
+                  <!-- Bouton WhatsApp Direct -->
                   <button
                     type="button"
                     class="inline-flex h-8 items-center gap-1 rounded-lg bg-emerald-600 px-2.5 text-[11px] font-bold text-white shadow-2xs transition hover:bg-emerald-700 active:scale-95"
                     :disabled="singleRelanceSending === d.id"
-                    title="Relancer directement sur WhatsApp"
-                    @click.stop="triggerRelance(d.id, 'WHATSAPP')"
+                    title="Envoyer un message WhatsApp avec lien de paiement"
+                    @click="triggerRelance(d.id, 'WHATSAPP')"
                   >
                     <span class="material-symbols-outlined text-[15px]">chat</span>
                     WhatsApp
                   </button>
 
-                  <!-- Bouton Email 1-Clic -->
+                  <!-- Bouton Email Direct -->
                   <button
                     type="button"
                     class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 transition hover:bg-slate-50 active:scale-95"
                     :disabled="singleRelanceSending === d.id"
                     title="Envoyer un email de relance"
-                    @click.stop="triggerRelance(d.id, 'EMAIL')"
+                    @click="triggerRelance(d.id, 'EMAIL')"
                   >
                     <span class="material-symbols-outlined text-[16px]">mail</span>
-                  </button>
-
-                  <!-- Bouton Consulter CRM -->
-                  <button
-                    type="button"
-                    class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-primary transition hover:bg-primary/5 active:scale-95"
-                    title="Voir la fiche CRM complète"
-                    @click.stop="openDetail(d)"
-                  >
-                    <span class="material-symbols-outlined text-[16px]">visibility</span>
                   </button>
                 </div>
               </td>
             </tr>
-          </tbody>
-        </table>
+          </template>
+        </AdminTable>
+
+        <AdminPagination
+          v-model:page="page"
+          :total-pages="totalPages"
+          :filtered-count="filtered.length"
+          :total-count="stats.total"
+        />
+      </div>
+    </main>
+
+    <!-- AdminDrawer Intégral Restauré & Enrichi CRM -->
+    <AdminDrawer :open="drawerOpen" title="Détail du Dossier Candidat" @close="onDrawerClose">
+      <div v-if="detailLoading" class="p-6 text-slate-400 text-xs">
+        Chargement des informations...
       </div>
 
-      <!-- Pagination -->
-      <div class="flex items-center justify-between border-t border-slate-100 bg-slate-50/50 px-4 py-3 text-xs text-slate-500">
-        <span>Page {{ page }} sur {{ totalPages || 1 }} ({{ filtered.length }} dossiers)</span>
-        <div class="flex gap-1">
+      <div v-else-if="detail" class="space-y-6">
+        <!-- Navigation Onglets CRM -->
+        <div class="flex border-b border-slate-100 bg-white -mx-6 px-6">
           <button
             type="button"
-            class="rounded-lg border border-slate-200 bg-white px-3 py-1 font-semibold text-slate-700 disabled:opacity-50"
-            :disabled="page <= 1"
-            @click="page--"
+            class="border-b-2 py-2.5 px-3 text-xs font-bold transition"
+            :class="activeTab === 'summary' ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover:text-slate-800'"
+            @click="activeTab = 'summary'"
           >
-            Précédent
+            📊 Résumé & Validation
           </button>
           <button
             type="button"
-            class="rounded-lg border border-slate-200 bg-white px-3 py-1 font-semibold text-slate-700 disabled:opacity-50"
-            :disabled="page >= totalPages"
-            @click="page++"
+            class="border-b-2 py-2.5 px-3 text-xs font-bold transition"
+            :class="activeTab === 'notes' ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover:text-slate-800'"
+            @click="activeTab = 'notes'"
           >
-            Suivant
+            💬 Notes Commerciales ({{ detail.crmNotes?.length || 0 }})
+          </button>
+          <button
+            type="button"
+            class="border-b-2 py-2.5 px-3 text-xs font-bold transition"
+            :class="activeTab === 'documents' ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover:text-slate-800'"
+            @click="activeTab = 'documents'"
+          >
+            📄 Documents & Pièces
           </button>
         </div>
-      </div>
-    </div>
 
-    <!-- Drawer Candidat 360° Multi-Onglets (CRM) -->
-    <Teleport to="body">
-      <div
-        v-if="drawerOpen"
-        class="fixed inset-0 z-50 flex justify-end bg-slate-900/40 backdrop-blur-xs animate-fade-in"
-        @click.self="onDrawerClose"
-      >
-        <div class="flex h-full w-full max-w-2xl flex-col bg-white shadow-2xl animate-slide-in-right">
-          <!-- En-tête Drawer -->
-          <div class="flex items-center justify-between border-b border-slate-100 bg-slate-50/80 px-6 py-4">
+        <!-- ONGLET 1 : RÉSUMÉ & GESTION DOSSIER -->
+        <div v-if="activeTab === 'summary'" class="space-y-6">
+          <!-- Bloc Résumé Automatique -->
+          <div class="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-primary">Résumé Automatique du Dossier</span>
+              <span class="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-extrabold text-primary">
+                Probabilité conversion : {{ detail.conversionScore || 85 }}%
+              </span>
+            </div>
+            <p class="text-xs text-slate-700 font-medium">
+              Candidat intéressé par <strong>{{ detail.programme.titre }}</strong> à <strong>{{ detail.programme.etablissement.nom }}</strong>.
+            </p>
+            <div class="grid grid-cols-2 gap-2 text-[11px] pt-1 border-t border-primary/10 text-slate-600">
+              <div>Motif principal : <strong>{{ BLOCKING_OPTIONS[detail.blockingReason || 'PARENT_APPROVAL'] }}</strong></div>
+              <div>Dernier échange : <strong>{{ formatDate(detail.lastRelanceAt) }}</strong></div>
+            </div>
+          </div>
+
+          <!-- Relances Rapides Directes -->
+          <div class="flex items-center gap-2">
+            <button
+              type="button"
+              class="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 py-2.5 text-xs font-bold text-white shadow-xs transition hover:bg-emerald-700 active:scale-98"
+              @click="triggerRelance(detail.id, 'WHATSAPP')"
+            >
+              <span class="material-symbols-outlined text-[18px]">chat</span>
+              Relancer sur WhatsApp (1-Clic)
+            </button>
+            <button
+              type="button"
+              class="flex-1 inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white py-2.5 text-xs font-bold text-slate-700 shadow-xs transition hover:bg-slate-50 active:scale-98"
+              @click="triggerRelance(detail.id, 'EMAIL')"
+            >
+              <span class="material-symbols-outlined text-[18px]">mail</span>
+              Relancer par Email
+            </button>
+          </div>
+
+          <!-- Section Statut et Attestation personnalisée -->
+          <section class="rounded-xl border border-slate-100 bg-slate-50/50 p-4 space-y-3">
+            <div v-if="detail.documentUrl" class="flex items-center justify-between rounded-lg bg-emerald-50 p-3 border border-emerald-200">
+              <div>
+                <p class="text-xs font-bold text-emerald-900">Attestation Officielle Générée</p>
+                <p class="text-[11px] text-emerald-800">Réf : {{ detail.attestationNumber || detail.id }}</p>
+              </div>
+              <a
+                :href="`/api/attestations/${detail.id}`"
+                target="_blank"
+                class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-700 px-3 py-1.5 text-xs font-bold text-white shadow-sm transition hover:bg-emerald-800"
+              >
+                <span class="material-symbols-outlined text-[16px]">visibility</span>
+                Voir / Imprimer
+              </a>
+            </div>
+
+            <div class="space-y-3 pt-2">
+              <label class="block">
+                <span class="text-xs font-semibold text-slate-500">Changer le statut du dossier</span>
+                <select v-model="draft.status" class="admin-input mt-1 w-full bg-white">
+                  <option v-for="s in statusChoices" :key="s" :value="s">
+                    {{ candidatureStatusLabel(s) }}
+                  </option>
+                </select>
+              </label>
+              <label class="block">
+                <span class="text-xs font-semibold text-slate-500">Document / Attestation personnalisée (Optionnel)</span>
+                <CandidatureDocumentDropzone v-model="draft.documentDataUrl" label="Attestation complémentaire" class="mt-2" />
+              </label>
+              <button type="button" class="admin-btn-primary w-full text-sm" :disabled="saving" @click="savePatch">
+                {{ saving ? 'Enregistrement…' : 'Enregistrer les modifications' }}
+              </button>
+            </div>
+          </section>
+
+          <!-- Informations Candidat -->
+          <section class="rounded-xl border border-slate-100 bg-white p-4 shadow-2xs">
+            <div class="flex items-center gap-2 border-b border-slate-100 pb-2.5">
+              <span class="material-symbols-outlined text-[18px] text-primary">person</span>
+              <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Informations du Candidat</p>
+            </div>
+            <dl class="mt-3 grid gap-3 text-sm sm:grid-cols-2">
+              <div><dt class="text-xs text-slate-400">Nom complet</dt><dd class="font-bold text-primary">{{ detail.fullName }}</dd></div>
+              <div><dt class="text-xs text-slate-400">Email</dt><dd class="font-medium text-slate-700">{{ detail.email }}</dd></div>
+              <div><dt class="text-xs text-slate-400">Téléphone</dt><dd class="font-medium text-slate-700">{{ detail.phone || 'Non renseigné' }}</dd></div>
+              <div><dt class="text-xs text-slate-400">Adresse</dt><dd class="font-medium text-slate-700">{{ detail.address || 'Non renseignée' }}</dd></div>
+              <div><dt class="text-xs text-slate-400">Déposé le</dt><dd class="font-medium text-slate-700">{{ formatDate(detail.createdAt) }}</dd></div>
+              <div><dt class="text-xs text-slate-400">Identifiant Dossier</dt><dd class="font-mono text-xs text-slate-500">{{ detail.id }}</dd></div>
+            </dl>
+          </section>
+
+          <!-- Parcours Académique -->
+          <section class="rounded-xl border border-slate-100 bg-white p-4 shadow-2xs">
+            <div class="flex items-center gap-2 border-b border-slate-100 pb-2.5">
+              <span class="material-symbols-outlined text-[18px] text-primary">school</span>
+              <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Parcours Académique du Candidat</p>
+            </div>
+            <dl class="mt-3 grid gap-3 text-sm sm:grid-cols-2">
+              <div><dt class="text-xs text-slate-400">Établissement fréquenté</dt><dd class="font-medium text-slate-700">{{ detail.institution || 'N/A' }}</dd></div>
+              <div><dt class="text-xs text-slate-400">Filière / Domaine</dt><dd class="font-medium text-slate-700">{{ detail.field || 'N/A' }}</dd></div>
+              <div><dt class="text-xs text-slate-400">Niveau d'études actuel</dt><dd class="font-medium text-slate-700">{{ detail.level || 'N/A' }}</dd></div>
+              <div><dt class="text-xs text-slate-400">Dernier diplôme obtenu</dt><dd class="font-medium text-slate-700">{{ detail.lastDiploma || 'N/A' }}</dd></div>
+              <div><dt class="text-xs text-slate-400">Année d'obtention</dt><dd class="font-medium text-slate-700">{{ detail.graduationDate || 'N/A' }}</dd></div>
+              <div><dt class="text-xs text-slate-400">Moyenne générale / Notes</dt><dd class="font-medium text-slate-700">{{ detail.gpa || 'N/A' }}</dd></div>
+            </dl>
+          </section>
+
+          <!-- Programme & Établissement Visés -->
+          <section class="rounded-xl border border-slate-100 bg-white p-4 shadow-2xs">
+            <div class="flex items-center gap-2 border-b border-slate-100 pb-2.5">
+              <span class="material-symbols-outlined text-[18px] text-primary">domain</span>
+              <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Programme & Établissement Visés</p>
+            </div>
+            <dl class="mt-3 grid gap-3 text-sm sm:grid-cols-2">
+              <div class="sm:col-span-2"><dt class="text-xs text-slate-400">Programme choisi</dt><dd class="font-bold text-primary">{{ detail.programme.titre }}</dd></div>
+              <div><dt class="text-xs text-slate-400">Établissement d'accueil</dt><dd class="font-medium text-slate-700">{{ detail.programme.etablissement.nom }}</dd></div>
+              <div><dt class="text-xs text-slate-400">Ville</dt><dd class="font-medium text-slate-700">{{ detail.programme.ville }}</dd></div>
+              <div><dt class="text-xs text-slate-400">Partenaire référent</dt><dd class="font-medium text-slate-700">{{ detail.partner.name }}</dd></div>
+              <div v-if="detail.bourse"><dt class="text-xs text-slate-400">Bourse associée</dt><dd class="font-bold text-amber-700">{{ detail.bourse.titre }}</dd></div>
+              <div>
+                <dt class="text-xs text-slate-400">Frais de dossier</dt>
+                <dd class="font-semibold text-slate-800">{{ (detail.montantFinal ?? detail.programme.fraisDossier ?? detail.programme.etablissement?.fraisDossier ?? 20000).toLocaleString('fr-FR') }} {{ detail.programme.devise }}</dd>
+              </div>
+            </dl>
+          </section>
+
+          <!-- Détails Financiers & Paiement -->
+          <section class="rounded-xl border border-slate-100 bg-white p-4 shadow-2xs">
+            <div class="flex items-center gap-2 border-b border-slate-100 pb-2.5">
+              <span class="material-symbols-outlined text-[18px] text-primary">payments</span>
+              <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Finances & Paiement du Dossier</p>
+            </div>
+
+            <div v-if="detail.paiement" class="mt-3 space-y-2 text-sm">
+              <div class="flex items-center justify-between rounded-lg bg-emerald-50/60 p-3 border border-emerald-100">
+                <div>
+                  <p class="text-xs text-emerald-800">Montant réglé par le candidat</p>
+                  <p class="font-headline text-lg font-black text-emerald-900">{{ detail.paiement.amount.toLocaleString('fr-FR') }} FCFA</p>
+                </div>
+                <span class="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-800">
+                  Paiement {{ detail.paiement.status }}
+                </span>
+              </div>
+              <dl class="grid gap-2 text-xs pt-1 sm:grid-cols-2">
+                <div><dt class="text-slate-400">Mode de paiement</dt><dd class="font-semibold text-slate-700">{{ detail.paiement.method || 'PayTech / Mobile Money' }}</dd></div>
+                <div><dt class="text-slate-400">Référence transaction</dt><dd class="font-mono text-slate-700">{{ detail.paiement.refCommand || 'N/A' }}</dd></div>
+                <div><dt class="text-slate-400">Date du règlement</dt><dd class="text-slate-700">{{ formatDate(detail.paiement.createdAt) }}</dd></div>
+              </dl>
+              <div class="pt-2">
+                <NuxtLink
+                  :to="`/admin/transactions?id=${detail.paiement.id}`"
+                  class="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+                >
+                  Voir le détail de la transaction →
+                </NuxtLink>
+              </div>
+            </div>
+            <div v-else class="mt-3 p-2 text-sm text-amber-700 font-medium">
+              Aucun paiement enregistré pour ce dossier.
+            </div>
+          </section>
+        </div>
+
+        <!-- ONGLET 2 : NOTES COMMERCIALES & TIMELINE -->
+        <div v-else-if="activeTab === 'notes'" class="space-y-6">
+          <div class="rounded-xl border border-slate-200 bg-slate-50/50 p-4 space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">➕ Ajouter une note commerciale</h3>
+              <label class="flex items-center gap-1.5 text-xs text-amber-700 cursor-pointer">
+                <input v-model="noteForm.isPinned" type="checkbox" class="rounded border-amber-300 text-amber-600 focus:ring-amber-500" />
+                📌 Épingler cette note
+              </label>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 text-xs">
+              <div>
+                <label class="block text-slate-500 font-medium mb-1">Canal d'échange</label>
+                <select v-model="noteForm.exchangeType" class="admin-input text-xs">
+                  <option v-for="(lbl, key) in EXCHANGE_OPTIONS" :key="key" :value="key">{{ lbl }}</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-slate-500 font-medium mb-1">Niveau d'intérêt</label>
+                <select v-model="noteForm.interestLevel" class="admin-input text-xs">
+                  <option v-for="(opt, key) in INTEREST_OPTIONS" :key="key" :value="key">{{ opt.label }}</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-slate-500 font-medium mb-1">Motif de blocage</label>
+                <select v-model="noteForm.blockingReason" class="admin-input text-xs">
+                  <option v-for="(lbl, key) in BLOCKING_OPTIONS" :key="key" :value="key">{{ lbl }}</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-slate-500 font-medium mb-1">Action suivante</label>
+                <select v-model="noteForm.nextAction" class="admin-input text-xs">
+                  <option v-for="(lbl, key) in NEXT_ACTION_OPTIONS" :key="key" :value="key">{{ lbl }}</option>
+                </select>
+              </div>
+            </div>
+
             <div>
-              <h2 class="font-headline text-lg font-bold text-slate-900">
-                Fiche Candidat & CRM
-              </h2>
-              <p class="text-xs text-slate-500">
-                Dossier N° {{ selectedId?.slice(0, 8).toUpperCase() }}
-              </p>
+              <label class="block text-slate-500 font-medium mb-1 text-xs">Compte-rendu de l'échange</label>
+              <textarea
+                v-model="noteForm.content"
+                rows="3"
+                placeholder="Ex: Le candidat attend la validation financière de ses parents. Prochaine relance prévue le 25 août."
+                class="admin-input text-xs"
+              ></textarea>
             </div>
+
             <button
               type="button"
-              class="rounded-xl p-1.5 text-slate-400 hover:bg-slate-200 hover:text-slate-700"
-              @click="onDrawerClose"
+              class="admin-btn-primary w-full text-xs py-2.5"
+              :disabled="savingNote || !noteForm.content.trim()"
+              @click="submitNote"
             >
-              <span class="material-symbols-outlined text-[20px]">close</span>
+              {{ savingNote ? 'Enregistrement...' : 'Enregistrer la note' }}
             </button>
           </div>
 
-          <!-- Navigation par Onglets -->
-          <div class="flex border-b border-slate-100 bg-white px-6">
-            <button
-              type="button"
-              class="border-b-2 py-3 px-4 text-xs font-bold transition"
-              :class="activeTab === 'summary' ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover:text-slate-800'"
-              @click="activeTab = 'summary'"
-            >
-              📊 Résumé Commercial
-            </button>
-            <button
-              type="button"
-              class="border-b-2 py-3 px-4 text-xs font-bold transition"
-              :class="activeTab === 'notes' ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover:text-slate-800'"
-              @click="activeTab = 'notes'"
-            >
-              💬 Notes & Timeline ({{ detail?.crmNotes?.length || 0 }})
-            </button>
-            <button
-              type="button"
-              class="border-b-2 py-3 px-4 text-xs font-bold transition"
-              :class="activeTab === 'documents' ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover:text-slate-800'"
-              @click="activeTab = 'documents'"
-            >
-              📄 Documents
-            </button>
-          </div>
+          <div class="space-y-3">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500">Historique des Échanges & Notes</h3>
 
-          <!-- Contenu Drawer -->
-          <div class="flex-1 overflow-y-auto p-6 space-y-6">
-            <div v-if="detailLoading" class="py-12 text-center text-slate-400">
-              Chargement du dossier candidat...
+            <div v-if="!detail.crmNotes?.length" class="py-8 text-center text-xs text-slate-400">
+              Aucune note enregistrée pour le moment.
             </div>
 
-            <template v-else-if="detail">
-              <!-- ONGLET 1 : RÉSUMÉ COMMERCIAL & FINANCIER -->
-              <div v-if="activeTab === 'summary'" class="space-y-6">
-                <!-- Bloc Résumé Automatique -->
-                <div class="rounded-2xl border border-primary/20 bg-primary/5 p-4 space-y-2">
-                  <div class="flex items-center justify-between">
-                    <span class="text-xs font-bold uppercase tracking-wider text-primary">Résumé Automatique du Dossier</span>
-                    <span class="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-extrabold text-primary">
-                      Probabilité : {{ detail.conversionScore || 85 }}%
+            <div v-else class="space-y-3">
+              <div
+                v-for="note in detail.crmNotes"
+                :key="note.id"
+                class="rounded-xl border p-3.5 space-y-2 transition"
+                :class="note.isPinned ? 'border-amber-300 bg-amber-50/40 ring-1 ring-amber-200' : 'border-slate-100 bg-white shadow-2xs'"
+              >
+                <div class="flex items-center justify-between text-xs">
+                  <div class="flex items-center gap-2">
+                    <span v-if="note.isPinned" class="text-amber-600 font-bold">📌 ÉPINGLÉ</span>
+                    <span class="font-bold text-slate-800">{{ note.agentName }}</span>
+                    <span class="rounded bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600">
+                      {{ EXCHANGE_OPTIONS[note.exchangeType] || note.exchangeType }}
                     </span>
                   </div>
-                  <p class="text-xs text-slate-700 font-medium">
-                    Candidat intéressé par <strong>{{ detail.programme.titre }}</strong> à <strong>{{ detail.programme.etablissement.nom }}</strong>.
-                  </p>
-                  <div class="grid grid-cols-2 gap-2 text-[11px] pt-1 border-t border-primary/10 text-slate-600">
-                    <div>Motif principal : <strong>{{ BLOCKING_OPTIONS[detail.blockingReason || 'PARENT_APPROVAL'] }}</strong></div>
-                    <div>Dernier échange : <strong>{{ formatDate(detail.lastRelanceAt) }}</strong></div>
-                  </div>
+                  <span class="text-[11px] text-slate-400">{{ formatDateTime(note.createdAt) }}</span>
                 </div>
 
-                <!-- Actions Rapides Directes -->
-                <div class="flex items-center gap-2">
-                  <button
-                    type="button"
-                    class="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 py-2.5 text-xs font-bold text-white shadow-xs transition hover:bg-emerald-700 active:scale-98"
-                    @click="triggerRelance(detail.id, 'WHATSAPP')"
-                  >
-                    <span class="material-symbols-outlined text-[18px]">chat</span>
-                    Relancer sur WhatsApp (1-Clic)
-                  </button>
-                  <button
-                    type="button"
-                    class="flex-1 inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white py-2.5 text-xs font-bold text-slate-700 shadow-xs transition hover:bg-slate-50 active:scale-98"
-                    @click="triggerRelance(detail.id, 'EMAIL')"
-                  >
-                    <span class="material-symbols-outlined text-[18px]">mail</span>
-                    Relancer par Email
-                  </button>
-                </div>
+                <p class="text-xs text-slate-700 whitespace-pre-wrap leading-relaxed">{{ note.content }}</p>
 
-                <!-- Détails Financiers -->
-                <section class="rounded-2xl border border-slate-100 bg-slate-50/50 p-4 space-y-3">
-                  <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500">Détails Financiers & Paiement</h3>
-                  <div class="grid grid-cols-2 gap-3 text-xs">
-                    <div>
-                      <span class="text-slate-400 block">Frais catalogue</span>
-                      <span class="font-semibold text-slate-700">{{ (detail.programme.fraisDossier || 20000).toLocaleString('fr-FR') }} {{ detail.programme.devise }}</span>
-                    </div>
-                    <div>
-                      <span class="text-slate-400 block">Montant final à payer</span>
-                      <span class="font-extrabold text-primary text-sm">{{ (detail.montantFinal ?? detail.programme.fraisDossier ?? 20000).toLocaleString('fr-FR') }} {{ detail.programme.devise }}</span>
-                    </div>
-                  </div>
-                </section>
-
-                <!-- Infos Candidat -->
-                <section class="rounded-2xl border border-slate-100 bg-white p-4 space-y-3 shadow-2xs">
-                  <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500">Informations Personnelles</h3>
-                  <div class="grid grid-cols-2 gap-3 text-xs">
-                    <div><span class="text-slate-400 block">Nom complet</span><span class="font-bold text-slate-900">{{ detail.fullName }}</span></div>
-                    <div><span class="text-slate-400 block">Téléphone</span><span class="font-medium text-slate-800">{{ detail.phone || 'Non renseigné' }}</span></div>
-                    <div><span class="text-slate-400 block">Email</span><span class="font-medium text-slate-800">{{ detail.email }}</span></div>
-                    <div><span class="text-slate-400 block">Établissement actuel</span><span class="font-medium text-slate-800">{{ detail.institution || 'N/A' }}</span></div>
-                  </div>
-                </section>
-
-                <!-- Modification du Statut du Dossier -->
-                <section class="rounded-2xl border border-slate-100 bg-white p-4 space-y-3 shadow-2xs">
-                  <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500">Changer le statut du dossier</h3>
-                  <div class="flex gap-2">
-                    <select v-model="draft.status" class="admin-input flex-1 text-xs">
-                      <option v-for="s in statusChoices" :key="s" :value="s">{{ candidatureStatusLabel(s) }}</option>
-                    </select>
-                    <button type="button" class="admin-btn-primary text-xs" :disabled="saving" @click="saveStatusPatch">
-                      Enregistrer
-                    </button>
-                  </div>
-                </section>
-              </div>
-
-              <!-- ONGLET 2 : NOTES COMMERCIALES & TIMELINE -->
-              <div v-else-if="activeTab === 'notes'" class="space-y-6">
-                <!-- Formulaire Ajouter une note -->
-                <div class="rounded-2xl border border-slate-200 bg-slate-50/50 p-4 space-y-3">
-                  <div class="flex items-center justify-between">
-                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">➕ Ajouter une note commerciale</h3>
-                    <label class="flex items-center gap-1.5 text-xs text-amber-700 cursor-pointer">
-                      <input v-model="noteForm.isPinned" type="checkbox" class="rounded border-amber-300 text-amber-600 focus:ring-amber-500" />
-                      📌 Épingler cette note
-                    </label>
-                  </div>
-
-                  <div class="grid grid-cols-2 gap-2 text-xs">
-                    <div>
-                      <label class="block text-slate-500 font-medium mb-1">Canal d'échange</label>
-                      <select v-model="noteForm.exchangeType" class="admin-input text-xs">
-                        <option v-for="(lbl, key) in EXCHANGE_OPTIONS" :key="key" :value="key">{{ lbl }}</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label class="block text-slate-500 font-medium mb-1">Niveau d'intérêt</label>
-                      <select v-model="noteForm.interestLevel" class="admin-input text-xs">
-                        <option v-for="(opt, key) in INTEREST_OPTIONS" :key="key" :value="key">{{ opt.label }}</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label class="block text-slate-500 font-medium mb-1">Motif de blocage</label>
-                      <select v-model="noteForm.blockingReason" class="admin-input text-xs">
-                        <option v-for="(lbl, key) in BLOCKING_OPTIONS" :key="key" :value="key">{{ lbl }}</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label class="block text-slate-500 font-medium mb-1">Action suivante</label>
-                      <select v-model="noteForm.nextAction" class="admin-input text-xs">
-                        <option v-for="(lbl, key) in NEXT_ACTION_OPTIONS" :key="key" :value="key">{{ lbl }}</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label class="block text-slate-500 font-medium mb-1 text-xs">Compte-rendu de l'échange</label>
-                    <textarea
-                      v-model="noteForm.content"
-                      rows="3"
-                      placeholder="Ex: Le candidat attend la validation financière de ses parents. Prochaine relance prévue le 25 août."
-                      class="admin-input text-xs"
-                    ></textarea>
-                  </div>
-
-                  <button
-                    type="button"
-                    class="admin-btn-primary w-full text-xs py-2.5"
-                    :disabled="savingNote || !noteForm.content.trim()"
-                    @click="submitNote"
-                  >
-                    {{ savingNote ? 'Enregistrement...' : 'Enregistrer la note' }}
-                  </button>
-                </div>
-
-                <!-- Timeline des Notes -->
-                <div class="space-y-3">
-                  <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500">Historique des Échanges & Notes</h3>
-
-                  <div v-if="!detail.crmNotes?.length" class="py-8 text-center text-xs text-slate-400">
-                    Aucune note enregistrée pour le moment.
-                  </div>
-
-                  <div v-else class="space-y-3">
-                    <div
-                      v-for="note in detail.crmNotes"
-                      :key="note.id"
-                      class="rounded-xl border p-3.5 space-y-2 transition"
-                      :class="note.isPinned ? 'border-amber-300 bg-amber-50/40 ring-1 ring-amber-200' : 'border-slate-100 bg-white shadow-2xs'"
-                    >
-                      <div class="flex items-center justify-between text-xs">
-                        <div class="flex items-center gap-2">
-                          <span v-if="note.isPinned" class="text-amber-600 font-bold">📌 ÉPINGLÉ</span>
-                          <span class="font-bold text-slate-800">{{ note.agentName }}</span>
-                          <span class="rounded bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600">
-                            {{ EXCHANGE_OPTIONS[note.exchangeType] || note.exchangeType }}
-                          </span>
-                        </div>
-                        <span class="text-[11px] text-slate-400">{{ formatDateTime(note.createdAt) }}</span>
-                      </div>
-
-                      <p class="text-xs text-slate-700 whitespace-pre-wrap leading-relaxed">{{ note.content }}</p>
-
-                      <div v-if="note.blockingReason || note.nextAction" class="flex flex-wrap gap-2 pt-1 text-[10px]">
-                        <span v-if="note.blockingReason" class="rounded bg-red-50 text-red-700 px-2 py-0.5 font-semibold">
-                          Motif: {{ BLOCKING_OPTIONS[note.blockingReason] }}
-                        </span>
-                        <span v-if="note.nextAction" class="rounded bg-sky-50 text-sky-700 px-2 py-0.5 font-semibold">
-                          Action: {{ NEXT_ACTION_OPTIONS[note.nextAction] }}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
+                <div v-if="note.blockingReason || note.nextAction" class="flex flex-wrap gap-2 pt-1 text-[10px]">
+                  <span v-if="note.blockingReason" class="rounded bg-red-50 text-red-700 px-2 py-0.5 font-semibold">
+                    Motif: {{ BLOCKING_OPTIONS[note.blockingReason] }}
+                  </span>
+                  <span v-if="note.nextAction" class="rounded bg-sky-50 text-sky-700 px-2 py-0.5 font-semibold">
+                    Action: {{ NEXT_ACTION_OPTIONS[note.nextAction] }}
+                  </span>
                 </div>
               </div>
-
-              <!-- ONGLET 3 : DOCUMENTS & ATTESTATIONS -->
-              <div v-else-if="activeTab === 'documents'" class="space-y-4">
-                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500">Documents Officiels & Justificatifs</h3>
-                <div class="space-y-2">
-                  <a
-                    v-if="detail.documentUrl"
-                    :href="detail.documentUrl"
-                    target="_blank"
-                    class="flex items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs font-bold text-emerald-900 transition hover:bg-emerald-100"
-                  >
-                    <span>🎓 Télécharger l'Attestation Officielle PDF</span>
-                    <span class="material-symbols-outlined text-[18px]">download</span>
-                  </a>
-
-                  <a
-                    v-if="detail.identityCardRectoUrl"
-                    :href="detail.identityCardRectoUrl"
-                    target="_blank"
-                    class="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
-                  >
-                    <span>🆔 Pièce d'Identité (Recto)</span>
-                    <span class="material-symbols-outlined text-[18px]">open_in_new</span>
-                  </a>
-
-                  <a
-                    v-if="detail.identityCardVersoUrl"
-                    :href="detail.identityCardVersoUrl"
-                    target="_blank"
-                    class="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
-                  >
-                    <span>🆔 Pièce d'Identité (Verso)</span>
-                    <span class="material-symbols-outlined text-[18px]">open_in_new</span>
-                  </a>
-                </div>
-              </div>
-            </template>
+            </div>
           </div>
         </div>
+
+        <!-- ONGLET 3 : DOCUMENTS & PIÈCES FOURNIES -->
+        <div v-else-if="activeTab === 'documents'" class="space-y-4">
+          <section class="rounded-xl border border-slate-100 bg-white p-4 shadow-2xs">
+            <div class="flex items-center gap-2 border-b border-slate-100 pb-2.5">
+              <span class="material-symbols-outlined text-[18px] text-primary">folder_open</span>
+              <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Documents & Pièces Justificatives</p>
+            </div>
+            <div class="mt-3 flex flex-wrap gap-3">
+              <a
+                :href="`/api/attestations/${detail.id}`"
+                target="_blank"
+                class="flex items-center gap-2 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-800 hover:bg-emerald-100 transition"
+              >
+                <span class="material-symbols-outlined text-[18px] text-emerald-600">picture_as_pdf</span>
+                Attestation BourseFi (PDF)
+              </a>
+              <AdminDocumentThumb
+                v-if="detail.identityCardRectoUrl"
+                :url="detail.identityCardRectoUrl"
+                label="CNI Recto"
+                @open="previewDoc = $event"
+              />
+              <AdminDocumentThumb
+                v-if="detail.identityCardVersoUrl"
+                :url="detail.identityCardVersoUrl"
+                label="CNI Verso"
+                @open="previewDoc = $event"
+              />
+              <AdminDocumentThumb
+                v-if="detail.documentUrl"
+                :url="detail.documentUrl"
+                label="Fichier joint"
+                @open="previewDoc = $event"
+              />
+            </div>
+            <p v-if="detail.documentIssuedAt" class="mt-3 text-xs text-slate-400">
+              Attestation émise le {{ formatDate(detail.documentIssuedAt) }}
+            </p>
+          </section>
+        </div>
       </div>
-    </Teleport>
-  </AdminLayout>
+
+      <template v-if="detail && !detailLoading" #footer>
+        <button
+          type="button"
+          class="rounded-lg border border-red-200 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-50"
+          :disabled="deleting || !!detail.paiement"
+          :title="detail.paiement ? 'Suppression impossible : paiement lié' : undefined"
+          @click="deleteDossier"
+        >
+          {{ deleting ? 'Suppression…' : 'Supprimer le dossier' }}
+        </button>
+      </template>
+    </AdminDrawer>
+
+    <AdminDocumentPreviewModal :doc="previewDoc" @close="previewDoc = null" />
+  </div>
 </template>
