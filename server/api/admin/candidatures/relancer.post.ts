@@ -1,8 +1,8 @@
 import { z } from 'zod'
-import { prisma } from '~/server/utils/prisma'
-import { requireAdminSession } from '~/server/utils/auth'
-import { writeAuditLog } from '~/server/utils/audit'
-import { sendEmail, renderEmail } from '~/server/utils/email'
+import { prisma } from '../../../utils/prisma'
+import { requireAdminSession } from '../../../utils/auth'
+import { writeAuditLog } from '../../../utils/audit'
+import { sendEmail, renderEmail } from '../../../utils/email'
 
 const relancerSchema = z.object({
   candidatureId: z.string().min(1, 'Candidature ID requis.'),

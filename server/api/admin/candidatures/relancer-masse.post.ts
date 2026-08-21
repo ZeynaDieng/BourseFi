@@ -1,7 +1,7 @@
 import { z } from 'zod'
-import { prisma } from '~/server/utils/prisma'
-import { requireAdminSession } from '~/server/utils/auth'
-import { writeAuditLog } from '~/server/utils/audit'
+import { prisma } from '../../../utils/prisma'
+import { requireAdminSession } from '../../../utils/auth'
+import { writeAuditLog } from '../../../utils/audit'
 
 const bulkRelancerSchema = z.object({
   candidatureIds: z.array(z.string()).min(1, 'Sélectionnez au moins une candidature.'),
