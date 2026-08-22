@@ -45,11 +45,14 @@ export default defineEventHandler(async (event) => {
     },
   })
 
-  await writeAuditLog(event, {
-    action: 'UPDATE_AUTO_RELANCE_RULE',
-    target: `Scénario ${scenarioStep} (${name})`,
-    meta: { scenarioStep, isActive, triggerHours },
-  })
+  try {
+    await writeAuditLog({
+      action: 'UPDATE_AUTO_RELANCE_RULE',
+      entityType: 'AutoRelanceRule',
+      entityId: String(scenarioStep),
+      metadata: { scenarioStep, isActive, triggerHours },
+    })
+  } catch {}
 
   return { ok: true, rule: updatedRule }
 })

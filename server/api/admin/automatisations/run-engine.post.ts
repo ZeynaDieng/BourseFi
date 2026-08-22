@@ -49,7 +49,7 @@ export default defineEventHandler(async (event) => {
 
         const prenom = cand.firstName || cand.fullName.split(' ')[0] || 'Candidat'
         const nom = cand.lastName || ''
-        const formation = cand.programme.titre
+        const formation = cand.programme?.titre || 'votre formation'
         const config = useRuntimeConfig()
         const appUrl = (config.public as { appUrl?: string })?.appUrl || 'https://boursefi.com'
         const lienPaiement = `${appUrl}/paiement?candidatureId=${cand.id}`
@@ -124,11 +124,15 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  await writeAuditLog(event, {
-    action: 'RUN_AUTO_RELANCE_ENGINE',
-    target: 'Moteur de relances automatiques',
-    meta: { processedCount },
-  })
+  try {
+    await writeAuditLog({
+      action: 'RUN_AUTO_RELANCE_ENGINE',
+      entityType: 'AutoRelanceEngine',
+      metadata: { processedCount },
+    })
+  } catch (auditErr) {
+    console.error('Audit log error in run-engine:', auditErr)
+  }
 
   return { ok: true, processed: processedCount, logs: logsCreated }
 })

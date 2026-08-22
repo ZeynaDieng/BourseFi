@@ -72,11 +72,13 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  await writeAuditLog(event, {
-    action: 'LAUNCH_REACTIVATION_CAMPAIGN',
-    target: 'Campagne de réactivation des candidats dormants',
-    meta: { recipientsCount: count, codePromo: promoCode },
-  })
+  try {
+    await writeAuditLog({
+      action: 'LAUNCH_REACTIVATION_CAMPAIGN',
+      entityType: 'ReactivationCampaign',
+      metadata: { recipientsCount: count, codePromo: promoCode },
+    })
+  } catch {}
 
   return { ok: true, count }
 })

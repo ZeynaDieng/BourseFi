@@ -72,11 +72,14 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  await writeAuditLog(event, {
-    action: id ? 'UPDATE_EMAIL_TEMPLATE' : 'CREATE_EMAIL_TEMPLATE',
-    target: name,
-    meta: { id: template.id, scenarioStep },
-  })
+  try {
+    await writeAuditLog({
+      action: id ? 'UPDATE_EMAIL_TEMPLATE' : 'CREATE_EMAIL_TEMPLATE',
+      entityType: 'EmailTemplate',
+      entityId: template.id,
+      metadata: { id: template.id, scenarioStep },
+    })
+  } catch {}
 
   return { ok: true, template }
 })
