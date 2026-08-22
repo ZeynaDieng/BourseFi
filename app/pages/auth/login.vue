@@ -84,8 +84,17 @@ async function submitLogin() {
       <p class="mb-6 text-sm text-slate-500">Accedez a votre espace BourseFi.</p>
 
       <form class="space-y-4" @submit.prevent="submitLogin">
-        <input v-model="form.email" type="email" required class="w-full rounded-lg border-slate-200 px-4 py-3" placeholder="Email" />
-        <input v-model="form.password" type="password" required class="w-full rounded-lg border-slate-200 px-4 py-3" placeholder="Mot de passe" />
+        <div>
+          <input v-model="form.email" type="email" required class="w-full rounded-lg border-slate-200 px-4 py-3" placeholder="Email" />
+        </div>
+        <div>
+          <input v-model="form.password" type="password" required class="w-full rounded-lg border-slate-200 px-4 py-3" placeholder="Mot de passe" />
+          <div class="mt-1.5 text-right">
+            <NuxtLink to="/auth/forgot-password" class="text-xs font-medium text-slate-500 hover:text-primary transition">
+              Mot de passe oublié ?
+            </NuxtLink>
+          </div>
+        </div>
         <div v-if="errorMessage" class="error-alert-container flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50/60 p-3.5 text-sm text-red-800 shadow-sm backdrop-blur-sm transition duration-300">
           <span class="material-symbols-outlined shrink-0 text-red-600 select-none text-[18px]">gpp_bad</span>
           <span class="font-medium leading-normal">{{ errorMessage }}</span>
