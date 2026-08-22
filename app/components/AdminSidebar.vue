@@ -38,6 +38,15 @@
       </NuxtLink>
 
       <NuxtLink
+        to="/admin/email-relances"
+        class="flex items-center justify-between rounded-lg px-4 py-3 font-bold text-sky-900 bg-sky-50 hover:bg-sky-100 transition"
+        active-class="bg-sky-600 text-white hover:text-white"
+      >
+        <span>📧 Relances Email</span>
+        <span class="material-symbols-outlined text-[18px]">mail</span>
+      </NuxtLink>
+
+      <NuxtLink
         to="/admin/automatisations"
         class="flex items-center justify-between rounded-lg px-4 py-3 font-bold text-primary bg-primary/5 hover:bg-primary/10 transition"
         active-class="bg-primary text-white hover:text-white"

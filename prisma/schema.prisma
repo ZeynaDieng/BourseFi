@@ -298,6 +298,9 @@ model Candidature {
   lastAutoRelanceAt    DateTime?
   isLost               Boolean           @default(false)
   engagementScore      Int               @default(50)
+  emailRelanceStep     Int               @default(0)
+  lastEmailRelanceAt   DateTime?
+  segment              String?
   promoCode            PromoCode?        @relation(fields: [promoCodeId], references: [id])
   createdAt            DateTime          @default(now())
   bourseId             String?
@@ -308,6 +311,7 @@ model Candidature {
   paiement             Paiement?
   crmNotes             CandidatureNote[]
   autoRelanceLogs      AutoRelanceLog[]
+  emailLogs            EmailRelanceLog[]
 
   @@index([partnerId])
   @@index([programmeId])
@@ -553,4 +557,37 @@ model AutoRelanceLog {
 
   @@index([candidatureId])
   @@index([sentAt])
+}
+
+model EmailTemplate {
+  id           String            @id @default(cuid())
+  name         String
+  subject      String
+  bodyHtml     String
+  bodyText     String?
+  scenarioStep Int?
+  isActive     Boolean           @default(true)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  logs         EmailRelanceLog[]
+}
+
+model EmailRelanceLog {
+  id              String         @id @default(cuid())
+  candidatureId   String
+  templateId      String?
+  subject         String
+  status          String         @default("SENT") // SENT, DELIVERED, OPENED, CLICKED, CONVERTED
+  opensCount      Int            @default(0)
+  clicksCount     Int            @default(0)
+  convertedAt     DateTime?
+  recoveredAmount Int?
+  sentAt          DateTime       @default(now())
+  candidature     Candidature    @relation(fields: [candidatureId], references: [id], onDelete: Cascade)
+  template        EmailTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+
+  @@index([candidatureId])
+  @@index([templateId])
+  @@index([sentAt])
+  @@index([status])
 }
