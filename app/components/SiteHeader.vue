@@ -7,8 +7,8 @@ const { profileHref, profileLabel } = useProfileDestination()
 
 const links = [
   { to: '/', label: 'Accueil', mobileLabel: 'Accueil', icon: 'home', exact: true },
-  { to: '/bourses', label: 'Bourses disponibles', mobileLabel: 'Bourses disponibles', icon: 'school', badge: 'Formations & Bourses' },
-  { to: '/ecoles', label: 'Écoles partenaires', mobileLabel: 'Écoles partenaires', icon: 'domain', badge: 'Établissements' },
+  { to: '/bourses', label: 'Bourses disponibles', mobileLabel: 'Bourses disponibles', icon: 'school' },
+  { to: '/ecoles', label: 'Écoles partenaires', mobileLabel: 'Écoles partenaires', icon: 'domain' },
   { to: '/candidature', label: 'Comment ça marche', mobileLabel: 'Comment ça marche', icon: 'help_outline' },
 ]
 
@@ -285,9 +285,6 @@ function openSearch() {
                   </span>
                   <span>{{ link.mobileLabel }}</span>
                 </div>
-                <span v-if="link.badge" class="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-500">
-                  {{ link.badge }}
-                </span>
               </NuxtLink>
 
               <!-- Option Administration si Admin -->
