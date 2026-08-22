@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { getAdminErrorMessage } from '~/utils/admin-error'
 
 definePageMeta({ layout: 'portal', middleware: 'admin-auth' })
@@ -53,8 +53,33 @@ type SegmentsPayload = {
   segmentF: SegmentData
 }
 
+type HistoriqueItem = {
+  id: string
+  candidateId: string
+  candidateName: string
+  candidateEmail: string
+  candidatePhone: string
+  formation: string
+  ecole: string
+  channel: 'EMAIL' | 'WHATSAPP' | 'SMS' | 'BOTH'
+  subject: string
+  messageContent: string
+  scenarioStep?: number | null
+  scenarioName?: string
+  sentAt: string
+  status: string
+  isPaid: boolean
+  recoveredAmount?: number | null
+}
+
+const searchQuery = ref('')
+const selectedChannel = ref('ALL')
+
 const { data: statsData, refresh: refreshStats } = await useFetch<{ ok: boolean } & EmailRelancesStats>('/api/admin/email-relances/stats')
 const { data: segmentsData, refresh: refreshSegments } = await useFetch<{ ok: boolean; segments: SegmentsPayload }>('/api/admin/email-relances/segments')
+const { data: histoData, refresh: refreshHisto } = await useFetch<{ ok: boolean; total: number; historique: HistoriqueItem[] }>('/api/admin/email-relances/historique', {
+  query: computed(() => ({ search: searchQuery.value, channel: selectedChannel.value })),
+})
 
 const stats = computed(() => statsData.value || {
   vueGlobale: { totalCandidats: 0, paiementsValides: 0, paiementsEnAttente: 0, candidaturesAbandonnees: 0, candidatsARelancer: 0 },
@@ -63,8 +88,11 @@ const stats = computed(() => statsData.value || {
 })
 
 const segments = computed(() => segmentsData.value?.segments || null)
+const historique = computed(() => histoData.value?.historique || [])
+
 const launchingCampaign = ref(false)
 const selectedSegmentKey = ref<string>('all')
+const selectedMessageModal = ref<HistoriqueItem | null>(null)
 
 async function launchReactivationCampaign() {
   if (!confirm(`Lancer la campagne d'emailing de réactivation auprès de ${stats.value.revenusDormants.candidatsNonConvertis} candidat(s) dormants ?`)) return
@@ -77,12 +105,18 @@ async function launchReactivationCampaign() {
     })
     await refreshStats()
     await refreshSegments()
+    await refreshHisto()
     alert(`🚀 Campagne de réactivation lancée avec succès auprès de ${res.count} candidat(s) !`)
   } catch (e: unknown) {
     alert(getAdminErrorMessage(e, 'Erreur lors du lancement de la campagne.'))
   } finally {
     launchingCampaign.value = false
   }
+}
+
+function formatDate(iso?: string) {
+  if (!iso) return 'N/A'
+  return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
 }
 </script>
 
@@ -181,6 +215,100 @@ async function launchReactivationCampaign() {
         </div>
       </div>
 
+      <!-- TABLEAU HISTORIQUE DÉTAILLÉ DES RELANCES & DESTINATAIRES -->
+      <div class="mt-8 space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h2 class="text-sm font-bold uppercase tracking-wider text-slate-800">📋 Historique Détaillé des Relances & Destinataires</h2>
+            <p class="text-xs text-slate-500">Recherchez et consultez l'ensemble des candidats relancés, le contenu exact du message et l'état de conversion.</p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="🔍 Nom, e-mail, téléphone, formation..."
+              class="admin-input text-xs w-64"
+            />
+            <select v-model="selectedChannel" class="admin-input text-xs w-36">
+              <option value="ALL">Tous les canaux</option>
+              <option value="EMAIL">✉️ Email</option>
+              <option value="WHATSAPP">🟢 WhatsApp</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="admin-card overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="admin-table min-w-[950px]">
+              <thead>
+                <tr>
+                  <th class="admin-th">Date & Heure</th>
+                  <th class="admin-th">Candidat (Destinataire)</th>
+                  <th class="admin-th">Formation & Établissement</th>
+                  <th class="admin-th">Canal & Sujet</th>
+                  <th class="admin-th">Statut Paiement</th>
+                  <th class="admin-th text-right">Message</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="item in historique" :key="item.id" class="hover:bg-slate-50/80">
+                  <td class="admin-td text-xs font-mono text-slate-600 whitespace-nowrap">
+                    {{ formatDate(item.sentAt) }}
+                  </td>
+                  <td class="admin-td">
+                    <p class="font-bold text-slate-900 text-xs">{{ item.candidateName }}</p>
+                    <p class="text-[11px] text-slate-500 font-mono">{{ item.candidateEmail }}</p>
+                    <p class="text-[10px] text-slate-400 font-mono font-medium">📞 {{ item.candidatePhone }}</p>
+                  </td>
+                  <td class="admin-td">
+                    <p class="text-xs font-semibold text-slate-800">{{ item.formation }}</p>
+                    <p class="text-[11px] text-slate-500">{{ item.ecole }}</p>
+                  </td>
+                  <td class="admin-td">
+                    <div class="flex flex-col gap-1 items-start">
+                      <span v-if="item.channel === 'EMAIL'" class="rounded bg-sky-100 px-2 py-0.5 text-[10px] font-bold text-sky-800 inline-flex items-center gap-1">
+                        <span class="material-symbols-outlined text-[12px]">mail</span> Email
+                      </span>
+                      <span v-else-if="item.channel === 'WHATSAPP'" class="rounded bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800 inline-flex items-center gap-1">
+                        <span class="material-symbols-outlined text-[12px]">chat</span> WhatsApp
+                      </span>
+                      <span v-else class="rounded bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800">
+                        {{ item.channel }}
+                      </span>
+                      <p class="text-xs font-bold text-slate-700 max-w-xs truncate">{{ item.subject }}</p>
+                    </div>
+                  </td>
+                  <td class="admin-td">
+                    <span v-if="item.isPaid" class="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-bold text-emerald-800 inline-flex items-center gap-1">
+                      <span class="material-symbols-outlined text-[14px]">check_circle</span> 🎉 Payé
+                    </span>
+                    <span v-else class="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-bold text-amber-800">
+                      ⏳ En attente
+                    </span>
+                  </td>
+                  <td class="admin-td text-right">
+                    <button
+                      type="button"
+                      class="admin-btn-secondary text-[11px] py-1 px-2.5 inline-flex items-center gap-1"
+                      @click="selectedMessageModal = item"
+                    >
+                      <span class="material-symbols-outlined text-[14px]">visibility</span>
+                      Voir le message
+                    </button>
+                  </td>
+                </tr>
+                <tr v-if="!historique.length">
+                  <td colspan="6" class="p-8 text-center text-xs text-slate-500">
+                    Aucun historique de relance trouvé pour vos critères de recherche.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
       <!-- Segmentation Automatique des Candidats Existants -->
       <div v-if="segments" class="mt-8 space-y-4">
         <h2 class="text-sm font-bold uppercase tracking-wider text-slate-800">📂 Segmentation de la Base de Candidats</h2>
@@ -203,54 +331,33 @@ async function launchReactivationCampaign() {
           </div>
         </div>
       </div>
+    </main>
 
-      <!-- Scénarios d'Emailing Automatique (J+1, J+3, J+7, J+15) -->
-      <div class="mt-8 space-y-4">
-        <div class="flex items-center justify-between">
-          <h2 class="text-sm font-bold uppercase tracking-wider text-slate-800">📧 Scénarios de Relance Email Automatique</h2>
-          <NuxtLink to="/admin/email-relances/modeles" class="text-xs font-bold text-primary hover:underline">
-            Gérer les modèles & textes →
-          </NuxtLink>
-        </div>
-
-        <div class="grid gap-3 md:grid-cols-4">
-          <div class="rounded-xl border border-slate-200 bg-white p-4 space-y-2">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-bold text-primary">SCÉNARIO 1 — J+1</span>
-              <span class="rounded bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800">Actif</span>
+    <!-- Modal Aperçu du Message Envoyé -->
+    <Teleport to="body">
+      <div v-if="selectedMessageModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 backdrop-blur-xs p-4">
+        <div class="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl space-y-4">
+          <div class="flex items-center justify-between border-b pb-3">
+            <div>
+              <h3 class="font-bold text-slate-900 text-sm">Message envoyé à {{ selectedMessageModal.candidateName }}</h3>
+              <p class="text-xs text-slate-500 font-mono">{{ selectedMessageModal.candidateEmail }} | {{ selectedMessageModal.candidatePhone }}</p>
             </div>
-            <p class="text-xs font-bold text-slate-800">Votre dossier BourseFi est presque finalisé</p>
-            <p class="text-[11px] text-slate-500">24h après la candidature si aucun paiement.</p>
+            <button type="button" class="text-slate-400 hover:text-slate-600" @click="selectedMessageModal = null">✕</button>
           </div>
 
-          <div class="rounded-xl border border-slate-200 bg-white p-4 space-y-2">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-bold text-primary">SCÉNARIO 2 — J+3</span>
-              <span class="rounded bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800">Actif</span>
+          <div class="space-y-2 text-xs">
+            <p class="font-bold text-slate-700">Objet : {{ selectedMessageModal.subject }}</p>
+            <p class="text-slate-500">Date d'envoi : {{ formatDate(selectedMessageModal.sentAt) }}</p>
+            <div class="rounded-xl bg-slate-50 p-4 font-mono text-xs text-slate-800 border border-slate-200 whitespace-pre-wrap max-h-60 overflow-y-auto">
+              {{ selectedMessageModal.messageContent }}
             </div>
-            <p class="text-xs font-bold text-slate-800">Votre place est toujours réservée</p>
-            <p class="text-[11px] text-slate-500">72h après la candidature (Rappel urgence).</p>
           </div>
 
-          <div class="rounded-xl border border-slate-200 bg-white p-4 space-y-2">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-bold text-primary">SCÉNARIO 3 — J+7</span>
-              <span class="rounded bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800">Actif</span>
-            </div>
-            <p class="text-xs font-bold text-slate-800">Offre spéciale pour finaliser votre inscription</p>
-            <p class="text-[11px] text-slate-500">7 jours avec attribution du code promo RENTREE2026.</p>
-          </div>
-
-          <div class="rounded-xl border border-slate-200 bg-white p-4 space-y-2">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-bold text-primary">SCÉNARIO 4 — J+15</span>
-              <span class="rounded bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800">Actif</span>
-            </div>
-            <p class="text-xs font-bold text-slate-800">Votre bourse est-elle toujours d'actualité ?</p>
-            <p class="text-[11px] text-slate-500">15 jours (Dernier rappel avant classement).</p>
+          <div class="flex justify-end pt-3 border-t">
+            <button type="button" class="admin-btn-primary text-xs" @click="selectedMessageModal = null">Fermer</button>
           </div>
         </div>
       </div>
-    </main>
+    </Teleport>
   </div>
 </template>
