@@ -6,10 +6,10 @@ const { data } = await useFetch('/api/auth/me')
 const { profileHref, profileLabel } = useProfileDestination()
 
 const links = [
-  { to: '/', label: 'Accueil', mobileLabel: 'Accueil', exact: true },
-  { to: '/bourses', label: 'Bourses disponibles', mobileLabel: 'Bourses' },
-  { to: '/ecoles', label: 'Écoles partenaires', mobileLabel: 'Écoles' },
-  { to: '/candidature', label: 'Comment ça marche', mobileLabel: 'Aide' },
+  { to: '/', label: 'Accueil', mobileLabel: 'Accueil', icon: 'home', exact: true },
+  { to: '/bourses', label: 'Bourses disponibles', mobileLabel: 'Bourses disponibles', icon: 'school', badge: 'Formations & Bourses' },
+  { to: '/ecoles', label: 'Écoles partenaires', mobileLabel: 'Écoles partenaires', icon: 'domain', badge: 'Établissements' },
+  { to: '/candidature', label: 'Comment ça marche', mobileLabel: 'Comment ça marche', icon: 'help_outline' },
 ]
 
 const isActive = (to: string | { path?: string }, exact = false) => {
@@ -25,6 +25,7 @@ const isActive = (to: string | { path?: string }, exact = false) => {
 
 const currentUser = computed(() => data.value?.user || null)
 const isStudent = computed(() => currentUser.value?.role === 'STUDENT')
+const isAdmin = computed(() => currentUser.value?.role === 'ADMIN')
 
 const { data: notifData, refresh: refreshNotifs } = useFetch('/api/notifications', {
   immediate: false,
@@ -82,10 +83,12 @@ function openSearch() {
     class="sticky top-0 z-50 border-b border-slate-100 bg-white/95 shadow-premium backdrop-blur-md"
   >
     <div
-      class="mx-auto flex w-full max-w-screen-2xl items-center justify-between px-6 lg:px-8"
+      class="mx-auto flex w-full max-w-screen-2xl items-center justify-between px-4 sm:px-6 lg:px-8"
       :class="headerBarClass"
     >
       <AppBrandLogo to="/" :img-class="logoImgClass" />
+
+      <!-- Navigation Bureau -->
       <nav class="hidden items-center gap-8 md:flex">
         <NuxtLink
           v-for="link in links"
@@ -105,7 +108,9 @@ function openSearch() {
           {{ link.label }}
         </NuxtLink>
       </nav>
-      <div class="flex items-center gap-1 sm:gap-2">
+
+      <!-- Actions Header -->
+      <div class="flex items-center gap-1.5 sm:gap-2">
         <!-- Bouton Recherche Globale (Spotlight Trigger) -->
         <button
           type="button"
@@ -113,7 +118,7 @@ function openSearch() {
           aria-label="Rechercher"
           @click="openSearch"
         >
-          <span class="material-symbols-outlined text-[24px] md:text-[18px]">search</span>
+          <span class="material-symbols-outlined text-[22px] md:text-[18px]">search</span>
           <span class="hidden sm:inline md:text-xs md:font-semibold">Rechercher</span>
           <span class="hidden md:inline rounded bg-slate-100 px-1 py-0.5 font-mono text-[10px] text-slate-400">⌘K</span>
         </button>
@@ -124,7 +129,7 @@ function openSearch() {
           class="relative inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-600 transition hover:bg-slate-100 hover:text-primary"
           aria-label="Notifications"
         >
-          <span class="material-symbols-outlined text-[24px]">notifications</span>
+          <span class="material-symbols-outlined text-[22px]">notifications</span>
           <span
             v-if="unreadNotifs > 0"
             class="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-secondary-container px-1 text-[10px] font-bold text-on-secondary-container"
@@ -132,6 +137,7 @@ function openSearch() {
             {{ unreadNotifs > 9 ? '9+' : unreadNotifs }}
           </span>
         </NuxtLink>
+
         <NuxtLink
           v-if="!currentUser"
           :to="loginHref"
@@ -139,10 +145,11 @@ function openSearch() {
         >
           Connexion
         </NuxtLink>
+
         <NuxtLink
           v-else
           :to="profileHref"
-          class="inline-flex h-10 w-10 items-center justify-center rounded-full transition"
+          class="hidden md:inline-flex h-10 w-10 items-center justify-center rounded-full transition"
           :class="
             isProfileActive
               ? 'bg-primary/10 text-primary ring-2 ring-primary/20'
@@ -153,63 +160,174 @@ function openSearch() {
         >
           <span class="material-symbols-outlined text-[26px]">account_circle</span>
         </NuxtLink>
+
         <NuxtLink
           to="/bourses"
           class="hidden sm:inline-flex rounded-lg bg-secondary-container px-4 py-2 text-sm font-semibold text-on-secondary-container shadow-sm transition hover:opacity-90 active:scale-95"
         >
           Obtenir une bourse
         </NuxtLink>
-        <!-- Menu mobile avec fermeture en cliquant à l'extérieur -->
-        <div class="relative md:hidden">
-          <button
-            type="button"
-            class="flex h-10 w-10 items-center justify-center rounded-full text-slate-600 transition hover:bg-slate-100 hover:text-primary"
-            aria-label="Ouvrir le menu"
-            @click="isMobileMenuOpen = !isMobileMenuOpen"
-          >
-            <span class="material-symbols-outlined text-[24px] select-none">
-              {{ isMobileMenuOpen ? 'close' : 'menu' }}
-            </span>
-          </button>
 
-          <!-- Overlay transparent de fermeture au clic extérieur -->
-          <div
-            v-if="isMobileMenuOpen"
-            class="fixed inset-0 z-40 bg-transparent"
-            @click="isMobileMenuOpen = false"
-          />
-
-          <!-- Dropdown du menu -->
-          <div
-            v-if="isMobileMenuOpen"
-            class="absolute right-0 top-12 z-50 w-52 max-w-[calc(100vw-2rem)] rounded-xl border border-slate-200 bg-white p-2 shadow-xl animate-scale-up"
-          >
-            <NuxtLink
-              v-for="link in links"
-              :key="`m-${typeof link.to === 'string' ? link.to : link.to.path}`"
-              :to="link.to"
-              class="block rounded-md px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
-            >
-              {{ link.mobileLabel }}
-            </NuxtLink>
-            <NuxtLink
-              v-if="!currentUser"
-              :to="loginHref"
-              class="mt-2 block rounded-md border border-slate-100 px-3 py-2 text-sm font-semibold text-primary"
-            >
-              Connexion
-            </NuxtLink>
-            <NuxtLink
-              v-else
-              :to="profileHref"
-              class="mt-2 flex items-center gap-2 rounded-md border border-slate-100 px-3 py-2 text-sm font-semibold text-primary"
-            >
-              <span class="material-symbols-outlined text-[20px]">account_circle</span>
-              {{ profileLabel }}
-            </NuxtLink>
-          </div>
-        </div>
+        <!-- Déclencheur Burger Mobile Haut de Gamme -->
+        <button
+          type="button"
+          class="flex h-10 w-10 items-center justify-center rounded-full text-slate-700 transition hover:bg-slate-100 hover:text-primary active:scale-95 md:hidden"
+          aria-label="Ouvrir le menu mobile"
+          @click="isMobileMenuOpen = true"
+        >
+          <span class="material-symbols-outlined text-[26px]">menu</span>
+        </button>
       </div>
     </div>
+
+    <!-- MENU MOBILE LATÉRAL (DRAWER SHEET ultra-doux avec Backdrop Blur) -->
+    <Teleport to="body">
+      <!-- Backdrop Overlay -->
+      <Transition
+        enter-active-class="transition-opacity ease-out duration-300"
+        enter-from-class="opacity-0"
+        enter-to-class="opacity-100"
+        leave-active-class="transition-opacity ease-in duration-200"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
+      >
+        <div
+          v-if="isMobileMenuOpen"
+          class="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-md md:hidden"
+          @click="isMobileMenuOpen = false"
+        />
+      </Transition>
+
+      <!-- Panel Tiroir Mobile Slide-Over -->
+      <Transition
+        enter-active-class="transition transform ease-out duration-300"
+        enter-from-class="translate-x-full"
+        enter-to-class="translate-x-0"
+        leave-active-class="transition transform ease-in duration-200"
+        leave-from-class="translate-x-0"
+        leave-to-class="translate-x-full"
+      >
+        <div
+          v-if="isMobileMenuOpen"
+          class="fixed inset-y-0 right-0 z-50 flex w-full max-w-[340px] flex-col justify-between bg-white p-6 shadow-2xl md:hidden"
+        >
+          <!-- En-tête du Tiroir -->
+          <div class="space-y-6">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+              <AppBrandLogo to="/" img-class="h-9 w-auto object-contain" />
+              <button
+                type="button"
+                class="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition hover:bg-slate-200 hover:text-slate-900 active:scale-95"
+                aria-label="Fermer le menu"
+                @click="isMobileMenuOpen = false"
+              >
+                <span class="material-symbols-outlined text-[20px]">close</span>
+              </button>
+            </div>
+
+            <!-- Carte Utilisateur / Connexion en haut -->
+            <div v-if="currentUser" class="rounded-2xl border border-slate-100 bg-slate-50 p-4 space-y-3">
+              <div class="flex items-center gap-3">
+                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-bold">
+                  <span class="material-symbols-outlined text-[24px]">person</span>
+                </div>
+                <div class="min-w-0 flex-1">
+                  <p class="truncate text-sm font-bold text-slate-900">{{ currentUser.fullName || currentUser.email }}</p>
+                  <span class="inline-block rounded bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
+                    {{ currentUser.role }}
+                  </span>
+                </div>
+              </div>
+
+              <NuxtLink
+                :to="profileHref"
+                class="flex w-full items-center justify-between rounded-xl bg-white px-3.5 py-2.5 text-xs font-bold text-slate-800 shadow-2xs transition hover:bg-slate-100 active:scale-95"
+                @click="isMobileMenuOpen = false"
+              >
+                <span>{{ profileLabel }}</span>
+                <span class="material-symbols-outlined text-[16px] text-primary">chevron_right</span>
+              </NuxtLink>
+            </div>
+
+            <div v-else class="rounded-2xl border border-slate-100 bg-gradient-to-br from-slate-50 to-slate-100/80 p-4 space-y-3">
+              <div>
+                <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Bienvenue sur BourseFi</p>
+                <p class="text-sm font-bold text-slate-900 mt-0.5">Accédez à votre espace candidat</p>
+              </div>
+
+              <NuxtLink
+                :to="loginHref"
+                class="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-xs font-bold text-white shadow-md transition hover:bg-primary-dark active:scale-95"
+                @click="isMobileMenuOpen = false"
+              >
+                <span class="material-symbols-outlined text-[18px]">login</span>
+                Se Connecter / S'inscrire
+              </NuxtLink>
+            </div>
+
+            <!-- Liste des rubriques principales avec grandes cibles tactiles -->
+            <nav class="space-y-1.5 pt-2">
+              <NuxtLink
+                v-for="link in links"
+                :key="`mobile-${typeof link.to === 'string' ? link.to : link.to.path}`"
+                :to="link.to"
+                class="flex items-center justify-between rounded-xl px-4 py-3.5 text-sm font-bold transition active:scale-[0.98]"
+                :class="
+                  isActive(link.to, 'exact' in link && link.exact)
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-slate-700 hover:bg-slate-50'
+                "
+                @click="isMobileMenuOpen = false"
+              >
+                <div class="flex items-center gap-3">
+                  <span class="material-symbols-outlined text-[22px]" :class="isActive(link.to, 'exact' in link && link.exact) ? 'text-primary' : 'text-slate-400'">
+                    {{ link.icon }}
+                  </span>
+                  <span>{{ link.mobileLabel }}</span>
+                </div>
+                <span v-if="link.badge" class="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-500">
+                  {{ link.badge }}
+                </span>
+              </NuxtLink>
+
+              <!-- Option Administration si Admin -->
+              <NuxtLink
+                v-if="isAdmin"
+                to="/admin/dashboard"
+                class="flex items-center justify-between rounded-xl bg-amber-50 px-4 py-3.5 text-sm font-bold text-amber-900 transition hover:bg-amber-100"
+                @click="isMobileMenuOpen = false"
+              >
+                <div class="flex items-center gap-3">
+                  <span class="material-symbols-outlined text-[22px] text-amber-600">admin_panel_settings</span>
+                  <span>Administration</span>
+                </div>
+                <span class="material-symbols-outlined text-[16px] text-amber-600">chevron_right</span>
+              </NuxtLink>
+            </nav>
+          </div>
+
+          <!-- Pied du Menu Mobile (Actions rapides CTA) -->
+          <div class="space-y-3 border-t border-slate-100 pt-4">
+            <NuxtLink
+              to="/bourses"
+              class="flex w-full items-center justify-center gap-2 rounded-xl bg-secondary-container px-4 py-3.5 text-xs font-bold text-on-secondary-container shadow-md transition hover:opacity-90 active:scale-95"
+              @click="isMobileMenuOpen = false"
+            >
+              <span class="material-symbols-outlined text-[18px]">rocket_launch</span>
+              Obtenir une bourse maintenant
+            </NuxtLink>
+
+            <button
+              type="button"
+              class="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-100"
+              @click="openSearch(); isMobileMenuOpen = false"
+            >
+              <span class="material-symbols-outlined text-[16px]">search</span>
+              Recherche globale (⌘K)
+            </button>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
   </header>
 </template>
