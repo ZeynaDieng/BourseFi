@@ -88,7 +88,7 @@ export function renderEmail(opts: { title: string; bodyHtml: string; ctaLabel?: 
  * Ne lève jamais : un échec d'email ne doit pas casser le flux métier (inscription, candidature…).
  */
 export async function sendEmail(input: SendEmailInput): Promise<boolean> {
-  const { apiKey, fromEmail, fromName } = getEmailConfig()
+  const { apiKey, host, user, pass, fromEmail, fromName } = getEmailConfig()
   if (!isEmailConfigured()) {
     console.warn('[email] non configuré (BREVO_API_KEY ou SMTP_*) -> email ignoré', {
       to: input.to.email,
@@ -98,17 +98,35 @@ export async function sendEmail(input: SendEmailInput): Promise<boolean> {
   }
   try {
     if (apiKey) {
-      await $fetch(BREVO_API_URL, {
-        method: 'POST',
-        headers: { 'api-key': apiKey, 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: {
-          sender: { email: fromEmail, name: fromName },
-          to: [{ email: input.to.email, ...(input.to.name ? { name: input.to.name } : {}) }],
-          subject: input.subject,
-          htmlContent: input.html,
-          ...(input.text ? { textContent: input.text } : {})
+      try {
+        await $fetch(BREVO_API_URL, {
+          method: 'POST',
+          headers: { 'api-key': apiKey, 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: {
+            sender: { email: fromEmail, name: fromName },
+            to: [{ email: input.to.email, ...(input.to.name ? { name: input.to.name } : {}) }],
+            subject: input.subject,
+            htmlContent: input.html,
+            ...(input.text ? { textContent: input.text } : {})
+          }
+        })
+        console.log('[email] envoyé via Brevo API', { to: input.to.email, subject: input.subject })
+        return true
+      } catch (brevoErr) {
+        console.warn('[email] Échec Brevo API, tentative fallback SMTP...', brevoErr)
+        if (host && user && pass) {
+          await getTransporter().sendMail({
+            from: { address: fromEmail, name: fromName },
+            to: input.to.name ? `"${input.to.name}" <${input.to.email}>` : input.to.email,
+            subject: input.subject,
+            html: input.html,
+            ...(input.text ? { text: input.text } : {})
+          })
+          console.log('[email] envoyé via Fallback SMTP', { to: input.to.email, subject: input.subject })
+          return true
         }
-      })
+        throw brevoErr
+      }
     } else {
       await getTransporter().sendMail({
         from: { address: fromEmail, name: fromName },
@@ -117,9 +135,9 @@ export async function sendEmail(input: SendEmailInput): Promise<boolean> {
         html: input.html,
         ...(input.text ? { text: input.text } : {})
       })
+      console.log('[email] envoyé via SMTP', { to: input.to.email, subject: input.subject })
+      return true
     }
-    console.log('[email] envoyé', { to: input.to.email, subject: input.subject })
-    return true
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
     console.error('[email] échec envoi', { to: input.to.email, subject: input.subject, message })

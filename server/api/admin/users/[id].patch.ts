@@ -10,6 +10,7 @@ const patchSchema = z.object({
   lastName: z.string().max(80).optional(),
   phone: z.string().max(30).optional(),
   address: z.string().max(300).optional(),
+  newPassword: z.string().min(4).optional(),
 })
 
 export default defineEventHandler(async (event) => {
@@ -40,6 +41,11 @@ export default defineEventHandler(async (event) => {
   if (parsed.data.lastName !== undefined) data.lastName = parsed.data.lastName
   if (parsed.data.phone !== undefined) data.phone = parsed.data.phone
   if (parsed.data.address !== undefined) data.address = parsed.data.address
+
+  if (parsed.data.newPassword) {
+    const { hash } = await import('bcryptjs')
+    data.passwordHash = await hash(parsed.data.newPassword, 10)
+  }
 
   if (parsed.data.name) {
     data.name = parsed.data.name

@@ -21,7 +21,18 @@ export default defineEventHandler(async (event) => {
   }
 
   const { email } = parsed.data
-  const user = await prisma.user.findUnique({ where: { email: email.toLowerCase().trim() } })
+  const cleanEmail = email.trim()
+  
+  const user = await prisma.user.findFirst({
+    where: {
+      email: {
+        equals: cleanEmail,
+        mode: 'insensitive',
+      },
+    },
+  })
+
+  let emailSent = false
 
   if (user) {
     const resetToken = randomBytes(32).toString('hex')
@@ -38,7 +49,7 @@ export default defineEventHandler(async (event) => {
     const siteUrl = String(process.env.NUXT_PUBLIC_SITE_URL || 'https://boursefi.sn').replace(/\/+$/, '')
     const resetUrl = `${siteUrl}/auth/reset-password?token=${resetToken}`
 
-    await sendEmail({
+    emailSent = await sendEmail({
       to: { email: user.email, name: user.name },
       subject: '🔒 Réinitialisation de votre mot de passe - BourseFi',
       html: renderEmail({
@@ -57,6 +68,7 @@ export default defineEventHandler(async (event) => {
 
   return {
     ok: true,
+    emailSent,
     message: 'Si cette adresse e-mail existe dans notre système, un lien de réinitialisation vous a été envoyé par e-mail.',
   }
 })
