@@ -39,7 +39,7 @@ async function logout() {
     </div>
 
     <main
-      class="relative flex-1 overflow-hidden bg-gradient-to-b from-slate-50 via-white to-slate-50/90 pb-24 md:pb-8"
+      class="relative flex-1 overflow-hidden bg-gradient-to-b from-slate-50 via-white to-slate-50/90 pb-8 md:pb-8"
     >
       <div
         aria-hidden="true"
@@ -54,11 +54,6 @@ async function logout() {
       </div>
     </main>
 
-    <PortalMobileNav
-      :items="navItems"
-      :aria-label="ariaLabel"
-      @menu="drawerOpen = true"
-    />
     <PortalDrawer
       :open="drawerOpen"
       :title="drawerTitle ?? 'Menu'"
