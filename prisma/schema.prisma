@@ -294,6 +294,10 @@ model Candidature {
   lastChannelUsed      String?
   nextRelanceAt        DateTime?
   conversionScore      Int               @default(75)
+  autoRelanceStep      Int               @default(0)
+  lastAutoRelanceAt    DateTime?
+  isLost               Boolean           @default(false)
+  engagementScore      Int               @default(50)
   promoCode            PromoCode?        @relation(fields: [promoCodeId], references: [id])
   createdAt            DateTime          @default(now())
   bourseId             String?
@@ -303,6 +307,7 @@ model Candidature {
   user                 User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   paiement             Paiement?
   crmNotes             CandidatureNote[]
+  autoRelanceLogs      AutoRelanceLog[]
 
   @@index([partnerId])
   @@index([programmeId])
@@ -520,4 +525,32 @@ enum CandidatureStatus {
   DOCUMENT_EMIS
   BROUILLON
   TERMINE
+}
+
+model AutoRelanceRule {
+  id              String   @id @default(cuid())
+  name            String
+  scenarioStep    Int      @unique
+  triggerHours    Int
+  channel         String   @default("BOTH")
+  codePromo       String?
+  messageTemplate String
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model AutoRelanceLog {
+  id              String      @id @default(cuid())
+  candidatureId   String
+  scenarioStep    Int
+  channel         String
+  status          String      @default("SENT")
+  convertedAt     DateTime?
+  recoveredAmount Int?
+  sentAt          DateTime    @default(now())
+  candidature     Candidature @relation(fields: [candidatureId], references: [id], onDelete: Cascade)
+
+  @@index([candidatureId])
+  @@index([sentAt])
 }

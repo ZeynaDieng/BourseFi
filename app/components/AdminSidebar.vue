@@ -37,6 +37,15 @@
         Codes Promo
       </NuxtLink>
 
+      <NuxtLink
+        to="/admin/automatisations"
+        class="flex items-center justify-between rounded-lg px-4 py-3 font-bold text-primary bg-primary/5 hover:bg-primary/10 transition"
+        active-class="bg-primary text-white hover:text-white"
+      >
+        <span>🤖 Relances Automatiques</span>
+        <span class="material-symbols-outlined text-[18px]">smart_toy</span>
+      </NuxtLink>
+
       <p class="mt-4 px-4 text-[10px] font-bold uppercase tracking-widest text-slate-400">Catalogue bourses</p>
       <NuxtLink
         to="/admin/catalogue/bourses"
