@@ -291,9 +291,9 @@ async function runImport() {
         }
         report.tarifsUpserted++
 
-        // Bourse BOURSE ENTIÈRE Prisma
+        // Bourse Prisma (Modèle ENSUP)
         const bourseSlug = `bourse-hecm-${slugify(f.titre)}-${slugify(levelKey)}`
-        const bourseTitre = `Offre HECM 2026-2027 — ${f.titre} (${lvlCfg.niveau})`
+        const bourseTitre = `Bourse ${f.titre} — ${lvlCfg.niveau}`
 
         const existingBourse = await tx.bourse.findUnique({ where: { slug: bourseSlug } })
         const bourseData = {

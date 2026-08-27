@@ -1023,8 +1023,8 @@ async function runImport() {
       }
       stats.tarifsUpserted++
 
-      // --- BOURSE ASSOCIÉE (OFFRE PRÉFÉRENTIELLE BOURSEFI) ---
-      const bourseTitle = `Offre Préférentielle IMTECH 2025-2026 — ${progData.titre}`
+      // --- BOURSE ASSOCIÉE (MODÈLE ENSUP) ---
+      const bourseTitle = `Bourse ${progData.titre}`
       const bourseSlug = `bourse-${progData.slug}`
 
       let existingBourse = await tx.bourse.findFirst({

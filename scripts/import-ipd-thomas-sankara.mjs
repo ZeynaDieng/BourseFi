@@ -554,7 +554,7 @@ async function runImport() {
         bourses: {
           create: {
             slug: `bourse-${progData.slug}`,
-            titre: `Bourse Officielle IPD — ${progData.titre}`,
+            titre: `Bourse ${progData.titre}`,
             partnerId: partner.id,
             coveragePercent: economiePercent,
             quota: 30,

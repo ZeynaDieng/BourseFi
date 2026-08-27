@@ -295,7 +295,7 @@ async function importEsupComplete() {
       slug: `bourse-${item.slug}`,
       programmeId: p.id,
       partnerId: partner.id,
-      titre: `Bourse Entière ${item.title}`,
+      titre: `Bourse ${item.title}`,
       coveragePercent: 38, // 375k vs 600k (37.5% economie)
       montantMax: 375000,
       quota: 50,
@@ -371,7 +371,7 @@ async function importEsupComplete() {
       slug: `bourse-${item.slug}`,
       programmeId: p.id,
       partnerId: partner.id,
-      titre: `Bourse Entière ${item.title}`,
+      titre: `Bourse ${item.title}`,
       coveragePercent: 26, // 625k vs 850k (26.47%)
       montantMax: 625000,
       quota: 50,

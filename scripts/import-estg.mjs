@@ -447,7 +447,7 @@ async function runImport() {
           where: { id: existingBourse.id },
           data: {
             slug: bourseSlug,
-            titre: `Bourse Officielle ESTG — ${prog.titre}`,
+            titre: `Bourse ${prog.titre}`,
             programmeId: prog.id,
             partnerId: partner.id,
             coveragePercent: coveragePercent,
@@ -465,7 +465,7 @@ async function runImport() {
         await tx.bourse.create({
           data: {
             slug: bourseSlug,
-            titre: `Bourse Officielle ESTG — ${prog.titre}`,
+            titre: `Bourse ${prog.titre}`,
             programmeId: prog.id,
             partnerId: partner.id,
             coveragePercent: coveragePercent,

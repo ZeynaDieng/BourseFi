@@ -338,7 +338,7 @@ async function runImport() {
         where: { programmeId: prog.id }
       })
 
-      const bourseTitle = `Bourse Certifiante ABS 2025-2026 — ${progData.titre}`
+      const bourseTitle = `Bourse ${progData.titre}`
 
       if (existingBourse) {
         await tx.bourse.update({
