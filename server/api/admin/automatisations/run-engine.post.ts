@@ -65,16 +65,15 @@ export default defineEventHandler(async (event) => {
         // 1. Envoi Email si canal EMAIL ou BOTH
         if (rule.channel === 'EMAIL' || rule.channel === 'BOTH') {
           try {
-            const htmlContent = renderEmail('Candidature', {
-              recipientName: prenom,
+            const htmlContent = renderEmail({
               title: `Rappel de votre candidature — ${formation}`,
-              message: text,
+              bodyHtml: `<p>${text.replace(/\n/g, '<br>')}</p>`,
               ctaLabel: 'Finaliser mon inscription →',
               ctaUrl: lienPaiement,
             })
 
             await sendEmail({
-              to: cand.email,
+              to: { email: cand.email, name: `${prenom} ${nom}`.trim() },
               subject: `[BourseFi] Finalisez votre dossier pour ${formation}`,
               html: htmlContent,
               text,
