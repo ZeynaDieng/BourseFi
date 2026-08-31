@@ -5,9 +5,6 @@ import { sendEmail, renderEmail } from '../utils/email'
 export default defineNitroPlugin(() => {
   console.log('🤖 [BourseFi Auto-Relance Engine] Nitro Server Plugin Initialized.')
 
-  // Exécuter toutes les 30 minutes en arrière-plan
-  const INTERVAL_MS = 30 * 60 * 1000
-
   async function runEngineBackground() {
     try {
       const rules = await prisma.autoRelanceRule.findMany({
@@ -29,21 +26,22 @@ export default defineNitroPlugin(() => {
       })
 
       const now = new Date()
+      let count = 0
 
       for (const cand of candidates) {
         const ageHours = (now.getTime() - new Date(cand.createdAt).getTime()) / (1000 * 60 * 60)
 
         for (const rule of rules) {
           if (ageHours >= rule.triggerHours && cand.autoRelanceStep < rule.scenarioStep) {
-            // Arrêt strict si paiement effectué entre-temps
+            // Arrêt strict si candidature traitée ou paiement effectué
             if (cand.status === 'ACCEPTE' || cand.status === 'DOCUMENT_EMIS' || cand.status === 'REFUSE') {
               continue
             }
 
             const prenom = cand.firstName || cand.fullName.split(' ')[0] || 'Candidat'
             const nom = cand.lastName || ''
-            const formation = cand.programme.titre
-            const appUrl = process.env.NUXT_PUBLIC_APP_URL || 'https://boursefi.com'
+            const formation = cand.programme?.titre || 'votre formation'
+            const appUrl = process.env.NUXT_PUBLIC_APP_URL || 'https://boursefi.sn'
             const lienPaiement = `${appUrl}/paiement?candidatureId=${cand.id}`
             const codePromo = rule.codePromo || 'RENTREE2026'
 
@@ -97,25 +95,47 @@ export default defineNitroPlugin(() => {
             await prisma.candidatureNote.create({
               data: {
                 candidatureId: cand.id,
-                agentName: '🤖 Moteur d\'Automatisation BourseFi',
+                agentName: '🤖 Moteur d\'Automatisation BourseFi (15h00)',
                 exchangeType: rule.channel === 'WHATSAPP' ? 'WHATSAPP' : rule.channel === 'EMAIL' ? 'EMAIL' : 'SUPPORT',
-                content: `[AUTOMATION ${rule.name}]\n${text}`,
+                content: `[AUTOMATION 15H00 ${rule.name}]\n${text}`,
                 nextAction: rule.scenarioStep === 4 ? 'WAIT_CANDIDATE' : 'SEND_PAYMENT_LINK',
               },
             })
 
+            count++
             break
           }
         }
       }
+      console.log(`🤖 [BourseFi Auto-Relance Engine] Exécution terminée (${count} candidats relancés).`)
     } catch (err) {
       console.error('Error in background Auto-Relance Engine:', err)
     }
   }
 
-  // Démarrer la première vérification après 1 minute, puis toutes les 30 minutes
+  function scheduleDailyAt15h() {
+    const now = new Date()
+    const nextRun = new Date()
+    nextRun.setHours(15, 0, 0, 0)
+
+    if (now.getTime() >= nextRun.getTime()) {
+      nextRun.setDate(nextRun.getDate() + 1)
+    }
+
+    const msUntilNextRun = nextRun.getTime() - now.getTime()
+    const minutes = Math.round(msUntilNextRun / 1000 / 60)
+    console.log(`🤖 [BourseFi Auto-Relance Engine] Prochaine relance automatique 15h00 le ${nextRun.toLocaleDateString('fr-FR')} à 15h00 (dans ${minutes} min).`)
+
+    setTimeout(async () => {
+      console.log('⏰ [15h00] Lancement du moteur quotidien de relance automatique...')
+      await runEngineBackground()
+      scheduleDailyAt15h()
+    }, msUntilNextRun)
+  }
+
+  // Exécution initiale 1 min après le démarrage + planification quotidienne fixe à 15h00
   setTimeout(() => {
     runEngineBackground()
-    setInterval(runEngineBackground, INTERVAL_MS)
+    scheduleDailyAt15h()
   }, 60000)
 })
