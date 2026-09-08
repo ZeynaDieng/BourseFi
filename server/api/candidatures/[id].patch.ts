@@ -83,12 +83,16 @@ export default defineEventHandler(async (event) => {
   }
 
   if (data.status === 'DOCUMENT_EMIS') {
-    const hasDoc = data.documentUrl !== undefined ? Boolean(data.documentUrl) : Boolean(dossier.documentUrl)
-    if (!hasDoc) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Une attestation est obligatoire pour le statut DOCUMENT_EMIS.'
-      })
+    if (!data.documentUrl && !dossier.documentUrl) {
+      data.documentUrl = `/api/attestations/${id}`
+    }
+    if (!dossier.attestationIssuedAt) {
+      data.documentIssuedAt = new Date()
+    }
+    if (!dossier.attestationNumber) {
+      const year = new Date().getFullYear()
+      const rand = Math.floor(100000 + Math.random() * 900000)
+      ;(data as Record<string, unknown>).attestationNumber = `BF-ATT-${year}-${rand}`
     }
   }
 

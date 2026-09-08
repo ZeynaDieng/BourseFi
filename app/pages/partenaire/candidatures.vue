@@ -16,9 +16,12 @@ type Dossier = {
   statusLabel: string
   programmeTitre: string
   partnerName: string
+  lastDiploma?: string | null
   documentUrl: string | null
   identityCardRectoUrl?: string | null
   identityCardVersoUrl?: string | null
+  bfemAttestationUrl?: string | null
+  bacTranscriptUrl?: string | null
 }
 
 const statusChoices = [
@@ -131,6 +134,22 @@ async function savePatch(id: string) {
             >
               CNI verso
             </a>
+            <a
+              v-if="d.bfemAttestationUrl"
+              :href="d.bfemAttestationUrl"
+              target="_blank"
+              class="rounded-lg border border-emerald-600 bg-emerald-50 px-3 py-2 font-semibold text-emerald-800"
+            >
+              Attestation BFEM
+            </a>
+            <a
+              v-if="d.bacTranscriptUrl"
+              :href="d.bacTranscriptUrl"
+              target="_blank"
+              class="rounded-lg border border-emerald-600 bg-emerald-50 px-3 py-2 font-semibold text-emerald-800"
+            >
+              Diplôme ({{ d.lastDiploma || 'Diplôme' }})
+            </a>
           </div>
           <div class="space-y-2">
             <label class="text-xs font-semibold text-slate-500">Statut</label>
@@ -175,7 +194,7 @@ async function savePatch(id: string) {
                 <th class="p-4">Candidat</th>
                 <th class="p-4">Programme</th>
                 <th class="p-4">Statut</th>
-                <th class="p-4">CNI</th>
+                <th class="p-4">Pièces (CNI & Diplômes)</th>
                 <th class="p-4">URL attestation</th>
                 <th class="p-4" />
               </tr>
@@ -187,7 +206,10 @@ async function savePatch(id: string) {
                   <p class="text-xs text-slate-500">{{ d.email }}</p>
                   <ApplicationStatusBadge :status="d.status" class="mt-2" />
                 </td>
-                <td class="p-4">{{ d.programmeTitre }}</td>
+                <td class="p-4">
+                  <p class="font-medium text-slate-800">{{ d.programmeTitre }}</p>
+                  <p v-if="d.lastDiploma" class="text-xs text-slate-500 mt-0.5">Diplôme : {{ d.lastDiploma }}</p>
+                </td>
                 <td class="p-4">
                   <select v-model="draftFor(d).status" class="w-full rounded-lg border px-2 py-1.5 text-xs">
                     <option v-for="s in statusChoices" :key="s" :value="s">{{ s }}</option>
@@ -195,9 +217,11 @@ async function savePatch(id: string) {
                 </td>
                 <td class="p-4">
                   <div class="flex flex-col gap-1 text-xs">
-                    <a v-if="d.identityCardRectoUrl" :href="d.identityCardRectoUrl" target="_blank" class="text-primary underline">Recto</a>
-                    <a v-if="d.identityCardVersoUrl" :href="d.identityCardVersoUrl" target="_blank" class="text-primary underline">Verso</a>
-                    <span v-if="!d.identityCardRectoUrl && !d.identityCardVersoUrl"></span>
+                    <a v-if="d.identityCardRectoUrl" :href="d.identityCardRectoUrl" target="_blank" class="text-primary underline">CNI Recto</a>
+                    <a v-if="d.identityCardVersoUrl" :href="d.identityCardVersoUrl" target="_blank" class="text-primary underline">CNI Verso</a>
+                    <a v-if="d.bfemAttestationUrl" :href="d.bfemAttestationUrl" target="_blank" class="text-emerald-700 font-semibold underline">Attestation BFEM</a>
+                    <a v-if="d.bacTranscriptUrl" :href="d.bacTranscriptUrl" target="_blank" class="text-emerald-700 font-semibold underline">Diplôme ({{ d.lastDiploma || 'BAC' }})</a>
+                    <span v-if="!d.identityCardRectoUrl && !d.identityCardVersoUrl && !d.bfemAttestationUrl && !d.bacTranscriptUrl" class="text-slate-400">Aucune pièce</span>
                   </div>
                 </td>
                 <td class="p-4">

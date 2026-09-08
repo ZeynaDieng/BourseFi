@@ -58,6 +58,15 @@ useSeoMeta({ title: 'Mes candidatures  BourseFi' })
                   <p class="font-semibold text-primary">{{ c.programmeTitre }}</p>
                   <p class="text-sm text-slate-500">{{ c.etablissementNom }}</p>
                   <p class="text-xs text-slate-400">{{ c.partnerName }}</p>
+                  <div v-if="c.lastDiploma || c.lastEducationLevel" class="mt-2 flex flex-wrap items-center gap-1.5 text-xs">
+                    <span v-if="c.lastDiploma" class="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 font-medium text-slate-700">
+                      <span class="material-symbols-outlined text-[14px] text-slate-500">school</span>
+                      Diplôme : {{ c.lastDiploma }}
+                    </span>
+                    <span v-if="c.lastEducationLevel" class="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 font-medium text-slate-600">
+                      {{ c.lastEducationLevel }}
+                    </span>
+                  </div>
                 </div>
                 <ApplicationStatusBadge :status="c.status" />
               </div>

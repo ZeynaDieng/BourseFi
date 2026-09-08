@@ -146,6 +146,8 @@ function formatCandidature(raw: {
     gpa: raw.gpa,
     identityCardRectoUrl: raw.identityCardRectoUrl,
     identityCardVersoUrl: raw.identityCardVersoUrl,
+    bfemAttestationUrl: raw.bfemAttestationUrl,
+    bacTranscriptUrl: raw.bacTranscriptUrl,
     status: raw.status,
     statusLabel: statusLabel(raw.status),
     targetProgram: raw.targetProgram,

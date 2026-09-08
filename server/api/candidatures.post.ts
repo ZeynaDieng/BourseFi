@@ -182,20 +182,15 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: msg })
   }
 
-  // Document scolaire requis : si le dernier diplôme est BFEM, il faut l'attestation BFEM (ou bac). Sinon le relevé Bac (ou BFEM).
-  const hasSchoolDoc = Boolean(bfemUrl || bacUrl)
-
-  if (!firstName || !lastName || !phone || !address || !rectoUrl || !versoUrl || !hasSchoolDoc) {
+  if (!firstName || !lastName || !phone || !address) {
     const missing: string[] = []
     if (!firstName || !lastName) missing.push('Prénom / Nom')
     if (!phone) missing.push('Téléphone')
     if (!address) missing.push('Adresse (ville, quartier)')
-    if (!rectoUrl || !versoUrl) missing.push("Carte d'identité (Recto / Verso)")
-    if (!hasSchoolDoc) missing.push('Document scolaire (BAC ou BFEM)')
 
     throw createError({
       statusCode: 400,
-      statusMessage: `Informations manquantes : ${missing.join(', ')}. Veuillez compléter votre dossier.`,
+      statusMessage: `Informations manquantes : ${missing.join(', ')}. Veuillez compléter vos coordonnées.`,
     })
   }
 

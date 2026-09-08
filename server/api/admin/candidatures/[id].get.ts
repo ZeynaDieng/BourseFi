@@ -68,6 +68,8 @@ export default defineEventHandler(async (event) => {
     documentIssuedAt: c.documentIssuedAt?.toISOString() ?? null,
     identityCardRectoUrl: c.identityCardRectoUrl,
     identityCardVersoUrl: c.identityCardVersoUrl,
+    bfemAttestationUrl: c.bfemAttestationUrl,
+    bacTranscriptUrl: c.bacTranscriptUrl,
     createdAt: c.createdAt.toISOString(),
     montantInitial: c.montantInitial,
     montantReduction: c.montantReduction,

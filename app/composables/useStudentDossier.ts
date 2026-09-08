@@ -2,12 +2,14 @@ export type StudentDocument = {
   id: string
   label: string
   url?: string
-  group: 'attestation' | 'identity' | 'receipt'
+  group: 'attestation' | 'identity' | 'education' | 'receipt'
 }
 
 type AccountIdentity = {
   identityCardRectoUrl?: string | null
   identityCardVersoUrl?: string | null
+  bfemAttestationUrl?: string | null
+  bacTranscriptUrl?: string | null
 }
 
 export function buildStudentDocuments(
@@ -21,6 +23,9 @@ export function buildStudentDocuments(
     attestationUrl?: string | null
     identityCardRectoUrl?: string | null
     identityCardVersoUrl?: string | null
+    bfemAttestationUrl?: string | null
+    bacTranscriptUrl?: string | null
+    lastDiploma?: string | null
   }> | null | undefined,
   paiements: Array<{ id: string; amount: number; currency: string; receiptUrl?: string | null }> | null | undefined,
   account?: AccountIdentity | null,
@@ -28,6 +33,7 @@ export function buildStudentDocuments(
   const list: StudentDocument[] = []
   const seenRecto = new Set<string>()
   const seenVerso = new Set<string>()
+  const seenEdu = new Set<string>()
 
   function pushIdentity(
     recto: string | null | undefined,
@@ -54,9 +60,27 @@ export function buildStudentDocuments(
     }
   }
 
-  // Pièce d'identité enregistrée une fois sur le compte (réutilisée pour toutes les candidatures)
+  function pushEducation(
+    url: string | null | undefined,
+    label: string,
+    idPrefix: string,
+  ) {
+    if (url && !seenEdu.has(url)) {
+      seenEdu.add(url)
+      list.push({
+        id: `edu-${idPrefix}`,
+        label,
+        url,
+        group: 'education',
+      })
+    }
+  }
+
+  // Pièce d'identité & diplôme enregistrés sur le compte
   if (account) {
     pushIdentity(account.identityCardRectoUrl, account.identityCardVersoUrl, 'compte')
+    pushEducation(account.bfemAttestationUrl, 'Attestation BFEM', 'compte-bfem')
+    pushEducation(account.bacTranscriptUrl, 'Relevé de notes BAC / Dernier diplôme', 'compte-bac')
   }
 
   for (const c of candidatures || []) {
@@ -78,12 +102,18 @@ export function buildStudentDocuments(
       })
     }
     pushIdentity(c.identityCardRectoUrl, c.identityCardVersoUrl, c.id)
+    pushEducation(c.bfemAttestationUrl, `Attestation BFEM (${c.programmeTitre})`, `bfem-${c.id}`)
+    pushEducation(
+      c.bacTranscriptUrl,
+      `Relevé / Attestation — ${c.lastDiploma || 'Dernier diplôme'} (${c.programmeTitre})`,
+      `bac-${c.id}`,
+    )
   }
 
   for (const p of paiements || []) {
     list.push({
       id: `pay-${p.id}`,
-      label: `Reçu  ${p.amount.toLocaleString('fr-FR')} ${p.currency}`,
+      label: `Reçu — ${p.amount.toLocaleString('fr-FR')} ${p.currency}`,
       url: p.receiptUrl ?? undefined,
       group: 'receipt',
     })
@@ -95,6 +125,7 @@ export function groupStudentDocuments(docs: StudentDocument[]) {
   return {
     attestation: docs.filter((d) => d.group === 'attestation'),
     identity: docs.filter((d) => d.group === 'identity'),
+    education: docs.filter((d) => d.group === 'education'),
     receipt: docs.filter((d) => d.group === 'receipt'),
   }
 }

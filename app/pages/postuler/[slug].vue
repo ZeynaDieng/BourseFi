@@ -294,29 +294,9 @@ function validateStep(s: number): boolean {
     }
   }
   if (name === 'Documents') {
-    if (!hasIdentityDocs.value) {
-      if (!form.identityCardRecto) {
-        errorMessage.value = 'Ajoutez la photo recto de votre carte d’identité.'
-        return false
-      }
-      if (!form.identityCardVerso) {
-        errorMessage.value = 'Ajoutez la photo verso de votre carte d’identité.'
-        return false
-      }
-    }
-    if (!hasEducationDocs.value) {
-      if (form.lastDiploma === 'BFEM') {
-        if (!form.bfemAttestation) {
-          errorMessage.value = "Ajoutez l'attestation de diplôme BFEM."
-          return false
-        }
-      } else {
-        if (!form.bacTranscript && !form.bfemAttestation) {
-          errorMessage.value = 'Ajoutez le relevé du Bac ou votre dernier diplôme.'
-          return false
-        }
-      }
-    }
+    // Les documents sont facultatifs à cette étape pour faciliter la souscription rapide.
+    // L'étudiant pourra les compléter ultérieurement depuis son espace personnel.
+    return true
   }
   return true
 }
@@ -697,35 +677,37 @@ useSeoMeta({
           </div>
 
           <!-- Étape 2 : Documents -->
-          <div v-else-if="currentStepName === 'Documents'" class="space-y-5">
-            <div>
-              <h2 class="font-headline text-lg font-bold text-primary">Pièces d’identité</h2>
-              <p class="mt-1 text-sm text-slate-500">
-                Ajoutez des photos lisibles de votre carte d’identité (JPG, PNG, WebP ou PDF, max 5 Mo).
-                Elle sera enregistrée sur votre compte et réutilisée pour vos prochaines candidatures.
-              </p>
+          <div v-else-if="currentStepName === 'Documents'" class="space-y-4">
+            <div class="flex items-center gap-2 rounded-xl bg-slate-100 px-3.5 py-2 text-xs font-medium text-slate-600">
+              <span class="material-symbols-outlined text-[18px] text-primary">info</span>
+              <span>Facultatif : vous pouvez passer cette étape et ajouter vos documents plus tard.</span>
             </div>
-            <div class="grid gap-4 sm:grid-cols-2">
+
+            <div>
+              <h2 class="font-headline text-base font-bold text-primary">
+                Carte d’identité <span class="text-xs font-normal text-slate-400">(Optionnel)</span>
+              </h2>
+            </div>
+            <div class="grid gap-3 sm:grid-cols-2">
               <CandidatureDocumentDropzone v-model="form.identityCardRecto" label="Carte d’identité — Recto" />
               <CandidatureDocumentDropzone v-model="form.identityCardVerso" label="Carte d’identité — Verso" />
             </div>
 
-            <div class="border-t border-slate-100 pt-5">
-              <h2 class="font-headline text-lg font-bold text-primary">Documents scolaires</h2>
-              <p class="mt-1 text-sm text-slate-500">
-                Ajoutez vos documents scolaires (JPG, PNG, WebP ou PDF, max 5 Mo).
-              </p>
+            <div class="border-t border-slate-100 pt-4">
+              <h2 class="font-headline text-base font-bold text-primary">
+                Dernier diplôme <span class="text-xs font-normal text-slate-400">(Optionnel)</span>
+              </h2>
             </div>
-            <div class="grid gap-4 sm:grid-cols-2">
+            <div>
               <CandidatureDocumentDropzone
                 v-if="form.lastDiploma === 'BFEM'"
                 v-model="form.bfemAttestation"
-                label="Attestation de diplôme BFEM"
+                label="Attestation BFEM"
               />
               <CandidatureDocumentDropzone
                 v-else
                 v-model="form.bacTranscript"
-                label="Relevé de notes du BAC / Dernier diplôme"
+                :label="`Relevé / Attestation — ${form.lastDiploma || 'Dernier diplôme'}`"
               />
             </div>
           </div>
@@ -758,14 +740,16 @@ useSeoMeta({
 
             <div class="rounded-2xl border border-slate-100 bg-slate-50/60 p-4">
               <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Carte d’identité & Documents</p>
-              <ul v-if="hasIdentityDocs" class="mt-2 space-y-1.5 text-sm text-slate-700">
-                <li class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-emerald-600">check</span>Réutilisés depuis votre compte</li>
+              <ul v-if="hasIdentityDocs || form.identityCardRecto || form.identityCardVerso || form.bfemAttestation || form.bacTranscript" class="mt-2 space-y-1.5 text-sm text-slate-700">
+                <li v-if="hasIdentityDocs" class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-emerald-600">check</span>Carte d'identité réutilisée depuis votre compte</li>
+                <li v-else-if="form.identityCardRecto && form.identityCardVerso" class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-emerald-600">check</span>Carte d'identité (Recto & Verso) jointe</li>
+                <li v-if="form.bfemAttestation" class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-emerald-600">check</span>Attestation BFEM jointe</li>
+                <li v-if="form.bacTranscript" class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-emerald-600">check</span>Relevé BAC / Diplôme joint</li>
               </ul>
-              <ul v-else class="mt-2 space-y-1.5 text-sm text-slate-700">
-                <li class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-emerald-600">check</span>Recto & Verso téléchargés</li>
-                <li v-if="form.lastDiploma === 'BFEM'" class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-emerald-600">check</span>Attestation BFEM téléchargée</li>
-                <li v-else class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-emerald-600">check</span>Relevé BAC / Diplôme téléchargé</li>
-              </ul>
+              <div v-else class="mt-2 flex items-center gap-2 text-sm text-slate-600 font-medium">
+                <span class="material-symbols-outlined text-[18px] text-amber-500">schedule</span>
+                À fournir ultérieurement depuis votre espace candidat
+              </div>
             </div>
 
             <!-- Bloc Code Promo -->

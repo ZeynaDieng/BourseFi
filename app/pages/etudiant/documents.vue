@@ -16,12 +16,14 @@ const groups = computed(() => groupStudentDocuments(documents.value))
 
 const sections = computed(() => [
   { key: 'attestation', title: 'Attestations de bourse', icon: 'verified', items: groups.value.attestation },
+  { key: 'education', title: 'Diplômes & Relevés de notes', icon: 'school', items: groups.value.education },
   { key: 'identity', title: "Pièces d'identité", icon: 'badge', items: groups.value.identity },
   { key: 'receipt', title: 'Reçus de paiement', icon: 'receipt', items: groups.value.receipt },
 ].filter((s) => s.items.length > 0))
 
 const openSections = reactive<Record<string, boolean>>({
   attestation: true,
+  education: true,
   identity: true,
   receipt: true,
 })

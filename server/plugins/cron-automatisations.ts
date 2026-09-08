@@ -2,11 +2,140 @@ import { defineNitroPlugin } from 'nitropack/runtime'
 import { prisma } from '../utils/prisma'
 import { sendEmail, renderEmail } from '../utils/email'
 
+const DEFAULT_RULES = [
+  {
+    scenarioStep: 1,
+    name: 'SCÉNARIO 1 — RELANCE RAPIDE (1H)',
+    triggerHours: 1,
+    channel: 'EMAIL',
+    codePromo: null,
+    messageTemplate: `Bonjour {{prenom}},
+
+Vous avez commencé votre inscription pour {{formation}} sur BourseFi mais vous n'avez pas encore finalisé votre paiement.
+
+Vos informations ont bien été conservées. Cliquez ci-dessous pour finaliser votre dossier en 2 minutes :
+{{lien_paiement}}
+
+À très vite,
+L'équipe BourseFi.`,
+    isActive: true,
+  },
+  {
+    scenarioStep: 2,
+    name: 'SCÉNARIO 2 — RELANCE J+1 (24H)',
+    triggerHours: 24,
+    channel: 'EMAIL',
+    codePromo: null,
+    messageTemplate: `Bonjour {{prenom}},
+
+Votre demande de bourse pour {{formation}} est toujours disponible, mais le nombre de places par établissement partenaire est limité.
+
+Vous pouvez réserver définitivement votre place en finalisant ici :
+{{lien_paiement}}
+
+Si vous rencontrez des difficultés avec votre règlement (Wave, Orange Money, Carte bancaire), répondez directement à cet email.
+
+Cordialement,
+L'équipe BourseFi.`,
+    isActive: true,
+  },
+  {
+    scenarioStep: 3,
+    name: 'SCÉNARIO 3 — RELANCE J+3 AVEC CODE PROMO (72H)',
+    triggerHours: 72,
+    channel: 'EMAIL',
+    codePromo: 'RENTREE2026',
+    messageTemplate: `Bonjour {{prenom}},
+
+Pour vous aider à concrétiser votre inscription pour {{formation}}, nous vous offrons exceptionnellement le code promo {{code_promo}} !
+
+Saisissez ce code lors de votre paiement ici :
+{{lien_paiement}}
+
+Cette offre est valable pendant 48 heures seulement.
+
+À très bientôt,
+L'équipe BourseFi.`,
+    isActive: true,
+  },
+  {
+    scenarioStep: 4,
+    name: 'SCÉNARIO 4 — DERNIER RAPPEL SEMAINE (J+7 / 168H)',
+    triggerHours: 168,
+    channel: 'EMAIL',
+    codePromo: null,
+    messageTemplate: `Bonjour {{prenom}},
+
+Ceci est un rappel concernant votre dossier d'inscription pour {{formation}}.
+
+Sans action de votre part, votre place pré-réservée pourra être attribuée à un candidat sur liste d'attente.
+
+Finalisez votre dossier dès maintenant :
+{{lien_paiement}}
+
+Excellente journée,
+L'équipe BourseFi.`,
+    isActive: true,
+  },
+  {
+    scenarioStep: 5,
+    name: 'SCÉNARIO 5 — RECONQUÊTE 2 SEMAINES (J+14 / 336H)',
+    triggerHours: 336,
+    channel: 'EMAIL',
+    codePromo: 'RENTREE2026',
+    messageTemplate: `Bonjour {{prenom}},
+
+Cela fait 2 semaines que vous avez démarré votre candidature pour {{formation}}.
+
+Nous serions ravis de vous compter parmi nos étudiants cette année. Si vous avez des questions sur le programme ou le règlement, répondez directement à cet email.
+
+Vous pouvez toujours finaliser votre inscription avec votre code promo {{code_promo}} ici :
+{{lien_paiement}}
+
+À très vite,
+L'équipe BourseFi.`,
+    isActive: true,
+  },
+  {
+    scenarioStep: 6,
+    name: 'SCÉNARIO 6 — RELANCE MENSUELLE (J+30 / 720H)',
+    triggerHours: 720,
+    channel: 'EMAIL',
+    codePromo: null,
+    messageTemplate: `Bonjour {{prenom}},
+
+Les inscriptions pour la session en cours touchent à leur fin pour {{formation}}.
+
+Si vous souhaitez confirmer votre candidature ou reporter votre rentrée à la session suivante, cliquez sur le lien ci-dessous :
+{{lien_paiement}}
+
+Restant à votre disposition,
+L'équipe BourseFi.`,
+    isActive: true,
+  },
+]
+
 export default defineNitroPlugin(() => {
-  console.log('🤖 [BourseFi Auto-Relance Engine] Nitro Server Plugin Initialized.')
+  console.log('🤖 [BourseFi Auto-Relance Engine] Nitro Plugin démarré en arrière-plan.')
+
+  async function ensureRulesSeeded() {
+    try {
+      for (const rule of DEFAULT_RULES) {
+        await prisma.autoRelanceRule.upsert({
+          where: { scenarioStep: rule.scenarioStep },
+          update: {},
+          create: rule,
+        })
+      }
+    } catch (err) {
+      console.error('⚠️ Erreur lors du seeding des règles auto-relance:', err)
+    }
+  }
 
   async function runEngineBackground() {
     try {
+      await ensureRulesSeeded()
+
       const rules = await prisma.autoRelanceRule.findMany({
         where: { isActive: true },
         orderBy: { scenarioStep: 'asc' },
@@ -16,7 +145,7 @@ export default defineNitroPlugin(() => {
 
       const candidates = await prisma.candidature.findMany({
         where: {
-          status: { in: ['EN_ATTENTE_PAIEMENT', 'SOUMIS'] },
+          status: { in: ['EN_ATTENTE_PAIEMENT', 'SOUMIS', 'BROUILLON'] },
           paiement: null,
           isLost: false,
         },
@@ -33,8 +162,8 @@ export default defineNitroPlugin(() => {
 
         for (const rule of rules) {
           if (ageHours >= rule.triggerHours && cand.autoRelanceStep < rule.scenarioStep) {
-            // Arrêt strict si candidature traitée ou paiement effectué
-            if (cand.status === 'ACCEPTE' || cand.status === 'DOCUMENT_EMIS' || cand.status === 'REFUSE') {
+            // Sécurité : Ne jamais relancer les candidatures acceptées, émis ou refusées
+            if (cand.status === 'ACCEPTE' || cand.status === 'DOCUMENT_EMIS' || cand.status === 'REFUSE' || cand.status === 'TERMINE') {
               continue
             }
 
@@ -63,12 +192,12 @@ export default defineNitroPlugin(() => {
 
                 await sendEmail({
                   to: { email: cand.email, name: `${prenom} ${nom}`.trim() },
-                  subject: `[BourseFi] Finalisez votre dossier pour ${formation}`,
+                  subject: `[BourseFi] ${rule.name.includes('PROMO') ? '🎁 Réduction exclusive :' : 'Finalisez votre inscription pour'} ${formation}`,
                   html: htmlContent,
                   text,
                 })
               } catch (err) {
-                console.error(`Erreur relance auto pour ${cand.email}:`, err)
+                console.error(`❌ Erreur relance auto pour ${cand.email}:`, err)
               }
             }
 
@@ -95,9 +224,9 @@ export default defineNitroPlugin(() => {
             await prisma.candidatureNote.create({
               data: {
                 candidatureId: cand.id,
-                agentName: '🤖 Moteur d\'Automatisation BourseFi (15h00)',
+                agentName: '🤖 Moteur Marketing BourseFi (Cron 15min)',
                 exchangeType: rule.channel === 'WHATSAPP' ? 'WHATSAPP' : rule.channel === 'EMAIL' ? 'EMAIL' : 'SUPPORT',
-                content: `[AUTOMATION 15H00 ${rule.name}]\n${text}`,
+                content: `[AUTOMATION MARKETING ${rule.name}]\n${text}`,
                 nextAction: rule.scenarioStep === 4 ? 'WAIT_CANDIDATE' : 'SEND_PAYMENT_LINK',
               },
             })
@@ -107,35 +236,26 @@ export default defineNitroPlugin(() => {
           }
         }
       }
-      console.log(`🤖 [BourseFi Auto-Relance Engine] Exécution terminée (${count} candidats relancés).`)
+
+      if (count > 0) {
+        console.log(`🤖 [BourseFi Auto-Relance Engine] Relance effectuée pour ${count} candidat(s) abandonné(s).`)
+      }
     } catch (err) {
-      console.error('Error in background Auto-Relance Engine:', err)
+      console.error('❌ Erreur Moteur Auto-Relance en arrière-plan:', err)
     }
   }
 
-  function scheduleDailyAt15h() {
-    const now = new Date()
-    const nextRun = new Date()
-    nextRun.setHours(15, 0, 0, 0)
-
-    if (now.getTime() >= nextRun.getTime()) {
-      nextRun.setDate(nextRun.getDate() + 1)
-    }
-
-    const msUntilNextRun = nextRun.getTime() - now.getTime()
-    const minutes = Math.round(msUntilNextRun / 1000 / 60)
-    console.log(`🤖 [BourseFi Auto-Relance Engine] Prochaine relance automatique 15h00 le ${nextRun.toLocaleDateString('fr-FR')} à 15h00 (dans ${minutes} min).`)
-
-    setTimeout(async () => {
-      console.log('⏰ [15h00] Lancement du moteur quotidien de relance automatique...')
-      await runEngineBackground()
-      scheduleDailyAt15h()
-    }, msUntilNextRun)
-  }
-
-  // Exécution initiale 1 min après le démarrage + planification quotidienne fixe à 15h00
+  // Démarrage immédiat après 15 secondes
   setTimeout(() => {
     runEngineBackground()
-    scheduleDailyAt15h()
-  }, 60000)
+  }, 15000)
+
+  // Exécution automatique toutes les 15 minutes en tâche de fond (100% autonome)
+  const INTERVAL_MS = 15 * 60 * 1000
+  setInterval(() => {
+    runEngineBackground()
+  }, INTERVAL_MS)
+
+  console.log('⏱️ [BourseFi Auto-Relance Engine] Cron planifié toutes les 15 minutes (Totalement autonome).')
 })
+

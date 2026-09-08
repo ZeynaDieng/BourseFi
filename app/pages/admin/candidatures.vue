@@ -39,6 +39,8 @@ type DossierRow = {
   documentUrl: string | null
   identityCardRectoUrl?: string | null
   identityCardVersoUrl?: string | null
+  bfemAttestationUrl?: string | null
+  bacTranscriptUrl?: string | null
   createdAt: string
   interestLevel?: string | null
   blockingReason?: string | null
@@ -446,6 +448,104 @@ async function submitNote() {
     savingNote.value = false
   }
 }
+
+const validatingExternal = ref(false)
+async function submitExternalPayment() {
+  if (!selectedId.value || !detail.value) return
+  if (!confirm(`Confirmer le règlement externe pour ${detail.value.fullName} et émettre l'attestation officielle ?`)) return
+
+  validatingExternal.value = true
+  try {
+    await $fetch('/api/admin/candidatures/regler-externe', {
+      method: 'POST',
+      body: { candidatureId: selectedId.value, paymentMethod: 'EXTERNE_ESPECES' }
+    })
+    await refresh()
+    await loadDetail(selectedId.value)
+    alert("Paiement externe validé et attestation émise avec succès !")
+  } catch (e: unknown) {
+    alert(getAdminErrorMessage(e, "Erreur lors de la validation du paiement externe."))
+  } finally {
+    validatingExternal.value = false
+  }
+}
+
+// Modal Création Directe d'Attestation (Élève hors-site)
+const createModalOpen = ref(false)
+const programmesList = ref<Array<{ id: string; titre: string; etablissement: { nom: string }; fraisDossier: number; devise: string }>>([])
+const loadingProgrammes = ref(false)
+
+const createForm = reactive({
+  firstName: '',
+  lastName: '',
+  email: '',
+  phone: '',
+  address: '',
+  programmeId: '',
+  lastEducationLevel: 'Terminale',
+  lastDiploma: 'BAC',
+  paymentMethod: 'ESPÈCES_AGENCE',
+  montantEncaisse: 20000,
+})
+const creatingDirect = ref(false)
+
+async function openCreateModal() {
+  createModalOpen.value = true
+  if (programmesList.value.length === 0) {
+    loadingProgrammes.value = true
+    try {
+      programmesList.value = await $fetch('/api/admin/programmes')
+      if (programmesList.value.length > 0) {
+        createForm.programmeId = programmesList.value[0].id
+        createForm.montantEncaisse = programmesList.value[0].fraisDossier || 20000
+      }
+    } catch {
+      // ignore
+    } finally {
+      loadingProgrammes.value = false
+    }
+  }
+}
+
+watch(() => createForm.programmeId, (newId) => {
+  const prog = programmesList.value.find(p => p.id === newId)
+  if (prog && prog.fraisDossier !== undefined) {
+    createForm.montantEncaisse = prog.fraisDossier
+  }
+})
+
+async function submitCreateDirect() {
+  if (!createForm.firstName.trim() || !createForm.lastName.trim() || !createForm.email.trim() || !createForm.programmeId) {
+    alert('Veuillez remplir au moins le prénom, le nom, l\'email et la formation.')
+    return
+  }
+
+  creatingDirect.value = true
+  try {
+    const res = await $fetch<{ ok: boolean; candidatureId: string; attestationUrl: string }>(
+      '/api/admin/candidatures/creer-direct',
+      {
+        method: 'POST',
+        body: { ...createForm }
+      }
+    )
+
+    createModalOpen.value = false
+    createForm.firstName = ''
+    createForm.lastName = ''
+    createForm.email = ''
+    createForm.phone = ''
+    createForm.address = ''
+    
+    await refresh()
+    window.open(res.attestationUrl, '_blank')
+    alert("Attestation créée avec succès ! Le document PDF a été ouvert pour impression.")
+  } catch (e: unknown) {
+    alert(getAdminErrorMessage(e, 'Erreur lors de la création directe de l\'attestation.'))
+  } finally {
+    creatingDirect.value = false
+  }
+}
 </script>
 
 <template>
@@ -459,14 +559,25 @@ async function submitNote() {
             Validation des dossiers, relances WhatsApp/Email, émission d'attestations et suivi commercial.
           </p>
         </div>
-        <button
-          type="button"
-          class="admin-btn-secondary inline-flex items-center gap-1.5 text-xs shadow-xs"
-          @click="exportDossiers"
-        >
-          <span class="material-symbols-outlined text-[18px]">download</span>
-          Exporter CSV
-        </button>
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            class="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white shadow-xs transition hover:bg-emerald-700 active:scale-95"
+            @click="openCreateModal"
+          >
+            <span class="material-symbols-outlined text-[18px]">add_circle</span>
+            Créer une Attestation Directe
+          </button>
+
+          <button
+            type="button"
+            class="admin-btn-secondary inline-flex items-center gap-1.5 text-xs shadow-xs"
+            @click="exportDossiers"
+          >
+            <span class="material-symbols-outlined text-[18px]">download</span>
+            Exporter CSV
+          </button>
+        </div>
       </div>
 
       <!-- Stats KPIs -->
@@ -783,6 +894,26 @@ async function submitNote() {
 
           <!-- Section Statut et Attestation personnalisée -->
           <section class="rounded-xl border border-slate-100 bg-slate-50/50 p-4 space-y-3">
+            <!-- Action Paiement Externe pour les élèves qui paient hors du site -->
+            <div v-if="detail.status === 'EN_ATTENTE_PAIEMENT' || !detail.paiement" class="rounded-xl border border-emerald-200 bg-emerald-50/80 p-3.5 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-emerald-950">💵 Règlement Hors Site (Paiement Externe)</span>
+                <span class="text-[11px] font-bold text-emerald-800">Espèces / Virement / Agence</span>
+              </div>
+              <p class="text-xs text-emerald-900 leading-relaxed">
+                Si l'élève a réglé ses frais de dossier en espèces, par virement ou en agence, vous pouvez valider son règlement et émettre son attestation en 1 clic.
+              </p>
+              <button
+                type="button"
+                class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-extrabold text-white shadow-xs transition hover:bg-emerald-700 active:scale-98 disabled:opacity-50"
+                :disabled="validatingExternal"
+                @click="submitExternalPayment"
+              >
+                <span class="material-symbols-outlined text-[18px]">verified</span>
+                {{ validatingExternal ? 'Validation en cours...' : "Valider le Paiement Externe & Émettre l'Attestation" }}
+              </button>
+            </div>
+
             <div v-if="detail.documentUrl" class="flex items-center justify-between rounded-lg bg-emerald-50 p-3 border border-emerald-200">
               <div>
                 <p class="text-xs font-bold text-emerald-900">Attestation Officielle Générée</p>
@@ -1032,6 +1163,18 @@ async function submitNote() {
                 @open="previewDoc = $event"
               />
               <AdminDocumentThumb
+                v-if="detail.bfemAttestationUrl"
+                :url="detail.bfemAttestationUrl"
+                label="Attestation BFEM"
+                @open="previewDoc = $event"
+              />
+              <AdminDocumentThumb
+                v-if="detail.bacTranscriptUrl"
+                :url="detail.bacTranscriptUrl"
+                :label="`Diplôme (${detail.lastDiploma || 'Dernier diplôme'})`"
+                @open="previewDoc = $event"
+              />
+              <AdminDocumentThumb
                 v-if="detail.documentUrl"
                 :url="detail.documentUrl"
                 label="Fichier joint"
@@ -1059,5 +1202,143 @@ async function submitNote() {
     </AdminDrawer>
 
     <AdminDocumentPreviewModal :doc="previewDoc" @close="previewDoc = null" />
+
+    <!-- MODAL CRÉATION DIRECTE D'ATTESTATION (ÉLÈVE EN AGENCE / HORS-SITE) -->
+    <div
+      v-if="createModalOpen"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs animate-fade-in"
+    >
+      <div class="w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl animate-scale-up">
+        <!-- Header Modal -->
+        <div class="flex items-center justify-between border-b border-slate-100 bg-primary px-6 py-4 text-white">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-[22px] text-secondary">verified</span>
+            <h2 class="font-headline text-lg font-bold">Créer une Attestation Directe (Élève Hors Site)</h2>
+          </div>
+          <button
+            type="button"
+            class="rounded-lg p-1 text-slate-300 transition hover:bg-white/10 hover:text-white"
+            @click="createModalOpen = false"
+          >
+            <span class="material-symbols-outlined text-[20px]">close</span>
+          </button>
+        </div>
+
+        <!-- Body Form -->
+        <form class="p-6 space-y-4 max-h-[80vh] overflow-y-auto" @submit.prevent="submitCreateDirect">
+          <div class="rounded-xl border border-sky-200 bg-sky-50/80 p-3 text-xs text-sky-900 flex items-start gap-2">
+            <span class="material-symbols-outlined text-[18px] text-sky-600">info</span>
+            <span>Ce formulaire crée le compte étudiant (si inexistant), valide le paiement externe et émet directement l'attestation officielle au format PDF pour impression.</span>
+          </div>
+
+          <!-- Section 1: Élève -->
+          <div class="border-b border-slate-100 pb-3">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">1. Coordonnées de l'Élève</h3>
+            <div class="grid gap-3 sm:grid-cols-2">
+              <label class="block">
+                <span class="text-[11px] font-semibold text-slate-600">Prénom <span class="text-red-500">*</span></span>
+                <input v-model="createForm.firstName" required class="admin-input mt-1" placeholder="Ex: Moussa" />
+              </label>
+              <label class="block">
+                <span class="text-[11px] font-semibold text-slate-600">Nom <span class="text-red-500">*</span></span>
+                <input v-model="createForm.lastName" required class="admin-input mt-1" placeholder="Ex: Ndiaye" />
+              </label>
+              <label class="block">
+                <span class="text-[11px] font-semibold text-slate-600">Email (reçoit l'attestation) <span class="text-red-500">*</span></span>
+                <input v-model="createForm.email" type="email" required class="admin-input mt-1" placeholder="moussa.ndiaye@gmail.com" />
+              </label>
+              <label class="block">
+                <span class="text-[11px] font-semibold text-slate-600">Téléphone (WhatsApp)</span>
+                <input v-model="createForm.phone" type="tel" class="admin-input mt-1" placeholder="77 123 45 67" />
+              </label>
+            </div>
+          </div>
+
+          <!-- Section 2: Formation & Établissement -->
+          <div class="border-b border-slate-100 pb-3">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">2. Choix du Programme & Établissement</h3>
+            <label class="block">
+              <span class="text-[11px] font-semibold text-slate-600">Formation demandée <span class="text-red-500">*</span></span>
+              <select v-model="createForm.programmeId" required class="admin-input mt-1 bg-white">
+                <option v-if="loadingProgrammes" value="" disabled>Chargement des programmes...</option>
+                <option v-for="p in programmesList" :key="p.id" :value="p.id">
+                  {{ p.etablissement.nom }} — {{ p.titre }} ({{ p.fraisDossier?.toLocaleString('fr-FR') }} {{ p.devise }})
+                </option>
+              </select>
+            </label>
+
+            <div class="mt-3 grid gap-3 sm:grid-cols-2">
+              <label class="block">
+                <span class="text-[11px] font-semibold text-slate-600">Dernier niveau d'études</span>
+                <select v-model="createForm.lastEducationLevel" class="admin-input mt-1 bg-white">
+                  <option value="Troisième (3ème)">Troisième (3ème)</option>
+                  <option value="Seconde">Seconde</option>
+                  <option value="Première">Première</option>
+                  <option value="Terminale">Terminale</option>
+                  <option value="Bac+1">Bac+1</option>
+                  <option value="Bac+2 (BTS, DUT)">Bac+2 (BTS, DUT)</option>
+                  <option value="Bac+3 (Licence)">Bac+3 (Licence)</option>
+                  <option value="Bac+5 (Master)">Bac+5 (Master)</option>
+                </select>
+              </label>
+
+              <label class="block">
+                <span class="text-[11px] font-semibold text-slate-600">Dernier diplôme</span>
+                <select v-model="createForm.lastDiploma" class="admin-input mt-1 bg-white">
+                  <option value="BFEM">BFEM</option>
+                  <option value="BAC">BAC</option>
+                  <option value="BTS">BTS</option>
+                  <option value="DUT">DUT</option>
+                  <option value="Licence">Licence</option>
+                  <option value="Master">Master</option>
+                  <option value="Autre">Autre</option>
+                </select>
+              </label>
+            </div>
+          </div>
+
+          <!-- Section 3: Règlement -->
+          <div>
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">3. Enregistrement du Règlement</h3>
+            <div class="grid gap-3 sm:grid-cols-2">
+              <label class="block">
+                <span class="text-[11px] font-semibold text-slate-600">Mode de paiement</span>
+                <select v-model="createForm.paymentMethod" class="admin-input mt-1 bg-white">
+                  <option value="ESPÈCES_AGENCE">💵 Espèces (Agence)</option>
+                  <option value="VIREMENT_BANCAIRE">🏦 Virement Bancaire</option>
+                  <option value="WAVE_DIRECT">🟢 Wave Direct</option>
+                  <option value="ORANGE_MONEY_DIRECT">🟠 Orange Money Direct</option>
+                  <option value="GRATUIT_PARTENAIRE">🎁 Encaissé par le Partenaire (0 FCFA)</option>
+                </select>
+              </label>
+
+              <label class="block">
+                <span class="text-[11px] font-semibold text-slate-600">Montant Encaissé (FCFA)</span>
+                <input v-model.number="createForm.montantEncaisse" type="number" min="0" class="admin-input mt-1 font-bold text-emerald-800" />
+              </label>
+            </div>
+          </div>
+
+          <!-- Footer Buttons -->
+          <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+            <button
+              type="button"
+              class="rounded-xl border border-slate-200 px-4 py-2.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-50"
+              @click="createModalOpen = false"
+            >
+              Annuler
+            </button>
+            <button
+              type="submit"
+              class="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-xs font-extrabold text-white shadow-sm transition hover:bg-emerald-700 active:scale-95 disabled:opacity-50"
+              :disabled="creatingDirect"
+            >
+              <span class="material-symbols-outlined text-[18px]">print</span>
+              {{ creatingDirect ? 'Génération en cours...' : 'Générer & Imprimer l\'Attestation' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
 </template>
