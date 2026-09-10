@@ -270,8 +270,103 @@ export default defineNitroPlugin(() => {
         count++
       }
 
+      // 5. Relance des utilisateurs inscrits SANS candidature (Comptes étudiants créés sans dossier)
+      const registeredUsersWithoutCandidature = await prisma.user.findMany({
+        where: {
+          role: 'STUDENT',
+          candidatures: { none: {} },
+        },
+      })
+
+      for (const user of registeredUsersWithoutCandidature) {
+        const userEmail = user.email.trim().toLowerCase()
+        if (processedEmails.has(userEmail)) continue
+
+        if (user.lastAutoRelanceAt) {
+          const hoursSinceLastRelance = (now.getTime() - new Date(user.lastAutoRelanceAt).getTime()) / (1000 * 60 * 60)
+          if (hoursSinceLastRelance < 20) continue
+        }
+
+        const ageHours = (now.getTime() - new Date(user.createdAt).getTime()) / (1000 * 60 * 60)
+
+        let targetRule: typeof rules[0] | null = null
+
+        if (user.autoRelanceStep === 0) {
+          const validRules = rules.filter(r => ageHours >= r.triggerHours)
+          if (validRules.length > 0) {
+            targetRule = validRules[validRules.length - 1]
+          }
+        } else {
+          const nextRule = rules.find(r => r.scenarioStep === user.autoRelanceStep + 1)
+          if (nextRule && ageHours >= nextRule.triggerHours) {
+            targetRule = nextRule
+          }
+        }
+
+        if (!targetRule) continue
+
+        const rule = targetRule
+        const prenom = user.firstName || user.name.split(' ')[0] || 'Étudiant'
+        const nom = user.lastName || ''
+        const appUrl = process.env.NUXT_PUBLIC_APP_URL || 'https://boursefi.sn'
+        const lienCatalogue = `${appUrl}/bourses`
+        const codePromo = rule.codePromo || 'RENTREE2026'
+
+        let text = `Bonjour ${prenom},
+
+Bienvenue sur BourseFi ! Vous avez créé votre compte étudiant mais vous n'avez pas encore sélectionné de formation.
+
+Découvrez des dizaines de formations et bourses d'études disponibles et déposez votre dossier en 2 minutes :
+${lienCatalogue}
+
+${rule.codePromo ? `🎁 Profitez du code promo ${codePromo} lors de votre inscription !` : ''}
+
+À très bientôt,
+L'équipe BourseFi.`
+
+        if (rule.channel === 'EMAIL' || rule.channel === 'BOTH') {
+          try {
+            const htmlContent = renderEmail({
+              title: `Découvrez nos bourses d'études disponibles — BourseFi`,
+              bodyHtml: `<p>${text.replace(/\n/g, '<br>')}</p>`,
+              ctaLabel: 'Découvrir les bourses d\'études →',
+              ctaUrl: lienCatalogue,
+            })
+
+            await sendEmail({
+              to: { email: user.email, name: `${prenom} ${nom}`.trim() },
+              subject: `[BourseFi] ${prenom}, choisissez votre formation et bénéficiez de votre bourse`,
+              html: htmlContent,
+              text,
+            })
+          } catch (err) {
+            console.error(`❌ Erreur relance compte utilisateur pour ${user.email}:`, err)
+          }
+        }
+
+        await prisma.autoRelanceLog.create({
+          data: {
+            userId: user.id,
+            scenarioStep: rule.scenarioStep,
+            channel: rule.channel,
+            status: 'SENT',
+          },
+        })
+
+        await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            autoRelanceStep: rule.scenarioStep,
+            lastAutoRelanceAt: now,
+          },
+        })
+
+        processedEmails.add(userEmail)
+        count++
+      }
+
       if (count > 0) {
-        console.log(`🤖 [BourseFi Auto-Relance Engine] Relance effectuée pour ${count} candidat(s) abandonné(s).`)
+        console.log(`🤖 [BourseFi Auto-Relance Engine] Relance effectuée pour ${count} destinataire(s) (Candidatures + Comptes Inscrits).`)
       }
     } catch (err) {
       console.error('❌ Erreur Moteur Auto-Relance en arrière-plan:', err)
