@@ -156,85 +156,118 @@ export default defineNitroPlugin(() => {
 
       const now = new Date()
       let count = 0
+      const processedEmails = new Set<string>()
 
       for (const cand of candidates) {
-        const ageHours = (now.getTime() - new Date(cand.createdAt).getTime()) / (1000 * 60 * 60)
+        const candidateEmail = cand.email.trim().toLowerCase()
 
-        for (const rule of rules) {
-          if (ageHours >= rule.triggerHours && cand.autoRelanceStep < rule.scenarioStep) {
-            // Sécurité : Ne jamais relancer les candidatures acceptées, émis ou refusées
-            if (cand.status === 'ACCEPTE' || cand.status === 'DOCUMENT_EMIS' || cand.status === 'REFUSE' || cand.status === 'TERMINE') {
-              continue
-            }
+        // 1. Éviter d'envoyer plusieurs emails à la même adresse lors du même passage
+        if (processedEmails.has(candidateEmail)) {
+          continue
+        }
 
-            const prenom = cand.firstName || cand.fullName.split(' ')[0] || 'Candidat'
-            const nom = cand.lastName || ''
-            const formation = cand.programme?.titre || 'votre formation'
-            const appUrl = process.env.NUXT_PUBLIC_APP_URL || 'https://boursefi.sn'
-            const lienPaiement = `${appUrl}/paiement?candidatureId=${cand.id}`
-            const codePromo = rule.codePromo || 'RENTREE2026'
-
-            let text = rule.messageTemplate
-              .replace(/\{\{prenom\}\}/g, prenom)
-              .replace(/\{\{nom\}\}/g, nom)
-              .replace(/\{\{formation\}\}/g, formation)
-              .replace(/\{\{lien_paiement\}\}/g, lienPaiement)
-              .replace(/\{\{code_promo\}\}/g, codePromo)
-
-            if (rule.channel === 'EMAIL' || rule.channel === 'BOTH') {
-              try {
-                const htmlContent = renderEmail({
-                  title: `Rappel de votre candidature — ${formation}`,
-                  bodyHtml: `<p>${text.replace(/\n/g, '<br>')}</p>`,
-                  ctaLabel: 'Finaliser mon inscription →',
-                  ctaUrl: lienPaiement,
-                })
-
-                await sendEmail({
-                  to: { email: cand.email, name: `${prenom} ${nom}`.trim() },
-                  subject: `[BourseFi] ${rule.name.includes('PROMO') ? '🎁 Réduction exclusive :' : 'Finalisez votre inscription pour'} ${formation}`,
-                  html: htmlContent,
-                  text,
-                })
-              } catch (err) {
-                console.error(`❌ Erreur relance auto pour ${cand.email}:`, err)
-              }
-            }
-
-            await prisma.autoRelanceLog.create({
-              data: {
-                candidatureId: cand.id,
-                scenarioStep: rule.scenarioStep,
-                channel: rule.channel,
-                status: 'SENT',
-              },
-            })
-
-            await prisma.candidature.update({
-              where: { id: cand.id },
-              data: {
-                autoRelanceStep: rule.scenarioStep,
-                lastAutoRelanceAt: now,
-                relanceCount: cand.relanceCount + 1,
-                lastRelanceAt: now,
-                lastChannelUsed: rule.channel,
-              },
-            })
-
-            await prisma.candidatureNote.create({
-              data: {
-                candidatureId: cand.id,
-                agentName: '🤖 Moteur Marketing BourseFi (Cron 15min)',
-                exchangeType: rule.channel === 'WHATSAPP' ? 'WHATSAPP' : rule.channel === 'EMAIL' ? 'EMAIL' : 'SUPPORT',
-                content: `[AUTOMATION MARKETING ${rule.name}]\n${text}`,
-                nextAction: rule.scenarioStep === 4 ? 'WAIT_CANDIDATE' : 'SEND_PAYMENT_LINK',
-              },
-            })
-
-            count++
-            break
+        // 2. Sécurité Cooldown : Ne JAMAIS relancer un candidat si une relance automatique a eu lieu il y a moins de 20 heures
+        if (cand.lastAutoRelanceAt) {
+          const hoursSinceLastRelance = (now.getTime() - new Date(cand.lastAutoRelanceAt).getTime()) / (1000 * 60 * 60)
+          if (hoursSinceLastRelance < 20) {
+            continue
           }
         }
+
+        // 3. Sécurité Statut : Ne jamais relancer les dossiers finalisés
+        if (cand.status === 'ACCEPTE' || cand.status === 'DOCUMENT_EMIS' || cand.status === 'REFUSE' || cand.status === 'TERMINE') {
+          continue
+        }
+
+        const ageHours = (now.getTime() - new Date(cand.createdAt).getTime()) / (1000 * 60 * 60)
+
+        // 4. Sélection intelligente du scénario approprié
+        let targetRule: typeof rules[0] | null = null
+
+        if (cand.autoRelanceStep === 0) {
+          // Premier envoi : si le dossier est ancien, sauter directement au scénario correspondant à son âge actuel
+          const validRules = rules.filter(r => ageHours >= r.triggerHours)
+          if (validRules.length > 0) {
+            // Prendre le scénario le plus élevé disponible pour son âge
+            targetRule = validRules[validRules.length - 1]
+          }
+        } else {
+          // Relances suivantes : prendre strictement le scénario suivant (cand.autoRelanceStep + 1)
+          const nextRule = rules.find(r => r.scenarioStep === cand.autoRelanceStep + 1)
+          if (nextRule && ageHours >= nextRule.triggerHours) {
+            targetRule = nextRule
+          }
+        }
+
+        if (!targetRule) continue
+
+        const rule = targetRule
+        const prenom = cand.firstName || cand.fullName.split(' ')[0] || 'Candidat'
+        const nom = cand.lastName || ''
+        const formation = cand.programme?.titre || 'votre formation'
+        const appUrl = process.env.NUXT_PUBLIC_APP_URL || 'https://boursefi.sn'
+        const lienPaiement = `${appUrl}/paiement?candidatureId=${cand.id}`
+        const codePromo = rule.codePromo || 'RENTREE2026'
+
+        let text = rule.messageTemplate
+          .replace(/\{\{prenom\}\}/g, prenom)
+          .replace(/\{\{nom\}\}/g, nom)
+          .replace(/\{\{formation\}\}/g, formation)
+          .replace(/\{\{lien_paiement\}\}/g, lienPaiement)
+          .replace(/\{\{code_promo\}\}/g, codePromo)
+
+        if (rule.channel === 'EMAIL' || rule.channel === 'BOTH') {
+          try {
+            const htmlContent = renderEmail({
+              title: `Rappel de votre candidature — ${formation}`,
+              bodyHtml: `<p>${text.replace(/\n/g, '<br>')}</p>`,
+              ctaLabel: 'Finaliser mon inscription →',
+              ctaUrl: lienPaiement,
+            })
+
+            await sendEmail({
+              to: { email: cand.email, name: `${prenom} ${nom}`.trim() },
+              subject: `[BourseFi] ${rule.name.includes('PROMO') ? '🎁 Réduction exclusive :' : 'Finalisez votre inscription pour'} ${formation}`,
+              html: htmlContent,
+              text,
+            })
+          } catch (err) {
+            console.error(`❌ Erreur relance auto pour ${cand.email}:`, err)
+          }
+        }
+
+        await prisma.autoRelanceLog.create({
+          data: {
+            candidatureId: cand.id,
+            scenarioStep: rule.scenarioStep,
+            channel: rule.channel,
+            status: 'SENT',
+          },
+        })
+
+        await prisma.candidature.update({
+          where: { id: cand.id },
+          data: {
+            autoRelanceStep: rule.scenarioStep,
+            lastAutoRelanceAt: now,
+            relanceCount: cand.relanceCount + 1,
+            lastRelanceAt: now,
+            lastChannelUsed: rule.channel,
+          },
+        })
+
+        await prisma.candidatureNote.create({
+          data: {
+            candidatureId: cand.id,
+            agentName: '🤖 Moteur Marketing BourseFi (Cron 15min)',
+            exchangeType: rule.channel === 'WHATSAPP' ? 'WHATSAPP' : rule.channel === 'EMAIL' ? 'EMAIL' : 'SUPPORT',
+            content: `[AUTOMATION MARKETING ${rule.name}]\n${text}`,
+            nextAction: rule.scenarioStep >= 4 ? 'WAIT_CANDIDATE' : 'SEND_PAYMENT_LINK',
+          },
+        })
+
+        processedEmails.add(candidateEmail)
+        count++
       }
 
       if (count > 0) {
