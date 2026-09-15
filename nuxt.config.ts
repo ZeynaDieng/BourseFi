@@ -34,6 +34,10 @@ export default defineNuxtConfig({
   css: ['~/assets/css/main.css'],
   nitro: {
     routeRules: {
+      '/': { swr: 3600 },
+      '/bourses/**': { swr: 3600 },
+      '/programmes/**': { swr: 3600 },
+      '/etablissements/**': { swr: 3600 },
       '/admin/**': { robots: false },
       '/etudiant/**': { robots: false },
       '/partenaire/**': { robots: false },
@@ -61,6 +65,8 @@ export default defineNuxtConfig({
       ],
       link: [
         { rel: 'icon', type: 'image/png', href: '/boursefi-logo.png' },
+        { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+        { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
         {
           rel: 'stylesheet',
           href: 'https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap'

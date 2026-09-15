@@ -88,6 +88,10 @@ model Etablissement {
   updatedAt         DateTime                  @updatedAt
   programmes        Programme[]
   contacts          EtablissementContact[]
+
+  @@index([status])
+  @@index([isDirectPartner])
+  @@index([ville])
 }
 
 model EtablissementContact {
@@ -150,6 +154,12 @@ model Programme {
   tarifs               Tarif[]
   etablissement        Etablissement @relation(fields: [etablissementId], references: [id], onDelete: Cascade)
   partner              Partner       @relation(fields: [partnerId], references: [id])
+
+  @@index([etablissementId])
+  @@index([partnerId])
+  @@index([status])
+  @@index([niveau])
+  @@index([createdAt])
 }
 
 model Tarif {
@@ -243,6 +253,9 @@ model User {
   autoRelanceStep        Int            @default(0)
   lastAutoRelanceAt      DateTime?
   relanceLogs            AutoRelanceLog[]
+
+  @@index([role])
+  @@index([createdAt])
 }
 
 model Session {
@@ -448,6 +461,9 @@ model Paiement {
   user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([token])
 }
 
 model AuditLog {
