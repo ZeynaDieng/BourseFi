@@ -433,7 +433,7 @@ async function runImportAMDI() {
         await tx.tarif.create({
           data: {
             programmeId: prog.id,
-            anneeAcademique: '2025-2026',
+            anneeAcademique: '2026-2027',
             label: progData.niveau === 'Licence' ? 'Licence 1 & Licence 2' : 'Année 1 & Année 2',
             montant: tBourse.l1_l2.montant,
             montantBourse: tBourse.l1_l2.montantBourse,
@@ -454,7 +454,7 @@ async function runImportAMDI() {
         await tx.tarif.create({
           data: {
             programmeId: prog.id,
-            anneeAcademique: '2025-2026',
+            anneeAcademique: '2026-2027',
             label: 'Licence 3',
             montant: tBourse.l3.montant,
             montantBourse: tBourse.l3.montantBourse,
@@ -475,7 +475,7 @@ async function runImportAMDI() {
         await tx.tarif.create({
           data: {
             programmeId: prog.id,
-            anneeAcademique: '2025-2026',
+            anneeAcademique: '2026-2027',
             label: 'Master 1 & Master 2',
             montant: tBourse.m1_m2.montant,
             montantBourse: tBourse.m1_m2.montantBourse,
@@ -496,7 +496,7 @@ async function runImportAMDI() {
         await tx.tarif.create({
           data: {
             programmeId: prog.id,
-            anneeAcademique: '2025-2026',
+            anneeAcademique: '2026-2027',
             label: 'Formation 6 mois',
             montant: tBourse.c1.montant,
             montantBourse: tBourse.c1.montantBourse,

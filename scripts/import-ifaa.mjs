@@ -975,12 +975,12 @@ async function runImport() {
 
       // --- TARIF NOMINAL ET PRÉFÉRENTIEL (2025/2026) ---
       let existingTarif = await tx.tarif.findFirst({
-        where: { programmeId: prog.id, anneeAcademique: '2025/2026' }
+        where: { programmeId: prog.id, anneeAcademique: '2026-2027' }
       })
 
       const tarifPayload = {
         programmeId: prog.id,
-        anneeAcademique: '2025/2026',
+        anneeAcademique: '2026-2027',
         montant: progData.tarifNormal || progData.tarifBoursier,
         montantBourse: progData.tarifBoursier,
         fraisInscription: progData.inscription,
@@ -989,7 +989,7 @@ async function runImport() {
         autresFrais: progData.fraisExamenSante || null,
         devise: 'FCFA',
         frequence: 'ANNUEL',
-        label: `Tarif Préférentiel 2025/2026 (${progData.parcours})`,
+        label: `Tarif Préférentiel 2026-2027 (${progData.parcours})`,
         source: 'DOCUMENT',
         isVerified: true,
         isDefault: true,

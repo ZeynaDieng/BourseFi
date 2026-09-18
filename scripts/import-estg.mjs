@@ -350,7 +350,7 @@ async function runImport() {
         await tx.tarif.create({
           data: {
             programmeId: prog.id,
-            anneeAcademique: '2025-2026',
+            anneeAcademique: '2026-2027',
             label: 'Licence 1 & Licence 2',
             montant: 580000,
             montantBourse: 355000,
@@ -372,7 +372,7 @@ async function runImport() {
         await tx.tarif.create({
           data: {
             programmeId: prog.id,
-            anneeAcademique: '2025-2026',
+            anneeAcademique: '2026-2027',
             label: 'Licence 3',
             montant: 695000,
             montantBourse: 425000,
@@ -394,7 +394,7 @@ async function runImport() {
         await tx.tarif.create({
           data: {
             programmeId: prog.id,
-            anneeAcademique: '2025-2026',
+            anneeAcademique: '2026-2027',
             label: 'Master 1',
             montant: 820000,
             montantBourse: 455000,
@@ -415,7 +415,7 @@ async function runImport() {
         await tx.tarif.create({
           data: {
             programmeId: prog.id,
-            anneeAcademique: '2025-2026',
+            anneeAcademique: '2026-2027',
             label: 'Master 2',
             montant: 870000,
             montantBourse: 530000,

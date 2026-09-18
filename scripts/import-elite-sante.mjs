@@ -309,14 +309,14 @@ async function runImportPassage(passageNumber) {
 
     // Gestion du tarif
     let tarif = await prisma.tarif.findFirst({
-      where: { programmeId: progId, anneeAcademique: '2025-2026' }
+      where: { programmeId: progId, anneeAcademique: '2026-2027' }
     })
 
     if (!tarif) {
       await prisma.tarif.create({
         data: {
           programmeId: progId,
-          anneeAcademique: '2025-2026',
+          anneeAcademique: '2026-2027',
           montant: offer.tarifNormal,
           montantBourse: offer.tarifBoursier,
           fraisInscription: offer.fraisInscription,

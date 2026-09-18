@@ -291,7 +291,7 @@ async function runImport() {
       const tarifConfig = progData.tarifsBourse.default
 
       const existingTarif = await tx.tarif.findFirst({
-        where: { programmeId: prog.id, anneeAcademique: '2025-2026' }
+        where: { programmeId: prog.id, anneeAcademique: '2026-2027' }
       })
 
       let activeTarif
@@ -315,8 +315,8 @@ async function runImport() {
         activeTarif = await tx.tarif.create({
           data: {
             programmeId: prog.id,
-            anneeAcademique: '2025-2026',
-            label: 'Tarif Certifiant Officiel ABS 2025-2026',
+            anneeAcademique: '2026-2027',
+            label: 'Tarif Certifiant Officiel ABS 2026-2027',
             montant: tarifConfig.montant,
             montantBourse: tarifConfig.montantBourse,
             fraisInscription: tarifConfig.inscription,
@@ -401,8 +401,8 @@ async function verifyAssertions() {
     assert(prog.status === 'ACTIVE', `Le programme "${progData.titre}" doit être ACTIVE`)
 
     const defaultTarif = progData.tarifsBourse.default
-    const activeTarif = prog.tarifs.find((t) => t.anneeAcademique === '2025-2026' && t.isDefault)
-    assert(activeTarif !== undefined, `Le tarif 2025-2026 doit exister pour "${progData.titre}"`)
+    const activeTarif = prog.tarifs.find((t) => t.anneeAcademique === '2026-2027' && t.isDefault)
+    assert(activeTarif !== undefined, `Le tarif 2026-2027 doit exister pour "${progData.titre}"`)
     assert.strictEqual(activeTarif.montant, defaultTarif.montant, `Montant global incorrect pour ${progData.titre}`)
     assert.strictEqual(activeTarif.fraisInscription, defaultTarif.inscription, `Frais d'inscription incorrects pour ${progData.titre}`)
     assert.strictEqual(activeTarif.mensualite, defaultTarif.mensualite, `Mensualité incorrecte pour ${progData.titre}`)
