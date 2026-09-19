@@ -9,11 +9,21 @@ function forbidden() {
 /**
  * Vérifie qu'un utilisateur authentifié peut lire un fichier sous /uploads/{segments}.
  */
-export async function assertUploadAccess(user: User, segments: string[]) {
+export async function assertUploadAccess(user: User | null, segments: string[]) {
+  const [kind, resourceId] = segments
+
+  // Les images publiques d'écoles, fiches métiers et témoignages sont librement accessibles
+  if (kind === 'ecoles' || kind === 'public' || kind === 'testimonials' || kind === 'metiers') {
+    return
+  }
+
+  // Pour les documents privés (users, candidatures), l'authentification est obligatoire
+  if (!user) {
+    throw createError({ statusCode: 401, statusMessage: 'Authentification requise.' })
+  }
+
   if (user.role === 'ADMIN') return
 
-  const [kind, resourceId] = segments
-  if (kind === 'ecoles' || kind === 'public') return
   if (!kind || !resourceId) forbidden()
 
   if (kind === 'users') {
