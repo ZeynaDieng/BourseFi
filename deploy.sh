@@ -12,11 +12,10 @@ git pull origin main
 echo "📦 Installation des dépendances..."
 npm install
 
-# 3. Mettre à jour Prisma & Données Écoles
+# 3. Mettre à jour Prisma
 echo "🗄️ Génération du client Prisma et mise à jour BDD..."
 npx prisma generate
 npx prisma db push
-node scripts/import-ehes.mjs
 
 # 4. Build de production Nuxt
 echo "🔨 Compilation de l'application (npm run build)..."
