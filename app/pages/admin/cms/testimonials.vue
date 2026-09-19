@@ -189,8 +189,12 @@ const drawerTitle = computed(() => (editingId.value ? 'Modifier le témoignage' 
           <textarea v-model="form.quote" rows="6" class="admin-input min-h-[120px]" />
           <label class="admin-label">Initiales (optionnel, max 8 car.)</label>
           <input v-model="form.initials" class="admin-input" maxlength="8" />
-          <label class="admin-label">URL photo (optionnel)</label>
-          <input v-model="form.avatarUrl" type="url" class="admin-input" placeholder="https://…" />
+          <AdminImageUpload
+            v-model="form.avatarUrl"
+            folder="testimonials"
+            label="Photo (optionnel)"
+            placeholder="https://… ou parcourir une photo"
+          />
           <label class="admin-label">École (preuve sociale)</label>
           <input v-model="form.ecoleNom" class="admin-input" placeholder="ESP" />
           <label class="admin-label">Partenaire financeur</label>

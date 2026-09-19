@@ -265,10 +265,14 @@ const drawerTitle = computed(() => (editingId.value ? 'Modifier la fiche métier
             Note complémentaire salaire
             <input v-model="form.salaryNote" class="admin-input" />
           </label>
-          <label class="admin-label sm:col-span-2">
-            URL image de couverture
-            <input v-model="form.coverImageUrl" type="url" class="admin-input" placeholder="https://…" />
-          </label>
+          <div class="sm:col-span-2">
+            <AdminImageUpload
+              v-model="form.coverImageUrl"
+              folder="metiers"
+              label="URL image de couverture"
+              placeholder="https://… ou parcourir une image"
+            />
+          </div>
           <label class="admin-label sm:col-span-2">
             Missions (une par ligne)
             <textarea v-model="form.missionsText" rows="5" class="admin-input min-h-[100px]" />

@@ -13,6 +13,7 @@ export async function assertUploadAccess(user: User, segments: string[]) {
   if (user.role === 'ADMIN') return
 
   const [kind, resourceId] = segments
+  if (kind === 'ecoles' || kind === 'public') return
   if (!kind || !resourceId) forbidden()
 
   if (kind === 'users') {

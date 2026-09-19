@@ -432,14 +432,22 @@ const drawerTitle = computed(() => (editingId.value ? 'Modifier l’établisseme
             Résumé / Présentation
             <textarea v-model="form.resume" rows="4" class="admin-input min-h-[96px]" />
           </label>
-          <label class="admin-label">
-            URL Photo Couverture
-            <input v-model="form.coverImageUrl" type="url" class="admin-input" />
-          </label>
-          <label class="admin-label">
-            URL Logo
-            <input v-model="form.logoUrl" type="url" class="admin-input" />
-          </label>
+          <div class="sm:col-span-1">
+            <AdminImageUpload
+              v-model="form.coverImageUrl"
+              folder="ecoles"
+              label="Photo de Couverture"
+              placeholder="https://... ou parcourir un fichier"
+            />
+          </div>
+          <div class="sm:col-span-1">
+            <AdminImageUpload
+              v-model="form.logoUrl"
+              folder="ecoles"
+              label="Logo de l'école"
+              placeholder="https://... ou parcourir un logo"
+            />
+          </div>
         </div>
         <template #footer>
           <div class="flex justify-between items-center w-full">
