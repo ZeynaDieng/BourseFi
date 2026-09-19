@@ -83,7 +83,7 @@ function formatBourses(count: number) {
 
       <p class="mt-2 flex items-center gap-1.5 text-sm text-slate-500">
         <span class="material-symbols-outlined text-[18px] text-red-600">location_on</span>
-        {{ ecole.ville }}
+        {{ ecole.adresse || ecole.ville }}
       </p>
 
       <ul class="mt-4 space-y-1.5 text-sm font-medium text-primary">

@@ -34,10 +34,6 @@ export default defineNuxtConfig({
   css: ['~/assets/css/main.css'],
   nitro: {
     routeRules: {
-      '/': { swr: 3600 },
-      '/bourses/**': { swr: 3600 },
-      '/programmes/**': { swr: 3600 },
-      '/etablissements/**': { swr: 3600 },
       '/admin/**': { robots: false },
       '/etudiant/**': { robots: false },
       '/partenaire/**': { robots: false },

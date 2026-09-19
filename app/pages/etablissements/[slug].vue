@@ -11,14 +11,20 @@ const ecoleBourses = computed(() =>
   (allBourses.value ?? []).filter((b) => b.etablissementSlug === ecole.value?.slug),
 )
 
+const isExpanded = ref(false)
+
 const initials = computed(() => {
-  const nom = ecole.value?.nom ?? ''
-  const words = nom.split(/\s+/).filter(Boolean)
-  return words
-    .slice(0, 3)
-    .map((w: string) => w[0]?.toUpperCase() ?? '')
-    .join('')
-    .slice(0, 3) || 'BF'
+  const name = (ecole.value?.nom ?? '').trim()
+  const words = name
+    .split(/\s+/)
+    .map((w) => w.replace(/[^a-zA-Z0-9]/g, ''))
+    .filter(Boolean)
+  if (!words.length) return 'BF'
+  const firstWord = words[0]
+  if (firstWord && firstWord.length >= 2 && firstWord === firstWord.toUpperCase() && /^[A-Z0-9]+$/.test(firstWord)) {
+    return firstWord.slice(0, 4)
+  }
+  return words.slice(0, 3).map((w: string) => w[0]?.toUpperCase() ?? '').join('').slice(0, 3) || 'BF'
 })
 
 const { whatsappUrl } = useBoursefiContact()
@@ -63,7 +69,7 @@ const { whatsappUrl } = useBoursefiContact()
       <p class="mt-4 flex flex-wrap items-center justify-center gap-2 text-sm font-semibold text-slate-500">
         <span class="flex items-center gap-1">
           <span class="material-symbols-outlined text-base">location_on</span>
-          {{ ecole.ville }}
+          {{ ecole.adresse || ecole.ville }}
         </span>
         <span v-if="ecole.typeLabel" class="h-1 w-1 rounded-full bg-slate-300" />
         <span v-if="ecole.typeLabel">{{ ecole.typeLabel }}</span>
@@ -71,12 +77,34 @@ const { whatsappUrl } = useBoursefiContact()
     </header>
 
     <div class="space-y-12">
-      <!-- Section À propos -->
+      <!-- Section À propos avec accordéon minimaliste Voir Plus / Voir Moins -->
       <section v-if="ecole.resume" class="text-center">
         <h2 class="mb-4 text-xs font-bold uppercase tracking-widest text-slate-400">À propos</h2>
-        <p class="mx-auto max-w-2xl text-lg leading-relaxed italic text-slate-600">
-          {{ ecole.resume }}
-        </p>
+        <div class="relative mx-auto max-w-2xl text-center">
+          <div
+            class="relative overflow-hidden transition-all duration-300"
+            :class="{ 'line-clamp-3 md:line-clamp-4': !isExpanded }"
+          >
+            <p class="text-base leading-relaxed italic text-slate-600 md:text-lg">
+              {{ ecole.resume }}
+            </p>
+          </div>
+
+          <button
+            v-if="ecole.resume && ecole.resume.length > 120"
+            @click="isExpanded = !isExpanded"
+            type="button"
+            class="mt-3 inline-flex items-center gap-1.5 rounded-full border border-slate-200/80 bg-white px-4 py-1.5 text-xs font-bold text-slate-600 transition-all hover:bg-slate-50 hover:text-primary active:scale-95 shadow-xs"
+          >
+            <span>{{ isExpanded ? 'Voir moins' : 'Voir plus' }}</span>
+            <span
+              class="material-symbols-outlined text-base transition-transform duration-300"
+              :class="{ 'rotate-180': isExpanded }"
+            >
+              keyboard_arrow_down
+            </span>
+          </button>
+        </div>
       </section>
 
       <!-- Section Aide & Support BourseFi -->

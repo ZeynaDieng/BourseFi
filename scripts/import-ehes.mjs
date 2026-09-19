@@ -4,205 +4,31 @@ import assert from 'node:assert'
 const prisma = new PrismaClient()
 
 const EHES_ETAB_SLUG = 'ehes-dakar'
-const EHES_ETAB_NAME = 'École des Hautes Études en Sciences (EHES)'
+const EHES_ETAB_NAME = 'EHES Dakar (École des Hautes Études en Sciences)'
+const EHES_ETAB_ADRESSE = "Dakar, Rond point Virage"
+const EHES_ETAB_TYPE = 'École supérieure privée'
+const EHES_ETAB_RESUME = `Fondé sur des exigences d'excellence et de sélectivité, le Groupe EHES Dakar s'impose comme une institution de référence au Sénégal et en Afrique. Véritable pionnière dans les formations de pointe en ingénierie du pétrole et du gaz, en transport et logistique option pétrole et gaz, ainsi qu'en gestion des entreprises pétrolières et gazières.
+
+Le groupe EHES Dakar s'appuie sur un corps professoral, composé exclusivement d'ingénieurs, de docteurs et de professeurs de rang magistral. Cette excellence académique s'articule autour d'une pédagogie active, plaçant l'étudiant au cœur de situations réelles et professionnelles pour stimuler son esprit critique, son sens de l'innovation et sa capacité à relever les défis complexes.`
 
 const EHES_ADVANTAGES = [
-  'Stages professionnels',
-  'Programme d\'anglais intensif',
-  'Intégration de l\'intelligence artificielle dans les formations',
-  'Accompagnement à l\'insertion professionnelle',
-  'Diplômes reconnus',
-  'Partenariats internationaux',
-  'Formations professionnalisantes'
+  'Corps professoral composé exclusivement d\'ingénieurs, docteurs et professeurs de rang magistral',
+  'Pédagogie active axée sur des situations réelles et professionnelles',
+  'Pionnier dans les formations pétrole et gaz au Sénégal et en Afrique',
+  'Partenariats stratégiques et insertion professionnelle rapide',
+  'Diplômes reconnus'
 ].join(' · ')
 
-// 9 Domaines de formation officiels EHES
-const DOMAINES_EHES = [
+// 11 Programmes officiels EHES Dakar pris en compte dans le partenariat BourseFi
+const PROGRAMMES_EHES = [
   {
-    baseSlug: 'ehes-gestion-des-entreprises-et-des-administrations',
-    titre: 'Gestion des Entreprises et des Administrations (GEA)',
-    code: 'GEA',
-    domaine: 'Management et Administration',
-    description: 'La formation GEA prépare les étudiants aux métiers de la gestion, de l\'administration, du management, de la comptabilité, des ressources humaines, du marketing et de la finance.',
-    debouches: [
-      'Responsable administratif',
-      'Assistant comptable',
-      'Responsable financier',
-      'Responsable marketing',
-      'Responsable RH',
-      'Gestionnaire de projet',
-      'Entrepreneur',
-      'Cadre d\'entreprise'
-    ],
-    fraisInscription: 282500,
-    mensualiteNormale: 85000,
-    mensualiteBourseFi: 59500,
-    coveragePercent: 30,
-    diplomesDetail: [
-      { diplome: 'Licence', niveau: 'Licence', slugSuffix: 'licence', duree: '3 ans (L1, L2, L3)' },
-      { diplome: 'Bachelor', niveau: 'Bachelor', slugSuffix: 'bachelor', duree: '3 ans' },
-      { diplome: 'Master', niveau: 'Master', slugSuffix: 'master', duree: '2 ans (M1, M2)' }
-    ]
-  },
-  {
-    baseSlug: 'ehes-transport-et-logistique',
-    titre: 'Transport et Logistique',
-    domaine: 'Transport et Supply Chain',
-    description: 'Formation spécialisée dans la gestion des flux, de la chaîne logistique, du transport national et international ainsi que de la supply chain.',
-    debouches: [
-      'Responsable logistique',
-      'Responsable supply chain',
-      'Gestionnaire de stock',
-      'Agent de transit',
-      'Responsable transport',
-      'Responsable import-export'
-    ],
-    fraisInscription: 282500,
-    mensualiteNormale: 85000,
-    mensualiteBourseFi: 59500,
-    coveragePercent: 30,
-    diplomesDetail: [
-      { diplome: 'Licence', niveau: 'Licence', slugSuffix: 'licence', duree: '3 ans (L1, L2, L3)' },
-      { diplome: 'Bachelor', niveau: 'Bachelor', slugSuffix: 'bachelor', duree: '3 ans' },
-      { diplome: 'Master', niveau: 'Master', slugSuffix: 'master', duree: '2 ans (M1, M2)' }
-    ]
-  },
-  {
-    baseSlug: 'ehes-logistique-petroliere-et-gaziere',
-    titre: 'Logistique Pétrolière et Gazière',
-    domaine: 'Pétrole, Gaz et Logistique',
-    description: 'Formation orientée vers la gestion logistique des activités pétrolières et gazières, le transport des hydrocarbures et la supply chain énergétique.',
-    debouches: [
-      'Logisticien pétrolier',
-      'Responsable approvisionnement',
-      'Responsable transport hydrocarbures',
-      'Coordinateur logistique'
-    ],
-    fraisInscription: 282500,
-    mensualiteNormale: 85000,
-    mensualiteBourseFi: 59500,
-    coveragePercent: 30,
-    diplomesDetail: [
-      { diplome: 'Licence', niveau: 'Licence', slugSuffix: 'licence', duree: '3 ans (L1, L2, L3)' },
-      { diplome: 'Bachelor', niveau: 'Bachelor', slugSuffix: 'bachelor', duree: '3 ans' },
-      { diplome: 'Master', niveau: 'Master', slugSuffix: 'master', duree: '2 ans (M1, M2)' }
-    ]
-  },
-  {
-    baseSlug: 'ehes-marketing-vente-et-commerce',
-    titre: 'Marketing Vente et Commerce',
-    domaine: 'Commerce et Marketing',
-    description: 'Formation spécialisée dans les techniques commerciales, la négociation, la relation client, le marketing et le développement des ventes.',
-    debouches: [
-      'Responsable commercial',
-      'Chef de produit',
-      'Responsable marketing',
-      'Business developer',
-      'Responsable clientèle'
-    ],
-    fraisInscription: 282500,
-    mensualiteNormale: 85000,
-    mensualiteBourseFi: 59500,
-    coveragePercent: 30,
-    diplomesDetail: [
-      { diplome: 'Licence', niveau: 'Licence', slugSuffix: 'licence', duree: '3 ans (L1, L2, L3)' },
-      { diplome: 'Bachelor', niveau: 'Bachelor', slugSuffix: 'bachelor', duree: '3 ans' },
-      { diplome: 'Master', niveau: 'Master', slugSuffix: 'master', duree: '2 ans (M1, M2)' }
-    ]
-  },
-  {
-    baseSlug: 'ehes-marketing-digital',
-    titre: 'Marketing Digital',
-    domaine: 'Marketing Digital',
-    description: 'Formation orientée vers le marketing numérique, les réseaux sociaux, la publicité digitale, le référencement et l\'acquisition client.',
-    debouches: [
-      'Community Manager',
-      'Traffic Manager',
-      'Responsable Marketing Digital',
-      'Consultant SEO',
-      'Growth Marketer'
-    ],
-    fraisInscription: 282500,
-    mensualiteNormale: 85000,
-    mensualiteBourseFi: 59500,
-    coveragePercent: 30,
-    diplomesDetail: [
-      { diplome: 'Licence', niveau: 'Licence', slugSuffix: 'licence', duree: '3 ans (L1, L2, L3)' },
-      { diplome: 'Bachelor', niveau: 'Bachelor', slugSuffix: 'bachelor', duree: '3 ans' },
-      { diplome: 'Master', niveau: 'Master', slugSuffix: 'master', duree: '2 ans (M1, M2)' }
-    ]
-  },
-  {
-    baseSlug: 'ehes-data-et-intelligence-artificielle',
-    titre: 'Data et Intelligence Artificielle',
-    domaine: 'Data Science et IA',
-    description: 'Formation spécialisée dans la science des données, l\'intelligence artificielle, le machine learning, l\'analyse de données et les technologies émergentes.',
-    debouches: [
-      'Data Analyst',
-      'Data Scientist',
-      'AI Engineer',
-      'Machine Learning Engineer',
-      'Consultant Data'
-    ],
-    fraisInscription: 282500,
-    mensualiteNormale: 85000,
-    mensualiteBourseFi: 59500,
-    coveragePercent: 30,
-    diplomesDetail: [
-      { diplome: 'Licence', niveau: 'Licence', slugSuffix: 'licence', duree: '3 ans (L1, L2, L3)' },
-      { diplome: 'Bachelor', niveau: 'Bachelor', slugSuffix: 'bachelor', duree: '3 ans' },
-      { diplome: 'Master', niveau: 'Master', slugSuffix: 'master', duree: '2 ans (M1, M2)' }
-    ]
-  },
-  {
-    baseSlug: 'ehes-genie-civil',
-    titre: 'Génie Civil',
-    domaine: 'BTP',
-    description: 'Formation spécialisée dans la conception, la réalisation et la gestion des infrastructures et bâtiments.',
-    debouches: [
-      'Conducteur de travaux',
-      'Ingénieur BTP',
-      'Dessinateur projeteur',
-      'Chef de chantier',
-      'Responsable travaux'
-    ],
-    fraisInscription: 282500,
-    mensualiteNormale: 60000,
-    mensualiteBourseFi: 42000,
-    coveragePercent: 30,
-    diplomesDetail: [
-      { diplome: 'BTS d\'État', niveau: 'BTS', slugSuffix: 'bts', duree: '2 ans (BTS1, BTS2)' },
-      { diplome: 'Licence', niveau: 'Licence', slugSuffix: 'licence', duree: '3 ans (L1, L2, L3)' },
-      { diplome: 'Master', niveau: 'Master', slugSuffix: 'master', duree: '2 ans (M1, M2)' }
-    ]
-  },
-  {
-    baseSlug: 'ehes-geomatique',
-    titre: 'Géomatique',
-    domaine: 'Cartographie et Géomatique',
-    description: 'Formation spécialisée dans les SIG, la cartographie numérique, le GPS, la télédétection et l\'analyse spatiale.',
-    debouches: [
-      'Géomaticien',
-      'Cartographe',
-      'Technicien SIG',
-      'Analyste spatial',
-      'Topographe'
-    ],
-    fraisInscription: 282500,
-    mensualiteNormale: 85000,
-    mensualiteBourseFi: 59500,
-    coveragePercent: 30,
-    diplomesDetail: [
-      { diplome: 'BTS d\'État', niveau: 'BTS', slugSuffix: 'bts', duree: '2 ans (BTS1, BTS2)' },
-      { diplome: 'Licence', niveau: 'Licence', slugSuffix: 'licence', duree: '3 ans (L1, L2, L3)' },
-      { diplome: 'Master', niveau: 'Master', slugSuffix: 'master', duree: '2 ans (M1, M2)' }
-    ]
-  },
-  {
-    baseSlug: 'ehes-ingenierie-du-petrole-et-du-gaz',
-    titre: 'Ingénierie du Pétrole et du Gaz',
-    domaine: 'Pétrole et Gaz',
-    description: 'Programme international bilingue formant des spécialistes du secteur pétrolier et gazier. Les étudiants sont formés aux techniques d\'exploration, de production, de transport et de gestion des hydrocarbures.',
+    slug: 'ehes-ingenierie-du-petrole-et-du-gaz-bs',
+    titre: 'Ingénierie du Pétrole et du Gaz - B.S',
+    niveau: 'Bachelor',
+    diplome: 'Bachelor of Science (B.S)',
+    duree: '3 ans',
+    domaine: 'Ingénierie, Pétrole & Gaz',
+    description: 'Programme international de référence formant des spécialistes de pointe du secteur pétrolier et gazier en exploration, production, transport et gestion des hydrocarbures.',
     debouches: [
       'Ingénieur pétrolier',
       'Ingénieur forage',
@@ -210,42 +36,183 @@ const DOMAINES_EHES = [
       'Responsable production',
       'Responsable QHSE'
     ],
-    fraisInscription: 382500,
-    mensualiteNormale: 175000,
-    mensualiteBourseFi: 136500,
-    coveragePercent: 22,
-    diplomesDetail: [
-      { diplome: 'Bachelor International', niveau: 'Bachelor', slugSuffix: 'bachelor', duree: '4 ans (Bachelor 1, 2, 3, 4)' }
-    ]
+    montantNormal: 2132500,
+    montantBourseFi: 1732500
+  },
+  {
+    slug: 'ehes-transport-et-logistique-option-petrole-et-gaz',
+    titre: 'Transport & Logistique Option Pétrole et Gaz',
+    niveau: 'Licence',
+    diplome: 'Licence',
+    duree: '3 ans',
+    domaine: 'Transport, Logistique & Énergie',
+    description: 'Formation spécialisée dans la gestion logistique des activités pétrolières et gazières, le transport des hydrocarbures et la supply chain énergétique.',
+    debouches: [
+      'Logisticien pétrolier',
+      'Responsable approvisionnement',
+      'Responsable transport hydrocarbures',
+      'Coordinateur logistique'
+    ],
+    montantNormal: 1132500,
+    montantBourseFi: 877500
+  },
+  {
+    slug: 'ehes-gestion-des-entreprises-option-petrole-et-gaz',
+    titre: 'Gestion des Entreprises Option Pétrole et Gaz',
+    niveau: 'Licence',
+    diplome: 'Licence',
+    duree: '3 ans',
+    domaine: 'Management & Énergie',
+    description: 'Formation préparant aux métiers de la gestion, de l\'administration et du management adaptés aux spécificités des entreprises pétrolières et gazières.',
+    debouches: [
+      'Responsable administratif pétrolier',
+      'Assistant gestionnaire',
+      'Responsable financier',
+      'Cadre d\'entreprise secteur énergie'
+    ],
+    montantNormal: 1132500,
+    montantBourseFi: 877500
+  },
+  {
+    slug: 'ehes-marketing-option-digital-et-intelligence-artificielle',
+    titre: 'Marketing Option Digital et Intelligence Artificielle',
+    niveau: 'Licence',
+    diplome: 'Licence',
+    duree: '3 ans',
+    domaine: 'Marketing Digital & IA',
+    description: 'Programme innovant combinant marketing numérique, IA, réseaux sociaux, stratégie d\'acquisition client et nouvelles technologies.',
+    debouches: [
+      'Community Manager',
+      'Growth Marketer',
+      'Responsable Marketing Digital & IA',
+      'Consultant SEO/Data Marketing'
+    ],
+    montantNormal: 1132500,
+    montantBourseFi: 877500
+  },
+  {
+    slug: 'ehes-genie-civil',
+    titre: 'Génie Civil',
+    niveau: 'Licence',
+    diplome: 'Licence',
+    duree: '3 ans',
+    domaine: 'BTP & Construction',
+    description: 'Formation axée sur la conception, le calcul de structures, la réalisation et la gestion de chantier de bâtiments et travaux publics.',
+    debouches: [
+      'Conducteur de travaux',
+      'Ingénieur BTP',
+      'Dessinateur projeteur',
+      'Chef de chantier'
+    ],
+    montantNormal: 882500,
+    montantBourseFi: 682500
+  },
+  {
+    slug: 'ehes-geotechnique',
+    titre: 'Géotechnique',
+    niveau: 'Licence',
+    diplome: 'Licence',
+    duree: '3 ans',
+    domaine: 'Géologie & BTP',
+    description: 'Formation spécialisée dans la mécanique des sols, l\'étude géotechnique des fondations, les travaux de terrassement et de sous-sol.',
+    debouches: [
+      'Géotechnicien',
+      'Ingénieur géotechnique',
+      'Responsable contrôle de sols',
+      'Technicien d\'essais en laboratoire BTP'
+    ],
+    montantNormal: 882500,
+    montantBourseFi: 682500
+  },
+  {
+    slug: 'ehes-master-supply-chain-management-logistique-petroliere',
+    titre: 'Master en Supply Chain Management option Logistique Pétrolière',
+    niveau: 'Master',
+    diplome: 'Master',
+    duree: '2 ans',
+    domaine: 'Supply Chain & Pétrole',
+    description: 'Master de haut niveau préparant aux fonctions de direction de la chaîne logistique, des approvisionnements et du transit dans le secteur pétrolier et gazier.',
+    debouches: [
+      'Directeur Supply Chain',
+      'Responsable Logistique Pétrolière',
+      'Manager Transport Hydrocarbures',
+      'Consultant Logistique internationale'
+    ],
+    montantNormal: 2750000,
+    montantBourseFi: 2350000
+  },
+  {
+    slug: 'ehes-master-management-de-projet',
+    titre: 'Master en Management de Projet',
+    niveau: 'Master',
+    diplome: 'Master',
+    duree: '2 ans',
+    domaine: 'Management & Stratégie',
+    description: 'Master formant des chefs de projet agiles capables de piloter des projets complexes, de la conception à la réalisation, dans tous secteurs d\'activité.',
+    debouches: [
+      'Chef de Projet',
+      'Directeur de Projet',
+      'Consultant en Organisation',
+      'Project Management Officer (PMO)'
+    ],
+    montantNormal: 2400000,
+    montantBourseFi: 2000000
+  },
+  {
+    slug: 'ehes-master-genie-civil',
+    titre: 'Master en Génie Civil',
+    niveau: 'Master',
+    diplome: 'Master',
+    duree: '2 ans',
+    domaine: 'BTP & Génie Civil',
+    description: 'Master formant des cadres supérieurs et ingénieurs concepteurs de grands ouvrages de bâtiment, d\'infrastructures et de travaux publics.',
+    debouches: [
+      'Ingénieur Structure',
+      'Directeur de Travaux',
+      'Chef de projet BTP',
+      'Consultant Génie Civil'
+    ],
+    montantNormal: 2300000,
+    montantBourseFi: 2000000
+  },
+  {
+    slug: 'ehes-master-management-de-ressources-humaines',
+    titre: 'Master en Management de Ressources Humaines',
+    niveau: 'Master',
+    diplome: 'Master',
+    duree: '2 ans',
+    domaine: 'Ressources Humaines',
+    description: 'Master visant à maîtriser les compétences stratégiques des RH : recrutement, gestion des talents, droit du travail, formation et conduite du changement.',
+    debouches: [
+      'Responsable RH',
+      'Directeur des Ressources Humaines (DRH)',
+      'Consultant en Recrutement & Talents',
+      'Responsable Formation'
+    ],
+    montantNormal: 2400000,
+    montantBourseFi: 2000000
+  },
+  {
+    slug: 'ehes-master-marketing',
+    titre: 'Master Marketing',
+    niveau: 'Master',
+    diplome: 'Master',
+    duree: '2 ans',
+    domaine: 'Marketing & Stratégie',
+    description: 'Master formant des cadres marketing stratégique et opérationnel capables d\'élaborer et d\'exécuter des stratégies de marque, de marché et de croissance.',
+    debouches: [
+      'Directeur Marketing',
+      'Chef de Groupe / Chef de Produit',
+      'Responsable Stratégie Commerciale',
+      'Consultant Marketing'
+    ],
+    montantNormal: 2400000,
+    montantBourseFi: 2000000
   }
 ]
 
-// Génération de la liste complète des 25 programmes détaillés par Diplôme / Cycle
-function getDetailedEHESProgrammes() {
-  const programmes = []
-  for (const d of DOMAINES_EHES) {
-    for (const dt of d.diplomesDetail) {
-      programmes.push({
-        slug: `${d.baseSlug}-${dt.slugSuffix}`,
-        titre: `${d.titre} — ${dt.diplome}`,
-        niveauLabel: dt.niveau,
-        duree: dt.duree,
-        diplome: dt.diplome,
-        domaine: d.domaine,
-        description: d.description,
-        debouches: d.debouches,
-        fraisInscription: d.fraisInscription,
-        mensualiteNormale: d.mensualiteNormale,
-        mensualiteBourseFi: d.mensualiteBourseFi,
-        coveragePercent: d.coveragePercent
-      })
-    }
-  }
-  return programmes
-}
-
 export async function runImportEHES() {
-  console.log("🚀 Début de l'importation officielle EHES (25 programmes détaillés par Diplômes/Niveaux)...")
+  console.log("🚀 Début de l'importation officielle EHES Dakar (11 programmes officiels)...")
 
   const report = {
     etabCreatedOrUpdated: false,
@@ -255,27 +222,28 @@ export async function runImportEHES() {
     boursesUpserted: 0
   }
 
-  const detailedProgrammes = getDetailedEHESProgrammes()
-
   await prisma.$transaction(async (tx) => {
     // 1. Partenaire par défaut (BourseFi)
     let partner = await tx.partner.findFirst({ where: { slug: 'boursefi' } })
+    if (!partner) {
+      partner = await tx.partner.findFirst({ where: { slug: 'boursefi-partenaire' } })
+    }
     if (!partner) {
       partner = await tx.partner.findFirst()
     }
     assert.ok(partner, "Un partenaire par défaut doit exister")
 
-    // 2. Établissement EHES
+    // 2. Établissement EHES Dakar
     const etab = await tx.etablissement.upsert({
       where: { slug: EHES_ETAB_SLUG },
       update: {
         nom: EHES_ETAB_NAME,
         ville: 'Dakar',
-        adresse: 'Dakar, Sénégal',
+        adresse: EHES_ETAB_ADRESSE,
         accreditation: 'Agréé par le Ministère de l\'Enseignement Supérieur, de la Recherche et de l\'Innovation du Sénégal (MESRI)',
         site: 'https://ehes.sn',
-        resume: 'L\'École des Hautes Études en Sciences (EHES) est un établissement d\'enseignement supérieur spécialisé dans les domaines du management, de la logistique, du pétrole et du gaz, du génie civil, de la géomatique, du marketing et des nouvelles technologies. L\'école propose des formations professionnalisantes allant du BTS au Master avec une forte orientation vers l\'employabilité, l\'innovation, l\'entrepreneuriat et l\'internationalisation.',
-        typeLabel: 'École Supérieure',
+        resume: EHES_ETAB_RESUME,
+        typeLabel: EHES_ETAB_TYPE,
         status: 'ACTIVE',
         isDirectPartner: true,
         fraisDossier: 15000,
@@ -286,11 +254,11 @@ export async function runImportEHES() {
         slug: EHES_ETAB_SLUG,
         nom: EHES_ETAB_NAME,
         ville: 'Dakar',
-        adresse: 'Dakar, Sénégal',
+        adresse: EHES_ETAB_ADRESSE,
         accreditation: 'Agréé par le Ministère de l\'Enseignement Supérieur, de la Recherche et de l\'Innovation du Sénégal (MESRI)',
         site: 'https://ehes.sn',
-        resume: 'L\'École des Hautes Études en Sciences (EHES) est un établissement d\'enseignement supérieur spécialisé dans les domaines du management, de la logistique, du pétrole et du gaz, du génie civil, de la géomatique, du marketing et des nouvelles technologies. L\'école propose des formations professionnalisantes allant du BTS au Master avec une forte orientation vers l\'employabilité, l\'innovation, l\'entrepreneuriat et l\'internationalisation.',
-        typeLabel: 'École Supérieure',
+        resume: EHES_ETAB_RESUME,
+        typeLabel: EHES_ETAB_TYPE,
         status: 'ACTIVE',
         isDirectPartner: true,
         fraisDossier: 15000,
@@ -299,10 +267,10 @@ export async function runImportEHES() {
       }
     })
     report.etabCreatedOrUpdated = true
-    console.log(`✅ Établissement EHES configuré : ${etab.nom} (${etab.id})`)
+    console.log(`✅ Établissement EHES Dakar configuré : ${etab.nom} (${etab.id})`)
 
-    // Nettoyer les anciens programmes EHES génériques non-détaillés si présents
-    const validSlugs = detailedProgrammes.map((p) => p.slug)
+    // Nettoyer les anciens programmes EHES non présents dans la nouvelle liste
+    const validSlugs = PROGRAMMES_EHES.map((p) => p.slug)
     await tx.programme.deleteMany({
       where: {
         etablissementId: etab.id,
@@ -310,8 +278,8 @@ export async function runImportEHES() {
       }
     })
 
-    // 3. Boucle d'importation des 25 Formations détaillées
-    for (const fData of detailedProgrammes) {
+    // 3. Boucle d'importation des 11 Formations officielles
+    for (const fData of PROGRAMMES_EHES) {
       let prog = await tx.programme.findUnique({
         where: { slug: fData.slug }
       })
@@ -323,12 +291,12 @@ export async function runImportEHES() {
           where: { id: prog.id },
           data: {
             titre: fData.titre,
-            niveau: fData.niveauLabel,
+            niveau: fData.niveau,
             duree: fData.duree,
             ville: 'Dakar',
             description: `${fData.description} (Diplôme préparé : ${fData.diplome}).`,
             debouches: debouchesJson,
-            perspectives: `Points forts & Avantages EHES : ${EHES_ADVANTAGES}`,
+            perspectives: `Points forts & Avantages EHES Dakar : ${EHES_ADVANTAGES}`,
             fraisDossier: 15000,
             fraisDossierEtranger: 30000,
             devise: 'FCFA',
@@ -343,12 +311,12 @@ export async function runImportEHES() {
           data: {
             slug: fData.slug,
             titre: fData.titre,
-            niveau: fData.niveauLabel,
+            niveau: fData.niveau,
             duree: fData.duree,
             ville: 'Dakar',
             description: `${fData.description} (Diplôme préparé : ${fData.diplome}).`,
             debouches: debouchesJson,
-            perspectives: `Points forts & Avantages EHES : ${EHES_ADVANTAGES}`,
+            perspectives: `Points forts & Avantages EHES Dakar : ${EHES_ADVANTAGES}`,
             fraisDossier: 15000,
             fraisDossierEtranger: 30000,
             devise: 'FCFA',
@@ -365,19 +333,13 @@ export async function runImportEHES() {
         where: { programmeId: prog.id }
       })
 
-      const montantTotalAnnuel = fData.mensualiteNormale * 10
-      const montantBourseTotalAnnuel = fData.mensualiteBourseFi * 10
-
       await tx.tarif.create({
         data: {
           programmeId: prog.id,
           anneeAcademique: '2026-2027',
-          label: `Tarif officiel BourseFi EHES 2026-2027 (${fData.diplome})`,
-          montant: montantTotalAnnuel,
-          montantBourse: montantBourseTotalAnnuel,
-          fraisInscription: fData.fraisInscription,
-          mensualite: fData.mensualiteBourseFi,
-          nombreMois: 10,
+          label: `Tarif officiel BourseFi EHES Dakar 2026-2027 (${fData.diplome})`,
+          montant: fData.montantNormal,
+          montantBourse: fData.montantBourseFi,
           frequence: 'ANNUEL',
           devise: 'FCFA',
           isDefault: true,
@@ -390,6 +352,7 @@ export async function runImportEHES() {
       // 5. Configuration Offre Bourse BourseFi
       const bourseSlug = `bourse-${fData.slug}`
       const bourseTitle = `Bourse ${fData.titre}`
+      const coveragePercent = Math.round(((fData.montantNormal - fData.montantBourseFi) / fData.montantNormal) * 100)
 
       const existingBourse = await tx.bourse.findFirst({
         where: { OR: [{ slug: bourseSlug }, { programmeId: prog.id }] }
@@ -400,9 +363,9 @@ export async function runImportEHES() {
         titre: bourseTitle,
         programmeId: prog.id,
         partnerId: partner.id,
-        coveragePercent: fData.coveragePercent,
+        coveragePercent,
         quota: 30,
-        placesRestantes: 22,
+        placesRestantes: 20,
         dateLimite: new Date('2026-12-31T23:59:59.000Z'),
         conditions: `Admissibilité sur étude du dossier académique et entretien pour le niveau ${fData.diplome}.`,
         documentsRequis: 'Copie CNI / Passeport, Relevé de notes du Bac ou dernier diplôme, 2 photos d\'identité.',
@@ -423,14 +386,14 @@ export async function runImportEHES() {
       report.boursesUpserted++
     }
 
-    console.log(`✅ Importation EHES terminée avec succès : ${detailedProgrammes.length} programmes détaillés par diplômes.`)
+    console.log(`✅ Importation EHES Dakar terminée avec succès : ${PROGRAMMES_EHES.length} programmes officiels mis à jour.`)
   })
 
   return report
 }
 
 async function main() {
-  console.log("=== PASSAGE 1 : IMPORTATION INITIALE DÉTAILLÉE EHES ===")
+  console.log("=== PASSAGE 1 : IMPORTATION INITIALE ÉTABLISSEMENT & PROGRAMMES EHES DAKAR ===")
   const stats1 = await runImportEHES()
   console.log("📊 Rapport passage 1 :", stats1)
 
@@ -444,26 +407,29 @@ async function main() {
   const etab = await prisma.etablissement.findUnique({
     where: { slug: EHES_ETAB_SLUG }
   })
-  assert.ok(etab, "[Assertion BDD] Établissement EHES présent")
-  assert.strictEqual(etab.isDirectPartner, true, "[Assertion BDD] EHES est Partenaire Officiel Direct")
+  assert.ok(etab, "[Assertion BDD] Établissement EHES Dakar présent")
+  assert.strictEqual(etab.nom, EHES_ETAB_NAME, "[Assertion BDD] Nom exact de l'école mis à jour")
+  assert.strictEqual(etab.adresse, EHES_ETAB_ADRESSE, "[Assertion BDD] Adresse exacte mise à jour")
+  assert.strictEqual(etab.typeLabel, EHES_ETAB_TYPE, "[Assertion BDD] TypeLabel mis à jour")
+  assert.strictEqual(etab.isDirectPartner, true, "[Assertion BDD] EHES Dakar est Partenaire Officiel Direct")
 
   const activeProgsCount = await prisma.programme.count({
     where: { etablissementId: etab.id, status: 'ACTIVE' }
   })
-  assert.strictEqual(activeProgsCount, 25, "[Assertion BDD] Exactement 25 programmes actifs détaillés pour EHES")
+  assert.strictEqual(activeProgsCount, 11, "[Assertion BDD] Exactement 11 programmes actifs pour EHES Dakar")
 
   const activeBoursesCount = await prisma.bourse.count({
     where: { programme: { etablissementId: etab.id }, isActive: true, status: 'ACTIVE' }
   })
-  assert.strictEqual(activeBoursesCount, 25, "[Assertion BDD] Exactement 25 bourses actives pour EHES")
+  assert.strictEqual(activeBoursesCount, 11, "[Assertion BDD] Exactement 11 bourses actives pour EHES Dakar")
 
-  console.log("\n🎉 TOUTES LES ASSERTIONS ONT ÉTÉ VÉRIFIÉES AVEC SUCCÈS (25 PROGRAMMES DÉTAILLÉS) !")
+  console.log("\n🎉 TOUTES LES ASSERTIONS ONT ÉTÉ VÉRIFIÉES AVEC SUCCÈS (11 PROGRAMMES ET TARIFS OFFICIELS EHES DAKAR) !")
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   main()
     .catch((e) => {
-      console.error("❌ Erreur lors de l'importation EHES :", e)
+      console.error("❌ Erreur lors de l'importation EHES Dakar :", e)
       process.exit(1)
     })
     .finally(async () => {
