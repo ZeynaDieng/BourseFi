@@ -95,7 +95,10 @@ function formatDate(iso?: string | null) {
 async function triggerManualRun() {
   runningEngine.value = true
   try {
-    const res = await $fetch<{ ok: boolean; processed: number }>('/api/admin/automatisations/run-engine', { method: 'POST' })
+    const res = await $fetch<{ ok: boolean; processed: number }>('/api/admin/automatisations/run-engine', {
+      method: 'POST',
+      body: { force: true },
+    })
     await refreshStats()
     await refreshLogs()
     alert(`Moteur d'automatisation exécuté ! ${res.processed} relance(s) traitée(s).`)
