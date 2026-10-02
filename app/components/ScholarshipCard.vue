@@ -21,6 +21,8 @@ const hasRealSavings = computed(() => {
 const isDirectRate = computed(() => {
   return props.bourse.isTarifDirect || props.bourse.pricingStatus === 'TARIF_DIRECT'
 })
+
+const { activeTarif, referenceTarif, isPromo, formatFcfa } = useTarification(props.bourse.fraisDossier || 0)
 </script>
 
 <template>
@@ -75,9 +77,17 @@ const isDirectRate = computed(() => {
 
     <!-- Pied de carte -->
     <div class="mt-5 border-t border-slate-100 pt-3">
-      <p class="font-headline text-xs font-bold text-slate-500">
-        Frais de dossier : {{ (bourse.fraisDossier || 0).toLocaleString('fr-FR') }} {{ bourse.devise }}
-      </p>
+      <div class="font-headline text-xs font-bold text-slate-500 flex flex-wrap items-center gap-1">
+        <span>Frais de dossier :</span>
+        <template v-if="isPromo">
+          <span class="line-through text-slate-400 font-normal">{{ formatFcfa(referenceTarif) }} {{ bourse.devise }}</span>
+          <span class="text-primary font-extrabold">{{ formatFcfa(activeTarif) }} {{ bourse.devise }}</span>
+          <span class="ml-1 rounded-sm bg-red-100 px-1 py-0.5 text-[9px] font-bold uppercase tracking-wider text-red-700">Offre promotionnelle</span>
+        </template>
+        <template v-else>
+          <span>{{ formatFcfa(activeTarif) }} {{ bourse.devise }}</span>
+        </template>
+      </div>
 
       <NuxtLink
         :to="`/bourses/${bourse.slug}`"

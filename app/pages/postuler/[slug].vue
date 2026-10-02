@@ -14,6 +14,10 @@ const { data: me, refresh: refreshMe } = await useFetch('/api/auth/me')
 
 const isLoggedIn = computed(() => Boolean(me.value?.user))
 
+const baseFrais = computed(() => bourse.value?.fraisDossier || 0)
+const { activeTarif, referenceTarif, isPromo, formatFcfa } = useTarification(baseFrais.value)
+
+
 const step = ref(0)
 const isSubmitting = ref(false)
 const errorMessage = ref('')
@@ -48,7 +52,7 @@ async function applyPromoCode() {
       method: 'POST',
       body: {
         code: promoInput.value.trim(),
-        montant: bourse.value.fraisDossier || 20000,
+        montant: activeTarif.value || 20000,
         etablissementId: bourse.value.etablissementSlug
       }
     })
@@ -505,9 +509,17 @@ useSeoMeta({
             Résumé de la bourse
           </summary>
           <dl class="mt-3 space-y-2 text-sm">
-            <div v-if="bourse.fraisDossier > 0" class="flex justify-between gap-3">
+            <div v-if="baseFrais > 0" class="flex justify-between gap-3">
               <dt class="text-slate-500">Frais dossier</dt>
-              <dd class="font-semibold">{{ formatFcfa(bourse.fraisDossier) }} {{ bourse.devise }}</dd>
+              <dd class="font-semibold flex items-center gap-1">
+                <template v-if="isPromo">
+                  <span class="line-through text-slate-400 font-normal">{{ formatFcfa(referenceTarif) }} {{ bourse.devise }}</span>
+                  <span class="text-primary">{{ formatFcfa(activeTarif) }} {{ bourse.devise }}</span>
+                </template>
+                <template v-else>
+                  <span>{{ formatFcfa(activeTarif) }} {{ bourse.devise }}</span>
+                </template>
+              </dd>
             </div>
           </dl>
         </details>
@@ -791,19 +803,27 @@ useSeoMeta({
               </p>
 
               <!-- Récapitulatif Financier -->
-              <div v-if="bourse.fraisDossier > 0" class="mt-4 pt-3 border-t border-slate-200/60 space-y-2 text-sm">
-                <div class="flex justify-between text-slate-500">
+              <div v-if="baseFrais > 0" class="mt-4 pt-3 border-t border-slate-200/60 space-y-2 text-sm">
+                
+                <div v-if="isPromo" class="flex justify-between text-slate-500 line-through">
                   <span>Frais de dossier initiaux</span>
-                  <span class="font-semibold">{{ formatFcfa(bourse.fraisDossier) }} FCFA</span>
+                  <span class="font-semibold">{{ formatFcfa(referenceTarif) }} FCFA</span>
                 </div>
+                
+                <div class="flex justify-between text-slate-700">
+                  <span class="flex items-center gap-1">Frais de dossier <span v-if="isPromo" class="text-[9px] font-bold text-red-600 bg-red-100 px-1 py-0.5 rounded uppercase tracking-wider">Promo</span></span>
+                  <span class="font-semibold">{{ formatFcfa(activeTarif) }} FCFA</span>
+                </div>
+                
                 <div v-if="appliedPromo && appliedPromo.reduction > 0" class="flex justify-between text-emerald-600 font-semibold">
-                  <span>Réduction appliquée</span>
+                  <span>Réduction appliquée ({{ appliedPromo.code }})</span>
                   <span>-{{ formatFcfa(appliedPromo.reduction) }} FCFA</span>
                 </div>
+                
                 <div class="flex justify-between text-slate-900 font-extrabold text-base pt-2 border-t border-slate-200">
                   <span>Montant final à payer</span>
                   <span :class="appliedPromo && appliedPromo.montantFinal === 0 ? 'text-emerald-600' : 'text-primary'">
-                    {{ appliedPromo ? formatFcfa(appliedPromo.montantFinal) : formatFcfa(bourse.fraisDossier) }} FCFA
+                    {{ appliedPromo ? formatFcfa(appliedPromo.montantFinal) : formatFcfa(activeTarif) }} FCFA
                   </span>
                 </div>
               </div>
@@ -867,9 +887,17 @@ useSeoMeta({
             </span>
           </div>
           <dl class="space-y-4 p-6 text-sm">
-            <div v-if="bourse.fraisDossier > 0" class="flex items-center justify-between gap-3">
+            <div v-if="baseFrais > 0" class="flex items-center justify-between gap-3">
               <dt class="text-slate-500">Frais dossier</dt>
-              <dd class="font-semibold text-slate-700">{{ formatFcfa(bourse.fraisDossier) }} {{ bourse.devise }}</dd>
+              <dd class="font-semibold text-slate-700 flex items-center gap-1">
+                <template v-if="isPromo">
+                  <span class="line-through text-slate-400 font-normal">{{ formatFcfa(referenceTarif) }}</span>
+                  <span class="text-primary">{{ formatFcfa(activeTarif) }} {{ bourse.devise }}</span>
+                </template>
+                <template v-else>
+                  <span>{{ formatFcfa(activeTarif) }} {{ bourse.devise }}</span>
+                </template>
+              </dd>
             </div>
           </dl>
           <div class="border-t border-slate-100 bg-slate-50/60 px-6 py-4">

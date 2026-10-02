@@ -1,5 +1,6 @@
 import { prisma } from '../../utils/prisma'
 import { z } from 'zod'
+import { getGlobalFraisDossierConfig } from '../../utils/frais-dossier'
 
 const validateSchema = z.object({
   code: z.string().min(1, 'Veuillez saisir un code promo.').trim(),
@@ -17,7 +18,14 @@ export default defineEventHandler(async (event) => {
   }
 
   const rawCode = parsed.data.code.toUpperCase()
-  const montantInitial = Math.round(parsed.data.montant)
+  
+  // Appliquer le tarif global s'il existe et est actif
+  const globalConfig = await getGlobalFraisDossierConfig()
+  let montantInitial = Math.round(parsed.data.montant)
+
+  if (globalConfig && globalConfig.isActive) {
+    montantInitial = Math.round(globalConfig.activeTarif)
+  }
 
   const promo = await prisma.promoCode.findUnique({
     where: { code: rawCode }

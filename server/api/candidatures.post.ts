@@ -6,6 +6,7 @@ import type { CandidatureStatus } from '../utils/candidature-types'
 import { saveUserIdentityImage, saveUserEducationDocument } from '../utils/candidature-files'
 import { createNotification } from '../utils/notifications'
 import { sendEmail, renderEmail } from '../utils/email'
+import { getGlobalFraisDossierConfig } from '../utils/frais-dossier'
 
 const documentDataUrl = z
   .string()
@@ -71,16 +72,36 @@ export default defineEventHandler(async (event) => {
     bourseId = bourse.id
   }
 
-  const effectiveFraisDossier =
+  // Configuration dynamique des frais de dossier
+  const globalConfig = await getGlobalFraisDossierConfig()
+
+  const dbFraisDossier =
     programme.etablissement?.isDirectPartner && programme.etablissement?.fraisDossier !== undefined
       ? programme.etablissement.fraisDossier
       : programme.fraisDossier
 
+  let effectiveFraisDossier = dbFraisDossier
+  let montantInitial: number | null = dbFraisDossier
+  
+  if (globalConfig && globalConfig.isActive) {
+    effectiveFraisDossier = globalConfig.activeTarif
+    if (globalConfig.mode === 'promotion') {
+      montantInitial = globalConfig.referenceTarif
+    } else {
+      montantInitial = globalConfig.activeTarif
+    }
+  }
+
   // Traitement du code promo si fourni
   let promoCodeId: string | null = null
-  let montantInitial: number | null = effectiveFraisDossier
   let montantReduction: number | null = 0
-  let montantFinal: number = effectiveFraisDossier
+  let montantFinal: number = effectiveFraisDossier || 0
+  
+  // Si le mode est promotion, il y a déjà une réduction implicite (referenceTarif - activeTarif)
+  // On l'enregistre dans montantReduction pour la clarté de la base de données
+  if (globalConfig && globalConfig.isActive && globalConfig.mode === 'promotion') {
+    montantReduction = Math.max(0, globalConfig.referenceTarif - globalConfig.activeTarif)
+  }
 
   if (parsed.data.promoCode && parsed.data.promoCode.trim().length > 0) {
     const codeFormatted = parsed.data.promoCode.trim().toUpperCase()
@@ -95,13 +116,18 @@ export default defineEventHandler(async (event) => {
 
       if (!isExpired && !isLimitReached && !isScopeMismatch) {
         promoCodeId = promo.id
+        let additionalReduction = 0
         if (promo.type === 'PERCENTAGE') {
-          montantReduction = Math.round(effectiveFraisDossier * (promo.valeur / 100))
+          additionalReduction = Math.round((effectiveFraisDossier || 0) * (promo.valeur / 100))
         } else if (promo.type === 'FIXED') {
-          montantReduction = Math.round(promo.valeur)
+          additionalReduction = Math.round(promo.valeur)
         }
-        montantReduction = Math.min(effectiveFraisDossier, Math.max(0, montantReduction))
-        montantFinal = Math.max(0, effectiveFraisDossier - montantReduction)
+        
+        additionalReduction = Math.min(effectiveFraisDossier || 0, Math.max(0, additionalReduction))
+        
+        // On cumule la réduction du code promo avec la réduction globale éventuelle
+        montantReduction = (montantReduction || 0) + additionalReduction
+        montantFinal = Math.max(0, (effectiveFraisDossier || 0) - additionalReduction)
 
         // Incrémenter le nombre d'utilisations du code promo
         await prisma.promoCode.update({

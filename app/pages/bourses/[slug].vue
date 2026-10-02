@@ -8,6 +8,9 @@ const { data: bourse, error } = await useFetch<any>(
   () => `/api/bourses/${route.params.slug}`,
 )
 
+const baseFrais = computed(() => bourse.value?.fraisDossier || 0)
+const { activeTarif, referenceTarif, isPromo, formatFcfa } = useTarification(baseFrais.value)
+
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('fr-FR', {
     day: 'numeric',
@@ -105,9 +108,19 @@ useSiteSeo({
         <!-- Stats en grille -->
         <div class="mt-6 grid grid-cols-2 sm:grid-cols-3 divide-x divide-slate-100 rounded-2xl border border-slate-100 bg-slate-50/50">
           <div class="p-4 text-center">
-            <p class="font-headline text-xl font-bold text-primary">
-              {{ bourse.fraisDossier.toLocaleString('fr-FR') }}
-            </p>
+            <template v-if="isPromo">
+              <p class="font-headline text-sm font-bold text-slate-400 line-through">
+                {{ formatFcfa(referenceTarif) }}
+              </p>
+              <p class="font-headline text-xl font-bold text-primary flex flex-wrap items-center justify-center gap-1">
+                {{ formatFcfa(activeTarif) }} <span class="bg-red-100 text-red-700 text-[9px] px-1 py-0.5 rounded uppercase tracking-wider">Promo</span>
+              </p>
+            </template>
+            <template v-else>
+              <p class="font-headline text-xl font-bold text-primary">
+                {{ formatFcfa(activeTarif) }}
+              </p>
+            </template>
             <p class="mt-0.5 text-xs text-slate-500">{{ bourse.devise }} de dossier</p>
           </div>
           <div v-if="showCoveragePercent && bourse.coveragePercent > 0" class="p-4 text-center">
@@ -188,7 +201,15 @@ useSiteSeo({
 
           <div class="flex items-center justify-between border-b border-slate-100 py-3 gap-4">
             <span class="text-slate-500 font-medium">Frais de dossier BourseFi</span>
-            <span class="font-bold text-slate-800 whitespace-nowrap">{{ bourse.fraisDossier.toLocaleString('fr-FR') }} {{ bourse.devise }}</span>
+            <span class="font-bold text-slate-800 flex flex-wrap items-center justify-end gap-1.5 whitespace-nowrap">
+              <template v-if="isPromo">
+                <span class="line-through text-slate-400 font-normal">{{ formatFcfa(referenceTarif) }}</span>
+                <span class="text-primary">{{ formatFcfa(activeTarif) }} {{ bourse.devise }}</span>
+              </template>
+              <template v-else>
+                <span>{{ formatFcfa(activeTarif) }} {{ bourse.devise }}</span>
+              </template>
+            </span>
           </div>
         </div>
 
@@ -233,7 +254,15 @@ useSiteSeo({
         </div>
         <div class="flex justify-between pb-1">
           <span class="text-slate-500">Frais de dossier</span>
-          <span class="font-bold text-slate-800">{{ bourse.fraisDossier.toLocaleString('fr-FR') }} {{ bourse.devise }}</span>
+          <span class="font-bold text-slate-800 flex items-center gap-1.5">
+            <template v-if="isPromo">
+              <span class="line-through text-slate-400 font-normal text-xs">{{ formatFcfa(referenceTarif) }}</span>
+              <span class="text-primary">{{ formatFcfa(activeTarif) }} {{ bourse.devise }}</span>
+            </template>
+            <template v-else>
+              <span>{{ formatFcfa(activeTarif) }} {{ bourse.devise }}</span>
+            </template>
+          </span>
         </div>
         <p class="mt-4 text-xs italic text-slate-500">
           Les frais de scolarité peuvent varier selon l'année académique et les conditions de l'établissement.
@@ -388,7 +417,7 @@ useSiteSeo({
       <div class="mx-auto flex max-w-4xl items-center justify-between gap-3">
         <div class="min-w-0">
           <p class="truncate text-sm font-bold text-primary">
-            {{ bourse.fraisDossier.toLocaleString('fr-FR') }} {{ bourse.devise }}
+            {{ formatFcfa(activeTarif) }} {{ bourse.devise }}
             · {{ bourse.coveragePercent }} % de prise en charge
           </p>
         </div>

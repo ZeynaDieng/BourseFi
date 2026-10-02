@@ -27,6 +27,9 @@ type Dossier = {
   status: string
   statusLabel: string
   fraisDossier: number
+  montantInitial?: number | null
+  montantReduction?: number | null
+  montantFinal?: number | null
   devise: string
   fullName: string
   email: string
@@ -381,12 +384,23 @@ useSeoMeta({ title: 'Paiement  BourseFi' })
       </div>
 
       <div class="mt-6 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
-        <div class="bg-gradient-to-br from-primary to-primary/80 p-6 text-center text-white">
+        <div class="bg-gradient-to-br from-primary to-primary/80 p-6 text-center text-white relative overflow-hidden">
           <p class="text-xs font-semibold uppercase tracking-wider text-white/60">Montant à payer</p>
-          <p class="mt-1 font-headline text-4xl font-extrabold">
+          
+          <div v-if="dossier?.montantReduction && dossier.montantReduction > 0" class="mt-2 flex items-center justify-center gap-2 opacity-80">
+            <span class="text-sm line-through">{{ (dossier.montantInitial || 0).toLocaleString('fr-FR') }}</span>
+          </div>
+          
+          <p class="mt-1 font-headline text-4xl font-extrabold flex items-center justify-center gap-2">
             {{ totalFcfa.toLocaleString('fr-FR') }} <span class="text-xl">{{ devise }}</span>
           </p>
-          <p class="mt-1 text-xs text-white/70">Frais de dossier</p>
+          
+          <div v-if="dossier?.montantReduction && dossier.montantReduction > 0" class="mt-1 flex items-center justify-center">
+            <span class="rounded bg-red-500 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm">
+              Promo Appliquée
+            </span>
+          </div>
+          <p v-else class="mt-1 text-xs text-white/70">Frais de dossier</p>
         </div>
         <dl class="space-y-3 p-6 text-sm">
           <div class="flex justify-between gap-3">
