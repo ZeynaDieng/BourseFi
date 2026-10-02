@@ -46,6 +46,7 @@ export const adminDrawerLinks: PortalDrawerLink[] = [
   { to: '/admin/rapports', icon: 'analytics', label: 'Rapports' },
   { to: '/admin/cms/site', icon: 'web', label: 'Blocs du site' },
   { to: '/admin/cms/faq', icon: 'quiz', label: 'FAQ' },
+  { to: '/admin/parametres', icon: 'settings', label: 'Paramètres' },
   { to: '/admin/users', icon: 'group', label: 'Utilisateurs' },
   { to: '/admin/audit', icon: 'history', label: "Journal d'audit" },
 ]
