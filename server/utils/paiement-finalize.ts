@@ -110,6 +110,25 @@ export async function finalizePaiement(
       candidatureId: candidature.id
     })
 
+    // Envoi d'email automatique à l'étudiant
+    const studentEmail = renderEmail({
+      title: 'Attestation de bourse disponible',
+      bodyHtml: `
+        <p>Bonjour ${existing.fullName},</p>
+        <p>Nous vous confirmons la réception de votre paiement de <strong>${updated.amount.toLocaleString('fr-FR')} ${updated.currency}</strong>.</p>
+        <p>Votre candidature pour le programme <strong>${candidature.programme.titre}</strong> a été validée avec succès.</p>
+        <p>Vous pouvez dès à présent télécharger ou imprimer votre attestation officielle en cliquant sur le bouton ci-dessous :</p>
+      `,
+      ctaLabel: 'Ouvrir mon attestation',
+      ctaUrl: `${process.env.NUXT_PUBLIC_SITE_URL || 'https://boursefi.sn'}/api/attestations/${candidature.id}`
+    })
+
+    await sendEmail({
+      to: { email: existing.email, name: existing.fullName },
+      subject: `Votre paiement est validé - Attestation disponible`,
+      html: studentEmail
+    })
+
     // Envoi d'email automatique à l'admin lors de la validation d'un paiement
     const adminEmail = renderEmail({
       title: 'Nouveau paiement validé',

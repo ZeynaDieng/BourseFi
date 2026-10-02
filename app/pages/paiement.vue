@@ -298,7 +298,7 @@ useSeoMeta({ title: 'Paiement  BourseFi' })
       <div class="mt-10 flex w-full flex-col gap-3 sm:flex-row sm:justify-center">
         <a :href="`/api/attestations/${candidatureId}`" target="_blank" class="rounded-xl bg-emerald-600 px-6 py-3.5 font-bold text-white shadow-md transition hover:bg-emerald-700 flex items-center justify-center gap-2">
           <span class="material-symbols-outlined">verified</span>
-          Télécharger l'Attestation (PDF)
+          Ouvrir l'Attestation
         </a>
         <NuxtLink :to="STUDENT_HOME" class="rounded-xl bg-primary px-6 py-3.5 font-bold text-white shadow-sm transition hover:opacity-95 flex items-center justify-center">
           Mon espace

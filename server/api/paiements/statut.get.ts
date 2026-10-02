@@ -1,4 +1,4 @@
-import { requireRole } from '../../utils/auth'
+import { getSessionUser } from '../../utils/auth'
 import { prisma } from '../../utils/prisma'
 import { syncPaytechPaymentIfPending } from '../../utils/paytech-sync'
 
@@ -8,7 +8,7 @@ import { syncPaytechPaymentIfPending } from '../../utils/paytech-sync'
  * ?sync=1 interroge PayTech si le paiement est encore en attente (repli IPN).
  */
 export default defineEventHandler(async (event) => {
-  const user = await requireRole(event, ['STUDENT', 'ADMIN'])
+  const user = await getSessionUser(event)
   const query = getQuery(event)
   const candidatureId = typeof query.candidatureId === 'string' ? query.candidatureId : ''
   const shouldSync = query.sync === '1' || query.sync === 'true'
@@ -26,7 +26,7 @@ export default defineEventHandler(async (event) => {
     return { found: false, status: null, candidatureStatus: null }
   }
 
-  if (paiement.userId !== user.id && user.role !== 'ADMIN') {
+  if (user && paiement.userId !== user.id && user.role !== 'ADMIN') {
     throw createError({ statusCode: 403, statusMessage: 'Ce dossier ne vous appartient pas.' })
   }
 

@@ -264,9 +264,12 @@ export default defineEventHandler(async (event) => {
 </head>
 <body>
 
-  <div class="no-print-bar">
-    <a href="/etudiant/documents" class="btn-back">← Retour à mes documents</a>
-    <button onclick="window.print()" class="btn-print">🖨️ Télécharger en PDF / Imprimer</button>
+  <div class="no-print-bar" style="flex-wrap: wrap; gap: 10px;">
+    <a href="/etudiant/documents" class="btn-back">← Retour</a>
+    <div style="flex: 1; text-align: center; color: #123A72; font-size: 13px; font-weight: 600;">
+      Astuce : Cliquez sur le bouton ci-contre et choisissez <strong>« Enregistrer au format PDF »</strong> pour télécharger.
+    </div>
+    <button onclick="window.print()" class="btn-print">🖨️ Enregistrer en PDF / Imprimer</button>
   </div>
 
   <main class="a4-page">
