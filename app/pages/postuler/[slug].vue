@@ -459,9 +459,6 @@ async function submit() {
   }
 }
 
-function formatFcfa(value: number) {
-  return value.toLocaleString('fr-FR')
-}
 
 useSeoMeta({
   title: () => (bourse.value ? `Postuler — ${bourse.value.titre}` : 'Postuler — BourseFi'),
