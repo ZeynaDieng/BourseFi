@@ -127,6 +127,13 @@
         Rapports
       </NuxtLink>
       <NuxtLink
+        to="/admin/parametres"
+        class="block rounded-lg px-4 py-3 font-semibold text-slate-600 hover:bg-slate-50 hover:text-primary"
+        active-class="bg-slate-50 text-primary"
+      >
+        Paramètres Généraux
+      </NuxtLink>
+      <NuxtLink
         to="/admin/users"
         class="block rounded-lg px-4 py-3 font-semibold text-slate-600 hover:bg-slate-50 hover:text-primary"
         active-class="bg-slate-50 text-primary"
