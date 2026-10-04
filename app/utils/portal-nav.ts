@@ -38,6 +38,7 @@ export const adminMobileNav: Omit<PortalNavItem, 'badge'>[] = [
 
 export const adminDrawerLinks: PortalDrawerLink[] = [
   { to: '/admin/email-relances', icon: 'mail', label: 'Relances Email' },
+  { to: '/admin/campagnes-email', icon: 'campaign', label: 'Campagnes Emails' },
   { to: '/admin/automatisations', icon: 'smart_toy', label: 'Relances Automatiques' },
   { to: '/admin/promos', icon: 'local_offer', label: 'Codes Promo' },
   { to: '/admin/catalogue/programmes', icon: 'menu_book', label: 'Formations' },

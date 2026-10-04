@@ -47,6 +47,15 @@
       </NuxtLink>
 
       <NuxtLink
+        to="/admin/campagnes-email"
+        class="flex items-center justify-between rounded-lg px-4 py-3 font-bold text-purple-900 bg-purple-50 hover:bg-purple-100 transition"
+        active-class="bg-purple-600 text-white hover:text-white"
+      >
+        <span>📢 Campagnes Emails</span>
+        <span class="material-symbols-outlined text-[18px]">campaign</span>
+      </NuxtLink>
+
+      <NuxtLink
         to="/admin/automatisations"
         class="flex items-center justify-between rounded-lg px-4 py-3 font-bold text-primary bg-primary/5 hover:bg-primary/10 transition"
         active-class="bg-primary text-white hover:text-white"
