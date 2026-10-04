@@ -1,4 +1,5 @@
 import { prisma } from '../../../utils/prisma'
+import { requireRole } from '../../../utils/auth'
 import { z } from 'zod'
 
 const countSchema = z.object({
@@ -8,10 +9,7 @@ const countSchema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
-  const user = event.context.user
-  if (!user || user.role !== 'ADMIN') {
-    throw createError({ statusCode: 403, statusMessage: 'Accès non autorisé' })
-  }
+  const user = await requireRole(event, ['ADMIN'])
 
   const body = await readBody(event)
   const parsed = countSchema.safeParse(body || {})
