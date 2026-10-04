@@ -100,6 +100,27 @@ export default defineEventHandler(async (event) => {
         await new Promise(r => setTimeout(r, 1000))
       }
     }
+    
+    // Tracer l'envoi dans le journal d'audit
+    try {
+      await prisma.auditLog.create({
+        data: {
+          actorId: user.id,
+          actorRole: user.role,
+          action: 'CAMPAGNE_EMAIL_SENT',
+          entityType: 'System',
+          metadata: JSON.stringify({ 
+            subject, 
+            totalCible: users.length,
+            envoyes: sent, 
+            echoues: failed 
+          })
+        }
+      })
+    } catch (e) {
+      console.error("[Campagne Email] Erreur lors de l'enregistrement de l'audit", e)
+    }
+
     console.log(`[Campagne Email] Terminée: ${sent} envoyés, ${failed} échoués.`)
   })()
 
