@@ -98,10 +98,14 @@ export default defineEventHandler(async (event) => {
     year: 'numeric',
   })
 
-  const ecoleName = candidature.programme.etablissement.nom
+  const ecoleName = (candidature.institution && candidature.institution.trim().length > 0)
+    ? candidature.institution.trim()
+    : candidature.programme.etablissement.nom
   const ecoleSlug = candidature.programme.etablissement.slug
   const programmeTitle = candidature.targetProgram || candidature.programme.titre
-  const niveau = candidature.level || candidature.programme.niveau || 'Licence'
+  const niveau = (candidature.level && candidature.level !== 'Non precise' && candidature.level !== 'Non précisé' && candidature.level.trim().length > 0)
+    ? candidature.level.trim()
+    : (candidature.programme.niveau || 'Licence')
   const rawModalite = candidature.programme.modalites?.trim()
   const modalite = (!rawModalite || rawModalite.toLowerCase().includes('non précisé') || rawModalite.toLowerCase().includes('non precis'))
     ? 'Présentiel'

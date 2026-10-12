@@ -4,21 +4,43 @@ import { requireRole } from '../../../utils/auth'
 import { writeAuditLog } from '../../../utils/audit'
 import { sendEmail, renderEmail } from '../../../utils/email'
 
+const optionalTrimmedString = z
+  .union([z.string(), z.null(), z.undefined()])
+  .transform((v) => {
+    if (v === null || v === undefined) return undefined
+    const trimmed = String(v).trim()
+    return trimmed.length > 0 ? trimmed : undefined
+  })
+
+const optionalEmail = z
+  .union([z.string(), z.null(), z.undefined()])
+  .transform((v) => {
+    if (v === null || v === undefined) return undefined
+    const trimmed = String(v).trim().toLowerCase()
+    return trimmed.length > 0 ? trimmed : undefined
+  })
+  .refine((v) => !v || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v), {
+    message: 'Adresse email invalide.',
+  })
+
 const patchSchema = z.object({
-  firstName: z.string().trim().min(1).optional(),
-  lastName: z.string().trim().min(1).optional(),
-  email: z.string().trim().email().optional(),
-  phone: z.string().trim().optional(),
-  address: z.string().trim().optional(),
-  programmeId: z.string().min(1).optional(),
+  firstName: optionalTrimmedString,
+  lastName: optionalTrimmedString,
+  email: optionalEmail,
+  phone: optionalTrimmedString,
+  address: optionalTrimmedString,
+  programmeId: optionalTrimmedString,
+  targetProgram: optionalTrimmedString,
   bourseId: z.string().nullable().optional(),
-  institution: z.string().trim().optional(),
-  field: z.string().trim().optional(),
-  level: z.string().trim().optional(),
-  lastEducationLevel: z.string().trim().optional(),
-  lastDiploma: z.string().trim().optional(),
-  graduationDate: z.string().trim().optional(),
-  gpa: z.string().trim().optional(),
+  institution: optionalTrimmedString,
+  field: optionalTrimmedString,
+  level: optionalTrimmedString,
+  modalite: optionalTrimmedString,
+  attestationNumber: optionalTrimmedString,
+  lastEducationLevel: optionalTrimmedString,
+  lastDiploma: optionalTrimmedString,
+  graduationDate: optionalTrimmedString,
+  gpa: optionalTrimmedString,
   sendNotificationEmail: z.boolean().optional(),
 })
 
@@ -81,19 +103,41 @@ export default defineEventHandler(async (event) => {
     }
     candidatureData.programmeId = programme.id
     candidatureData.partnerId = programme.partnerId
-    candidatureData.targetProgram = programme.titre
-    candidatureData.institution = programme.etablissement.nom
+    candidatureData.targetProgram = parsed.data.targetProgram || programme.titre
+    candidatureData.institution = parsed.data.institution || programme.etablissement.nom
     if (parsed.data.field === undefined) candidatureData.field = programme.titre
     if (parsed.data.level === undefined && programme.niveau) candidatureData.level = programme.niveau
+  } else if (parsed.data.targetProgram !== undefined) {
+    candidatureData.targetProgram = parsed.data.targetProgram
   }
 
-  // 3. Bourse
+  // 3. Mise à jour de la modalité (ex: Présentiel, Cours du jour, Cours du soir)
+  if (parsed.data.modalite !== undefined) {
+    const progId = (candidatureData.programmeId || candidature.programmeId) as string
+    if (progId) {
+      try {
+        await prisma.programme.update({
+          where: { id: progId },
+          data: { modalites: parsed.data.modalite },
+        })
+      } catch (modErr) {
+        console.warn('Erreur mise à jour modalite sur le programme:', modErr)
+      }
+    }
+  }
+
+  // 4. Numéro d'attestation
+  if (parsed.data.attestationNumber !== undefined) {
+    candidatureData.attestationNumber = parsed.data.attestationNumber
+  }
+
+  // 5. Bourse
   if (parsed.data.bourseId !== undefined) {
     candidatureData.bourseId = parsed.data.bourseId
   }
 
-  // 4. Informations académiques
-  if (parsed.data.institution !== undefined && !candidatureData.institution) {
+  // 6. Informations académiques
+  if (parsed.data.institution !== undefined) {
     candidatureData.institution = parsed.data.institution
   }
   if (parsed.data.field !== undefined) candidatureData.field = parsed.data.field
@@ -103,8 +147,9 @@ export default defineEventHandler(async (event) => {
   if (parsed.data.graduationDate !== undefined) candidatureData.graduationDate = parsed.data.graduationDate
   if (parsed.data.gpa !== undefined) candidatureData.gpa = parsed.data.gpa
 
+  // Si aucune modification détectée sur la candidature
   if (Object.keys(candidatureData).length === 0) {
-    throw createError({ statusCode: 400, statusMessage: 'Aucune modification fournie.' })
+    return { ok: true, candidature }
   }
 
   // Mise à jour de la candidature

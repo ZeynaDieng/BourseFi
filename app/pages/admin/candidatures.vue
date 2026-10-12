@@ -332,6 +332,7 @@ async function savePatch() {
     if (detail.value) {
       await loadDetail(selectedId.value)
     }
+    alert('✅ Statut du dossier et documents enregistrés avec succès !')
   } catch (e: unknown) {
     alert(getAdminErrorMessage(e))
   } finally {
@@ -553,7 +554,7 @@ async function submitCreateDirect() {
   }
 }
 
-// Modal Modification Candidat & Dossier
+// Modal Modification Candidat & Attestation
 const editModalOpen = ref(false)
 const editingCandidate = ref(false)
 const editForm = reactive({
@@ -563,13 +564,26 @@ const editForm = reactive({
   phone: '',
   address: '',
   programmeId: '',
+  targetProgram: '',
+  institution: '',
   level: '',
+  modalite: 'Présentiel',
+  attestationNumber: '',
   lastEducationLevel: '',
   lastDiploma: '',
-  institution: '',
   field: '',
   sendNotificationEmail: true,
 })
+
+function onEditProgrammeChange() {
+  const selected = programmesList.value.find((p) => p.id === editForm.programmeId)
+  if (selected) {
+    editForm.targetProgram = selected.titre
+    editForm.institution = selected.etablissement.nom
+    if (selected.niveau) editForm.level = selected.niveau
+    if (selected.modalites) editForm.modalite = selected.modalites
+  }
+}
 
 async function openEditModal() {
   if (!detail.value) return
@@ -579,10 +593,13 @@ async function openEditModal() {
   editForm.phone = detail.value.phone || ''
   editForm.address = detail.value.address || ''
   editForm.programmeId = detail.value.programmeId || ''
-  editForm.level = detail.value.level || ''
+  editForm.targetProgram = detail.value.targetProgram || detail.value.programme?.titre || ''
+  editForm.institution = detail.value.institution || detail.value.programme?.etablissement?.nom || ''
+  editForm.level = detail.value.level && detail.value.level !== 'Non precise' ? detail.value.level : (detail.value.programme?.niveau || 'Licence 1')
+  editForm.modalite = detail.value.programme?.modalites || 'Présentiel'
+  editForm.attestationNumber = detail.value.attestationNumber || ''
   editForm.lastEducationLevel = detail.value.lastEducationLevel || ''
   editForm.lastDiploma = detail.value.lastDiploma || ''
-  editForm.institution = detail.value.institution || ''
   editForm.field = detail.value.field || ''
   editForm.sendNotificationEmail = true
 
@@ -609,18 +626,39 @@ async function submitEditCandidate() {
 
   editingCandidate.value = true
   try {
+    const payload = {
+      firstName: editForm.firstName.trim(),
+      lastName: editForm.lastName.trim(),
+      email: editForm.email.trim().toLowerCase(),
+      phone: editForm.phone.trim() || undefined,
+      address: editForm.address.trim() || undefined,
+      programmeId: editForm.programmeId || undefined,
+      targetProgram: editForm.targetProgram.trim() || undefined,
+      institution: editForm.institution.trim() || undefined,
+      level: editForm.level.trim() || undefined,
+      modalite: editForm.modalite.trim() || undefined,
+      attestationNumber: editForm.attestationNumber.trim() || undefined,
+      lastEducationLevel: editForm.lastEducationLevel || undefined,
+      lastDiploma: editForm.lastDiploma || undefined,
+      field: editForm.field.trim() || undefined,
+      sendNotificationEmail: Boolean(editForm.sendNotificationEmail),
+    }
+
     await $fetch(`/api/admin/candidatures/${selectedId.value}`, {
       method: 'PATCH',
-      body: { ...editForm },
+      body: payload,
     })
     editModalOpen.value = false
     await refresh()
-    await loadDetail(selectedId.value)
+    if (selectedId.value) {
+      await loadDetail(selectedId.value)
+    }
     const msg = editForm.sendNotificationEmail
-      ? 'Informations du candidat et attestation mises à jour avec succès !\nUn email récapitulatif avec le lien vers l\'attestation a été envoyé au candidat.'
-      : 'Informations du candidat et attestation mises à jour avec succès (sans envoi d\'email au candidat) !'
+      ? '✅ Informations du candidat et attestation mises à jour avec succès !\nUn email récapitulatif avec le lien vers l\'attestation a été envoyé au candidat.'
+      : '✅ Informations du candidat et attestation mises à jour avec succès !'
     alert(msg)
   } catch (e: unknown) {
+    console.error('Erreur submitEditCandidate:', e)
     alert(getAdminErrorMessage(e, 'Erreur lors de la mise à jour des informations.'))
   } finally {
     editingCandidate.value = false
@@ -1047,19 +1085,37 @@ async function copyWhatsAppActivation(email: string, pass: string) {
               </button>
             </div>
 
-            <div v-if="detail.documentUrl" class="flex items-center justify-between rounded-lg bg-emerald-50 p-3 border border-emerald-200">
-              <div>
-                <p class="text-xs font-bold text-emerald-900">Attestation Officielle Générée</p>
-                <p class="text-[11px] text-emerald-800">Réf : {{ detail.attestationNumber || detail.id }}</p>
+            <div v-if="detail.documentUrl" class="rounded-xl bg-emerald-50 p-3.5 border border-emerald-200 space-y-2.5">
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-[18px] text-emerald-700">verified</span>
+                    <p class="text-xs font-bold text-emerald-900">Attestation Officielle Générée</p>
+                  </div>
+                  <p class="text-[11px] text-emerald-800 mt-0.5">Réf : <strong class="font-mono">{{ detail.attestationNumber || detail.id }}</strong></p>
+                </div>
+                <span class="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800">
+                  Prête & Conforme
+                </span>
               </div>
-              <a
-                :href="`/api/attestations/${detail.id}`"
-                target="_blank"
-                class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-700 px-3 py-1.5 text-xs font-bold text-white shadow-sm transition hover:bg-emerald-800"
-              >
-                <span class="material-symbols-outlined text-[16px]">visibility</span>
-                Voir / Imprimer
-              </a>
+              <div class="flex flex-wrap items-center gap-2 pt-1 border-t border-emerald-200/60">
+                <a
+                  :href="`/api/attestations/${detail.id}`"
+                  target="_blank"
+                  class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-700 px-3 py-1.5 text-xs font-bold text-white shadow-xs transition hover:bg-emerald-800"
+                >
+                  <span class="material-symbols-outlined text-[16px]">visibility</span>
+                  Voir / Imprimer
+                </a>
+                <button
+                  type="button"
+                  class="inline-flex items-center gap-1.5 rounded-lg bg-white border border-emerald-300 px-3 py-1.5 text-xs font-bold text-emerald-900 shadow-2xs transition hover:bg-emerald-100"
+                  @click="openEditModal"
+                >
+                  <span class="material-symbols-outlined text-[16px] text-emerald-700">edit_note</span>
+                  Modifier l'attestation
+                </button>
+              </div>
             </div>
 
             <div class="space-y-3 pt-2">
@@ -1076,7 +1132,7 @@ async function copyWhatsAppActivation(email: string, pass: string) {
                 <CandidatureDocumentDropzone v-model="draft.documentDataUrl" label="Attestation complémentaire" class="mt-2" />
               </label>
               <button type="button" class="admin-btn-primary w-full text-sm" :disabled="saving" @click="savePatch">
-                {{ saving ? 'Enregistrement…' : 'Enregistrer les modifications' }}
+                {{ saving ? 'Enregistrement…' : 'Enregistrer le statut & document' }}
               </button>
             </div>
           </section>
@@ -1520,8 +1576,11 @@ async function copyWhatsAppActivation(email: string, pass: string) {
         <!-- Header Modal -->
         <div class="flex items-center justify-between border-b border-slate-100 bg-primary px-6 py-4 text-white">
           <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-[22px] text-secondary">edit_note</span>
-            <h2 class="font-headline text-lg font-bold">Modifier les Informations du Candidat</h2>
+            <span class="material-symbols-outlined text-[22px] text-secondary">edit_document</span>
+            <div>
+              <h2 class="font-headline text-lg font-bold">Modifier le Candidat & l'Attestation Officielle</h2>
+              <p class="text-[11px] text-slate-200">Les modifications régénèrent automatiquement l'attestation imprimable.</p>
+            </div>
           </div>
           <button
             type="button"
@@ -1536,12 +1595,12 @@ async function copyWhatsAppActivation(email: string, pass: string) {
         <form class="p-6 space-y-4 max-h-[80vh] overflow-y-auto" @submit.prevent="submitEditCandidate">
           <div class="rounded-xl border border-amber-200 bg-amber-50/80 p-3 text-xs text-amber-900 flex items-start gap-2">
             <span class="material-symbols-outlined text-[18px] text-amber-600">info</span>
-            <span>Les modifications apportées ici mettront immédiatement à jour le dossier, le profil utilisateur et l'attestation officielle de bourse générée.</span>
+            <span>Les modifications apportées ici mettront immédiatement à jour le dossier, le profil utilisateur et l'attestation officielle de bourse téléchargeable par l'étudiant.</span>
           </div>
 
           <!-- Section 1: Coordonnées -->
           <div class="border-b border-slate-100 pb-3">
-            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">1. Coordonnées de l'Élève</h3>
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">1. Coordonnées de l'Élève (Bénéficiaire)</h3>
             <div class="grid gap-3 sm:grid-cols-2">
               <label class="block">
                 <span class="text-[11px] font-semibold text-slate-600">Prénom <span class="text-red-500">*</span></span>
@@ -1566,27 +1625,55 @@ async function copyWhatsAppActivation(email: string, pass: string) {
             </div>
           </div>
 
-          <!-- Section 2: Formation & Établissement -->
+          <!-- Section 2: Formation & Attestation -->
           <div class="border-b border-slate-100 pb-3">
-            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">2. Formation & Établissement Visés</h3>
-            <label class="block">
-              <span class="text-[11px] font-semibold text-slate-600">Formation demandée</span>
-              <select v-model="editForm.programmeId" class="admin-input mt-1 bg-white">
-                <option v-if="loadingProgrammes" value="" disabled>Chargement des programmes...</option>
-                <option v-for="p in programmesList" :key="p.id" :value="p.id">
-                  {{ p.etablissement.nom }} — {{ p.titre }}
-                </option>
-              </select>
-            </label>
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">2. Formation & Données de l'Attestation</h3>
+            <div class="grid gap-3 sm:grid-cols-2">
+              <label class="block sm:col-span-2">
+                <span class="text-[11px] font-semibold text-slate-600">Choisir dans le catalogue de formations</span>
+                <select v-model="editForm.programmeId" class="admin-input mt-1 bg-white" @change="onEditProgrammeChange">
+                  <option value="">-- Conserver la formation actuelle --</option>
+                  <option v-for="p in programmesList" :key="p.id" :value="p.id">
+                    {{ p.etablissement.nom }} — {{ p.titre }}
+                  </option>
+                </select>
+              </label>
+              <label class="block">
+                <span class="text-[11px] font-semibold text-slate-600">Intitulé exact de la formation (sur l'attestation) <span class="text-red-500">*</span></span>
+                <input v-model="editForm.targetProgram" required class="admin-input mt-1" placeholder="Ex: Licence Gestion des Entreprises" />
+              </label>
+              <label class="block">
+                <span class="text-[11px] font-semibold text-slate-600">Établissement d'accueil (sur l'attestation)</span>
+                <input v-model="editForm.institution" class="admin-input mt-1" placeholder="Ex: EHES" />
+              </label>
+              <label class="block">
+                <span class="text-[11px] font-semibold text-slate-600">Niveau d'études visé</span>
+                <input v-model="editForm.level" class="admin-input mt-1" placeholder="Ex: Licence 1, Master 1" />
+              </label>
+              <label class="block">
+                <span class="text-[11px] font-semibold text-slate-600">Modalité d'enseignement</span>
+                <select v-model="editForm.modalite" class="admin-input mt-1 bg-white">
+                  <option value="Présentiel">Présentiel</option>
+                  <option value="Cours du jour">Cours du jour</option>
+                  <option value="Cours du soir">Cours du soir</option>
+                  <option value="En ligne">En ligne</option>
+                </select>
+              </label>
+              <label class="block sm:col-span-2">
+                <span class="text-[11px] font-semibold text-slate-600">Numéro de référence de l'attestation</span>
+                <input v-model="editForm.attestationNumber" class="admin-input mt-1 font-mono text-xs" placeholder="Ex: BF-ATT-2026-123456" />
+              </label>
+            </div>
           </div>
 
-          <!-- Section 3: Parcours Académique -->
+          <!-- Section 3: Parcours Académique Antérieur -->
           <div>
-            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">3. Parcours Académique</h3>
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">3. Parcours Académique Antérieur</h3>
             <div class="grid gap-3 sm:grid-cols-2">
               <label class="block">
                 <span class="text-[11px] font-semibold text-slate-600">Dernier niveau d'études</span>
                 <select v-model="editForm.lastEducationLevel" class="admin-input mt-1 bg-white">
+                  <option value="">Non précisé</option>
                   <option value="Troisième (3ème)">Troisième (3ème)</option>
                   <option value="Seconde">Seconde</option>
                   <option value="Première">Première</option>
@@ -1598,8 +1685,9 @@ async function copyWhatsAppActivation(email: string, pass: string) {
                 </select>
               </label>
               <label class="block">
-                <span class="text-[11px] font-semibold text-slate-600">Dernier diplôme</span>
+                <span class="text-[11px] font-semibold text-slate-600">Dernier diplôme obtenu</span>
                 <select v-model="editForm.lastDiploma" class="admin-input mt-1 bg-white">
+                  <option value="">Non précisé</option>
                   <option value="BFEM">BFEM</option>
                   <option value="BAC">BAC</option>
                   <option value="BTS">BTS</option>
@@ -1608,14 +1696,6 @@ async function copyWhatsAppActivation(email: string, pass: string) {
                   <option value="Master">Master</option>
                   <option value="Autre">Autre</option>
                 </select>
-              </label>
-              <label class="block">
-                <span class="text-[11px] font-semibold text-slate-600">Niveau visé</span>
-                <input v-model="editForm.level" class="admin-input mt-1" placeholder="Ex: Licence 1, Master 1" />
-              </label>
-              <label class="block">
-                <span class="text-[11px] font-semibold text-slate-600">Établissement fréquenté</span>
-                <input v-model="editForm.institution" class="admin-input mt-1" placeholder="Ex: Lycée Lamine Guèye" />
               </label>
             </div>
           </div>

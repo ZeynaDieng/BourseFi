@@ -90,6 +90,8 @@ export default defineEventHandler(async (event) => {
       ville: c.programme.ville,
       fraisDossier: c.programme.fraisDossier,
       devise: c.programme.devise,
+      niveau: c.programme.niveau,
+      modalites: c.programme.modalites,
       etablissement: c.programme.etablissement,
     },
     partner: c.partner,
