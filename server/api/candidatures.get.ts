@@ -25,8 +25,26 @@ export default defineEventHandler(async (event) => {
   const user = await requireRole(event, ['STUDENT', 'ADMIN', 'PARTNER'])
 
   if (user.role === 'STUDENT') {
+    // 1. Rattachement automatique et systématique de tous les dossiers portant cet email (insensible à la casse)
+    if (user.email) {
+      const cleanEmail = user.email.trim()
+      await prisma.candidature.updateMany({
+        where: {
+          email: { equals: cleanEmail, mode: 'insensitive' },
+          userId: { not: user.id }
+        },
+        data: { userId: user.id }
+      })
+    }
+
+    // 2. Recherche par userId OU par email pour garantir de retrouver 100% des attestations et candidatures
     const list = await prisma.candidature.findMany({
-      where: { userId: user.id },
+      where: {
+        OR: [
+          { userId: user.id },
+          ...(user.email ? [{ email: { equals: user.email.trim(), mode: 'insensitive' as const } }] : [])
+        ]
+      },
       include: includeRelations,
       orderBy: { createdAt: 'desc' }
     })
@@ -128,6 +146,9 @@ function formatCandidature(raw: {
 
   const hasPaid = Boolean(raw.paiement && raw.paiement.status === 'Valide')
 
+  const canHaveDocument = Boolean(raw.documentUrl) || ['DOCUMENT_EMIS', 'VALIDE', 'ACCEPTE'].includes(raw.status)
+  const effectiveDocumentUrl = raw.documentUrl || (canHaveDocument ? `/api/attestations/${raw.id}` : null)
+
   return {
     id: raw.id,
     userId: raw.userId,
@@ -151,7 +172,7 @@ function formatCandidature(raw: {
     status: raw.status,
     statusLabel: statusLabel(raw.status),
     targetProgram: raw.targetProgram,
-    documentUrl: raw.documentUrl,
+    documentUrl: effectiveDocumentUrl,
     documentIssuedAt: raw.documentIssuedAt,
     createdAt: raw.createdAt,
     programmeSlug: raw.programme.slug,

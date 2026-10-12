@@ -42,6 +42,7 @@ export default defineEventHandler(async (event) => {
     lastName: user.lastName,
     phone: user.phone,
     address: user.address,
+    emailVerified: user.emailVerified,
     identityCardRectoUrl: user.identityCardRectoUrl,
     identityCardVersoUrl: user.identityCardVersoUrl,
     profileComplete: Boolean(

@@ -32,13 +32,30 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, statusMessage: 'Candidature introuvable.' })
   }
 
-  // Vérification d'accès : Seul le candidat concerné, l'admin ou le partenaire peut accéder à l'attestation
-  const isOwner = candidature.userId === user.id
+  // Vérification d'accès : Seul le candidat concerné (par son ID ou son email), l'admin ou le partenaire peut accéder à l'attestation
+  const emailMatches = Boolean(
+    user.email &&
+    candidature.email &&
+    candidature.email.trim().toLowerCase() === user.email.trim().toLowerCase()
+  )
+  const isOwner = candidature.userId === user.id || emailMatches
   const isAdmin = user.role === 'ADMIN'
   const isPartner = user.role === 'PARTNER' && user.partnerId === candidature.partnerId
 
   if (!isOwner && !isAdmin && !isPartner) {
     throw createError({ statusCode: 403, statusMessage: 'Accès non autorisé.' })
+  }
+
+  // Rattachement automatique en direct si nécessaire
+  if (emailMatches && candidature.userId !== user.id) {
+    try {
+      await prisma.candidature.update({
+        where: { id: candidature.id },
+        data: { userId: user.id }
+      })
+    } catch (err) {
+      console.warn('Auto-sync candidature userId:', err)
+    }
   }
 
   // RÈGLE MÉTIER SÉCURITÉ : L'attestation n'est téléchargeable QUE SI les frais de dossier ont été réglés (ou s'il s'agit d'une formation sans frais de dossier).
@@ -83,9 +100,14 @@ export default defineEventHandler(async (event) => {
 
   const ecoleName = candidature.programme.etablissement.nom
   const ecoleSlug = candidature.programme.etablissement.slug
-  const programmeTitle = candidature.programme.titre
-  const niveau = candidature.programme.niveau
-  const modalite = candidature.programme.modalites || 'Non précisée'
+  const programmeTitle = candidature.targetProgram || candidature.programme.titre
+  const niveau = candidature.level || candidature.programme.niveau || 'Licence'
+  const rawModalite = candidature.programme.modalites?.trim()
+  const modalite = (!rawModalite || rawModalite.toLowerCase().includes('non précisé') || rawModalite.toLowerCase().includes('non precis'))
+    ? 'Présentiel'
+    : (rawModalite.length > 30 
+        ? (rawModalite.toLowerCase().includes('soir') ? 'Cours du soir' : (rawModalite.toLowerCase().includes('jour') ? 'Cours du jour' : 'Présentiel'))
+        : rawModalite)
   const typeBourseLabel = ecoleSlug === 'hecm-dakar' ? 'BOURSE ENTIÈRE' : (ecoleSlug === 'isca' ? 'FORFAIT BOURSE' : (candidature.bourse?.coveragePercent ? `Bourse ${candidature.bourse.coveragePercent}%` : 'Bourse d\'études'))
   const studentName = candidature.fullName || `${candidature.firstName} ${candidature.lastName}`
   const activeTarifs = (candidature.programme.tarifs || []).filter((t) => t.status === 'ACTIVE')

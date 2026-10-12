@@ -11,6 +11,7 @@ const patchSchema = z.object({
   phone: z.string().max(30).optional(),
   address: z.string().max(300).optional(),
   newPassword: z.string().min(4).optional(),
+  emailVerified: z.boolean().optional(),
 })
 
 export default defineEventHandler(async (event) => {
@@ -35,12 +36,13 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'Vous ne pouvez pas retirer votre propre rôle admin.' })
   }
 
-  const data: Record<string, string> = {}
+  const data: Record<string, unknown> = {}
   if (parsed.data.role) data.role = parsed.data.role
   if (parsed.data.firstName !== undefined) data.firstName = parsed.data.firstName
   if (parsed.data.lastName !== undefined) data.lastName = parsed.data.lastName
   if (parsed.data.phone !== undefined) data.phone = parsed.data.phone
   if (parsed.data.address !== undefined) data.address = parsed.data.address
+  if (parsed.data.emailVerified !== undefined) data.emailVerified = parsed.data.emailVerified
 
   if (parsed.data.newPassword) {
     const { hash } = await import('bcryptjs')

@@ -21,6 +21,7 @@ export default defineEventHandler(async (event) => {
     lastDiploma,
     paymentMethod,
     montantEncaisse,
+    password,
   } = body
 
   if (!firstName || !lastName || !email || !programmeId) {
@@ -37,11 +38,12 @@ export default defineEventHandler(async (event) => {
   const cleanPhone = phone ? String(phone).trim() : ''
   const cleanAddress = address ? String(address).trim() : ''
 
+  const finalPassword = password?.trim() || `BourseFi${Math.floor(1000 + Math.random() * 9000)}!`
+  const passwordHash = await bcrypt.hash(finalPassword, 10)
+
   // 1. Trouver ou créer l'utilisateur étudiant
   let user = await prisma.user.findUnique({ where: { email: cleanEmail } })
   if (!user) {
-    const randomPassword = Math.random().toString(36).slice(-8) + 'A1!'
-    const passwordHash = await bcrypt.hash(randomPassword, 10)
     user = await prisma.user.create({
       data: {
         name: fullName,
@@ -56,15 +58,14 @@ export default defineEventHandler(async (event) => {
       },
     })
   } else {
-    // Mise à jour si profil incomplet
-    const patch: Record<string, string> = {}
+    // Mise à jour si profil incomplet et s'assurer que le compte est actif
+    const patch: Record<string, unknown> = { emailVerified: true }
     if (!user.firstName) patch.firstName = cleanFirstName
     if (!user.lastName) patch.lastName = cleanLastName
     if (!user.phone && cleanPhone) patch.phone = cleanPhone
     if (!user.address && cleanAddress) patch.address = cleanAddress
-    if (Object.keys(patch).length > 0) {
-      await prisma.user.update({ where: { id: user.id }, data: patch })
-    }
+    if (password?.trim()) patch.passwordHash = passwordHash
+    await prisma.user.update({ where: { id: user.id }, data: patch })
   }
 
   // 2. Charger le programme & l'établissement
@@ -134,6 +135,15 @@ export default defineEventHandler(async (event) => {
     data: { documentUrl: attestationUrl },
   })
 
+  // Réconcilier tous les autres dossiers éventuels portant cet email vers le compte utilisateur
+  await prisma.candidature.updateMany({
+    where: {
+      email: { equals: cleanEmail, mode: 'insensitive' },
+      userId: { not: user.id },
+    },
+    data: { userId: user.id },
+  })
+
   // 4. Créer le règlement
   const method = paymentMethod || 'ESPÈCES_AGENCE'
   const refCommand = `EXT-DIRECT-${Date.now()}`
@@ -159,16 +169,21 @@ export default defineEventHandler(async (event) => {
   const siteUrl = String(process.env.NUXT_PUBLIC_SITE_URL || 'https://boursefi.sn').replace(/\/+$/, '')
   await sendEmail({
     to: { email: cleanEmail, name: fullName },
-    subject: 'Votre attestation officielle de bourse — BourseFi',
+    subject: 'Votre attestation officielle de bourse & accès étudiant — BourseFi',
     html: renderEmail({
       title: 'Attestation de bourse émise',
       bodyHtml: `<p>Bonjour ${cleanFirstName},</p>
         <p>Votre demande de bourse pour <strong>${programme.titre}</strong> à <strong>${programme.etablissement.nom}</strong> a été validée et enregistrée.</p>
-        <p>Votre attestation officielle (N° <strong>${attestationNumber}</strong>) est prête et téléchargeable.</p>`,
-      ctaLabel: 'Télécharger mon attestation',
+        <p>Votre attestation officielle (N° <strong>${attestationNumber}</strong>) est prête et téléchargeable.</p>
+        <div style="background:#f1f5f9;padding:14px 18px;border-radius:10px;margin:18px 0;border-left:4px solid #0b1b3a;font-family:Arial,sans-serif;">
+          <p style="margin:4px 0;font-size:13px;"><strong>Vos accès à votre espace étudiant :</strong></p>
+          <p style="margin:4px 0;font-size:13px;">Identifiant : <strong>${cleanEmail}</strong></p>
+          <p style="margin:4px 0;font-size:13px;">Mot de passe : <code>${finalPassword}</code></p>
+        </div>`,
+      ctaLabel: 'Accéder à mon espace étudiant',
       ctaUrl: `${siteUrl}/etudiant/documents`,
     }),
-  })
+  }).catch((err) => console.warn('Erreur envoi email attestation directe:', err))
 
   await writeAuditLog({
     actorId: admin.id,
@@ -185,5 +200,6 @@ export default defineEventHandler(async (event) => {
     attestationNumber,
     attestationUrl: `/api/attestations/${candidature.id}`,
     paiementId: paiement.id,
+    tempPassword: finalPassword,
   }
 })

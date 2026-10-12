@@ -47,6 +47,20 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  if (user.role === 'STUDENT' && user.email) {
+    try {
+      await prisma.candidature.updateMany({
+        where: {
+          email: { equals: user.email.trim(), mode: 'insensitive' },
+          userId: { not: user.id },
+        },
+        data: { userId: user.id },
+      })
+    } catch (e) {
+      console.warn('[AUTH_LOGIN] Auto-sync candidatures:', e)
+    }
+  }
+
   await createSession(event, user.id)
   await writeAuditLog({
     actorId: user.id,

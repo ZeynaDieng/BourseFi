@@ -21,6 +21,7 @@ type UserRow = {
   paiementsCount: number
   hasIdentity: boolean
   profileComplete: boolean
+  emailVerified: boolean
   createdAt: string
 }
 
@@ -61,6 +62,8 @@ const detailLoading = ref(false)
 const savingRole = ref(false)
 const deleting = ref(false)
 const draftRole = ref('STUDENT')
+const draftEmailVerified = ref(true)
+const draftNewPassword = ref('')
 const draftProfile = reactive({
   name: '',
   firstName: '',
@@ -69,6 +72,70 @@ const draftProfile = reactive({
   address: '',
 })
 const previewDoc = ref<{ url: string; label: string } | null>(null)
+
+// Modal Création d'Utilisateur
+const createModalOpen = ref(false)
+const creatingUser = ref(false)
+const createForm = reactive({
+  firstName: '',
+  lastName: '',
+  email: '',
+  phone: '',
+  address: '',
+  role: 'STUDENT',
+  password: '',
+  emailVerified: true,
+  sendWelcomeEmail: true,
+})
+const createdCredentials = ref<{ email: string; password: string } | null>(null)
+
+function generatePassword() {
+  createForm.password = `BourseFi${Math.floor(1000 + Math.random() * 9000)}!`
+}
+
+function openCreateModal() {
+  createForm.firstName = ''
+  createForm.lastName = ''
+  createForm.email = ''
+  createForm.phone = ''
+  createForm.address = ''
+  createForm.role = 'STUDENT'
+  createForm.emailVerified = true
+  createForm.sendWelcomeEmail = true
+  generatePassword()
+  createdCredentials.value = null
+  createModalOpen.value = true
+}
+
+async function submitCreateUser() {
+  if (!createForm.email.trim() || !createForm.firstName.trim() || !createForm.lastName.trim()) {
+    alert('Le prénom, le nom et l\'adresse email sont obligatoires.')
+    return
+  }
+  creatingUser.value = true
+  try {
+    const res = await $fetch<{ ok: boolean; user: any; generatedPassword: string }>('/api/admin/users', {
+      method: 'POST',
+      body: { ...createForm },
+    })
+    await refresh()
+    createdCredentials.value = {
+      email: res.user.email,
+      password: res.generatedPassword,
+    }
+  } catch (e: unknown) {
+    alert(getAdminErrorMessage(e, 'Erreur lors de la création du compte.'))
+  } finally {
+    creatingUser.value = false
+  }
+}
+
+async function copyWhatsAppCredentials(email: string, pass: string) {
+  const msg = `Bonjour,\n\nVotre compte BourseFi a été créé et activé avec succès.\nVous pouvez dès maintenant vous connecter pour retrouver vos dossiers et télécharger vos attestations de bourse :\n\nLien : https://boursefi.sn/login\nIdentifiant : ${email}\nMot de passe : ${pass}\n\nÀ très bientôt sur BourseFi !`
+  if (await copyToClipboard(msg)) {
+    alert('Message WhatsApp copié dans le presse-papier !')
+  }
+}
 
 const roleOptions = [
   { value: 'STUDENT', label: 'Étudiant' },
@@ -129,6 +196,8 @@ async function loadDetail(id: string) {
   try {
     detail.value = await $fetch<UserDetail>(`/api/admin/users/${id}`)
     draftRole.value = detail.value.role
+    draftEmailVerified.value = detail.value.emailVerified ?? true
+    draftNewPassword.value = ''
     draftProfile.name = detail.value.name
     draftProfile.firstName = detail.value.firstName ?? ''
     draftProfile.lastName = detail.value.lastName ?? ''
@@ -192,10 +261,14 @@ async function saveUser() {
         lastName: draftProfile.lastName,
         phone: draftProfile.phone,
         address: draftProfile.address,
+        emailVerified: draftEmailVerified.value,
+        newPassword: draftNewPassword.value.trim() || undefined,
       },
     })
+    draftNewPassword.value = ''
     await refresh()
     await loadDetail(selectedId.value)
+    alert('Utilisateur mis à jour avec succès.')
   } catch (e: unknown) {
     alert(getAdminErrorMessage(e))
   } finally {
@@ -227,10 +300,27 @@ async function deleteUser() {
   <div class="flex min-h-screen">
     <AdminSidebar />
     <main class="flex-1 bg-slate-50 p-4 md:p-8">
-      <h1 class="admin-page-title">Utilisateurs</h1>
-      <p class="admin-page-desc">
-        Gestion des comptes : profils, pièces d'identité, candidatures et rôles.
-      </p>
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 class="admin-page-title">Utilisateurs</h1>
+          <p class="admin-page-desc">
+            Gestion des comptes : profils, pièces d'identité, candidatures, rôles et activation des accès.
+          </p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            class="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white shadow-xs transition hover:bg-emerald-700 active:scale-95"
+            @click="openCreateModal"
+          >
+            <span class="material-symbols-outlined text-[18px]">person_add</span>
+            Créer un compte
+          </button>
+          <button type="button" class="admin-btn-secondary text-xs shadow-xs" @click="exportUsers">
+            Exporter CSV
+          </button>
+        </div>
+      </div>
 
       <!-- Stats -->
       <div class="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
@@ -273,7 +363,6 @@ async function deleteUser() {
           <option value="complete">Profils complets</option>
           <option value="incomplete">Profils incomplets</option>
         </select>
-        <button type="button" class="admin-btn-secondary text-sm" @click="exportUsers">Exporter CSV</button>
       </div>
       <p class="mt-2 text-xs text-slate-500">{{ filtered.length }} utilisateur(s) trouvé(s)</p>
 
@@ -313,16 +402,25 @@ async function deleteUser() {
                 <p v-if="u.phone" class="text-xs text-slate-400">{{ u.phone }}</p>
               </td>
               <td class="admin-td">
-                <span
-                  class="inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold"
-                  :class="{
-                    'bg-blue-100 text-blue-800': u.role === 'STUDENT',
-                    'bg-purple-100 text-purple-800': u.role === 'PARTNER',
-                    'bg-slate-200 text-slate-800': u.role === 'ADMIN',
-                  }"
-                >
-                  {{ roleLabel(u.role) }}
-                </span>
+                <div class="flex items-center gap-2">
+                  <span
+                    class="inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold"
+                    :class="{
+                      'bg-blue-100 text-blue-800': u.role === 'STUDENT',
+                      'bg-purple-100 text-purple-800': u.role === 'PARTNER',
+                      'bg-slate-200 text-slate-800': u.role === 'ADMIN',
+                    }"
+                  >
+                    {{ roleLabel(u.role) }}
+                  </span>
+                  <span
+                    class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold"
+                    :class="u.emailVerified ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'"
+                  >
+                    <span class="inline-block h-1.5 w-1.5 rounded-full" :class="u.emailVerified ? 'bg-emerald-500' : 'bg-amber-500'"></span>
+                    {{ u.emailVerified ? 'Actif' : 'Non activé' }}
+                  </span>
+                </div>
                 <p v-if="u.partnerName" class="mt-1 text-xs text-slate-400">{{ u.partnerName }}</p>
               </td>
               <td class="admin-td">
@@ -415,6 +513,16 @@ async function deleteUser() {
               <span class="text-xs text-slate-500">Adresse</span>
               <textarea v-model="draftProfile.address" rows="2" class="admin-input mt-1 w-full bg-white" />
             </label>
+            <div class="sm:col-span-2 rounded-lg border border-slate-200 bg-white p-3 space-y-3">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input v-model="draftEmailVerified" type="checkbox" class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" />
+                <span class="text-xs font-bold text-slate-700">Compte activé (Email vérifié)</span>
+              </label>
+              <label class="block pt-1 border-t border-slate-100">
+                <span class="text-[11px] font-semibold text-slate-500">Définir un nouveau mot de passe (Optionnel)</span>
+                <input v-model="draftNewPassword" type="text" placeholder="Laisser vide pour ne pas modifier" class="admin-input mt-1 w-full bg-slate-50 text-xs" />
+              </label>
+            </div>
           </div>
           <button type="button" class="admin-btn-primary mt-4 w-full text-sm" :disabled="savingRole" @click="saveUser">
             {{ savingRole ? 'Enregistrement…' : 'Enregistrer les modifications' }}
@@ -532,5 +640,139 @@ async function deleteUser() {
     </AdminDrawer>
 
     <AdminDocumentPreviewModal :doc="previewDoc" @close="previewDoc = null" />
+
+    <!-- MODAL CRÉATION DE COMPTE UTILISATEUR -->
+    <div
+      v-if="createModalOpen"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs animate-fade-in"
+    >
+      <div class="w-full max-w-xl overflow-hidden rounded-2xl bg-white shadow-2xl animate-scale-up">
+        <!-- Header -->
+        <div class="flex items-center justify-between border-b border-slate-100 bg-primary px-6 py-4 text-white">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-[22px] text-secondary">person_add</span>
+            <h2 class="font-headline text-lg font-bold">Créer & Activer un Compte Utilisateur</h2>
+          </div>
+          <button
+            type="button"
+            class="rounded-lg p-1 text-slate-300 transition hover:bg-white/10 hover:text-white"
+            @click="createModalOpen = false"
+          >
+            <span class="material-symbols-outlined text-[20px]">close</span>
+          </button>
+        </div>
+
+        <!-- Formulaire si non encore créé -->
+        <form v-if="!createdCredentials" class="p-6 space-y-4 max-h-[80vh] overflow-y-auto" @submit.prevent="submitCreateUser">
+          <div class="rounded-xl border border-sky-200 bg-sky-50/80 p-3 text-xs text-sky-900 flex items-start gap-2">
+            <span class="material-symbols-outlined text-[18px] text-sky-600">info</span>
+            <span>Le compte sera créé et immédiatement activé. Si des candidatures existent déjà avec cette adresse email, elles seront automatiquement rattachées au compte.</span>
+          </div>
+
+          <div class="grid gap-3 sm:grid-cols-2">
+            <label class="block">
+              <span class="text-[11px] font-semibold text-slate-600">Prénom <span class="text-red-500">*</span></span>
+              <input v-model="createForm.firstName" required class="admin-input mt-1" placeholder="Ex: Moussa" />
+            </label>
+            <label class="block">
+              <span class="text-[11px] font-semibold text-slate-600">Nom <span class="text-red-500">*</span></span>
+              <input v-model="createForm.lastName" required class="admin-input mt-1" placeholder="Ex: Ndiaye" />
+            </label>
+            <label class="block sm:col-span-2">
+              <span class="text-[11px] font-semibold text-slate-600">Email de connexion <span class="text-red-500">*</span></span>
+              <input v-model="createForm.email" type="email" required class="admin-input mt-1" placeholder="moussa.ndiaye@gmail.com" />
+            </label>
+            <label class="block">
+              <span class="text-[11px] font-semibold text-slate-600">Téléphone (WhatsApp)</span>
+              <input v-model="createForm.phone" type="tel" class="admin-input mt-1" placeholder="77 123 45 67" />
+            </label>
+            <label class="block">
+              <span class="text-[11px] font-semibold text-slate-600">Rôle</span>
+              <select v-model="createForm.role" class="admin-input mt-1 bg-white">
+                <option value="STUDENT">Étudiant (Défaut)</option>
+                <option value="PARTNER">Partenaire</option>
+                <option value="ADMIN">Administrateur</option>
+              </select>
+            </label>
+            <label class="block sm:col-span-2">
+              <span class="text-[11px] font-semibold text-slate-600">Adresse</span>
+              <input v-model="createForm.address" class="admin-input mt-1" placeholder="Ex: Dakar, Sénégal" />
+            </label>
+            <label class="block sm:col-span-2">
+              <div class="flex items-center justify-between">
+                <span class="text-[11px] font-semibold text-slate-600">Mot de passe</span>
+                <button type="button" class="text-[11px] font-bold text-primary hover:underline" @click="generatePassword">
+                  Générer aléatoire
+                </button>
+              </div>
+              <input v-model="createForm.password" class="admin-input mt-1 font-mono font-bold text-emerald-800" placeholder="Mot de passe" />
+            </label>
+          </div>
+
+          <div class="rounded-xl border border-slate-100 bg-slate-50 p-3 space-y-2">
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input v-model="createForm.emailVerified" type="checkbox" class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" />
+              <span class="text-xs font-bold text-slate-700">Activer le compte immédiatement (Accès sans attente)</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input v-model="createForm.sendWelcomeEmail" type="checkbox" class="rounded border-slate-300 text-primary focus:ring-primary" />
+              <span class="text-xs font-bold text-slate-700">Envoyer les accès par email avec le mot de passe</span>
+            </label>
+          </div>
+
+          <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+            <button
+              type="button"
+              class="rounded-xl border border-slate-200 px-4 py-2.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-50"
+              @click="createModalOpen = false"
+            >
+              Annuler
+            </button>
+            <button
+              type="submit"
+              class="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-xs font-extrabold text-white shadow-sm transition hover:bg-emerald-700 active:scale-95 disabled:opacity-50"
+              :disabled="creatingUser"
+            >
+              <span class="material-symbols-outlined text-[18px]">person_add</span>
+              {{ creatingUser ? 'Création en cours...' : 'Créer le compte' }}
+            </button>
+          </div>
+        </form>
+
+        <!-- Vue Résultat Succès avec Identifiants -->
+        <div v-else class="p-6 space-y-4">
+          <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-center space-y-2">
+            <span class="material-symbols-outlined text-4xl text-emerald-600">check_circle</span>
+            <h3 class="text-base font-bold text-emerald-950">Compte créé & activé avec succès !</h3>
+            <p class="text-xs text-emerald-800">
+              L'étudiant peut dès à présent se connecter sur <strong>https://boursefi.sn/login</strong> pour retrouver ses données.
+            </p>
+          </div>
+
+          <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 font-mono text-xs space-y-1">
+            <p><span class="text-slate-400 select-none">Identifiant : </span><strong class="text-slate-800">{{ createdCredentials.email }}</strong></p>
+            <p><span class="text-slate-400 select-none">Mot de passe : </span><strong class="text-emerald-700">{{ createdCredentials.password }}</strong></p>
+          </div>
+
+          <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+            <button
+              type="button"
+              class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white shadow-xs transition hover:bg-emerald-700"
+              @click="copyWhatsAppCredentials(createdCredentials.email, createdCredentials.password)"
+            >
+              <span class="material-symbols-outlined text-[18px]">chat</span>
+              Copier pour WhatsApp
+            </button>
+            <button
+              type="button"
+              class="w-full sm:w-auto rounded-xl border border-slate-200 px-5 py-2.5 text-xs font-bold text-slate-700 transition hover:bg-slate-50"
+              @click="createModalOpen = false"
+            >
+              Fermer
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>

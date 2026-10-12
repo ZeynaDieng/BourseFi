@@ -12,7 +12,7 @@ export default defineEventHandler(async (event) => {
   const c = await prisma.candidature.findUnique({
     where: { id },
     include: {
-      user: { select: { id: true, name: true, email: true, phone: true } },
+      user: { select: { id: true, name: true, email: true, phone: true, emailVerified: true } },
       programme: {
         include: {
           etablissement: { select: { nom: true, slug: true } },
@@ -82,6 +82,8 @@ export default defineEventHandler(async (event) => {
     nextRelanceAt: c.nextRelanceAt?.toISOString() ?? null,
     conversionScore: c.conversionScore ?? 75,
     crmNotes: c.crmNotes || [],
+    programmeId: c.programmeId,
+    bourseId: c.bourseId,
     programme: {
       titre: c.programme.titre,
       slug: c.programme.slug,

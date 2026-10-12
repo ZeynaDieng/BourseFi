@@ -69,6 +69,8 @@ type DossierDetail = DossierRow & {
   attestationNumber?: string | null
   montantInitial: number | null
   montantReduction: number | null
+  programmeId: string
+  bourseId?: string | null
   programme: {
     titre: string
     slug: string
@@ -79,7 +81,7 @@ type DossierDetail = DossierRow & {
   }
   partner: { id: string; name: string; slug: string }
   bourse: { titre: string; slug: string } | null
-  user: { id: string; name: string; email: string; phone: string | null }
+  user: { id: string; name: string; email: string; phone: string | null; emailVerified?: boolean }
   paiement: {
     id: string
     amount: number
@@ -486,6 +488,7 @@ const createForm = reactive({
   lastDiploma: 'BAC',
   paymentMethod: 'ESPÈCES_AGENCE',
   montantEncaisse: 20000,
+  password: 'BourseFi2026!',
 })
 const creatingDirect = ref(false)
 
@@ -522,7 +525,7 @@ async function submitCreateDirect() {
 
   creatingDirect.value = true
   try {
-    const res = await $fetch<{ ok: boolean; candidatureId: string; attestationUrl: string }>(
+    const res = await $fetch<{ ok: boolean; candidatureId: string; attestationUrl: string; tempPassword?: string }>(
       '/api/admin/candidatures/creer-direct',
       {
         method: 'POST',
@@ -531,19 +534,149 @@ async function submitCreateDirect() {
     )
 
     createModalOpen.value = false
+    const emailSaved = createForm.email
+    const passSaved = res.tempPassword || createForm.password
     createForm.firstName = ''
     createForm.lastName = ''
     createForm.email = ''
     createForm.phone = ''
     createForm.address = ''
+    createForm.password = 'BourseFi2026!'
     
     await refresh()
     window.open(res.attestationUrl, '_blank')
-    alert("Attestation créée avec succès ! Le document PDF a été ouvert pour impression.")
+    alert(`Attestation créée avec succès !\n\nCompte étudiant activé :\nIdentifiant : ${emailSaved}\nMot de passe : ${passSaved}\n\nLe document PDF s'est ouvert pour impression.`)
   } catch (e: unknown) {
     alert(getAdminErrorMessage(e, 'Erreur lors de la création directe de l\'attestation.'))
   } finally {
     creatingDirect.value = false
+  }
+}
+
+// Modal Modification Candidat & Dossier
+const editModalOpen = ref(false)
+const editingCandidate = ref(false)
+const editForm = reactive({
+  firstName: '',
+  lastName: '',
+  email: '',
+  phone: '',
+  address: '',
+  programmeId: '',
+  level: '',
+  lastEducationLevel: '',
+  lastDiploma: '',
+  institution: '',
+  field: '',
+  sendNotificationEmail: true,
+})
+
+async function openEditModal() {
+  if (!detail.value) return
+  editForm.firstName = detail.value.firstName || ''
+  editForm.lastName = detail.value.lastName || ''
+  editForm.email = detail.value.email || ''
+  editForm.phone = detail.value.phone || ''
+  editForm.address = detail.value.address || ''
+  editForm.programmeId = detail.value.programmeId || ''
+  editForm.level = detail.value.level || ''
+  editForm.lastEducationLevel = detail.value.lastEducationLevel || ''
+  editForm.lastDiploma = detail.value.lastDiploma || ''
+  editForm.institution = detail.value.institution || ''
+  editForm.field = detail.value.field || ''
+  editForm.sendNotificationEmail = true
+
+  if (programmesList.value.length === 0) {
+    loadingProgrammes.value = true
+    try {
+      programmesList.value = await $fetch('/api/admin/programmes')
+    } catch {
+      // ignore
+    } finally {
+      loadingProgrammes.value = false
+    }
+  }
+
+  editModalOpen.value = true
+}
+
+async function submitEditCandidate() {
+  if (!selectedId.value) return
+  if (!editForm.firstName.trim() || !editForm.lastName.trim() || !editForm.email.trim()) {
+    alert('Le prénom, le nom et l\'email sont obligatoires.')
+    return
+  }
+
+  editingCandidate.value = true
+  try {
+    await $fetch(`/api/admin/candidatures/${selectedId.value}`, {
+      method: 'PATCH',
+      body: { ...editForm },
+    })
+    editModalOpen.value = false
+    await refresh()
+    await loadDetail(selectedId.value)
+    const msg = editForm.sendNotificationEmail
+      ? 'Informations du candidat et attestation mises à jour avec succès !\nUn email récapitulatif avec le lien vers l\'attestation a été envoyé au candidat.'
+      : 'Informations du candidat et attestation mises à jour avec succès (sans envoi d\'email au candidat) !'
+    alert(msg)
+  } catch (e: unknown) {
+    alert(getAdminErrorMessage(e, 'Erreur lors de la mise à jour des informations.'))
+  } finally {
+    editingCandidate.value = false
+  }
+}
+
+// Modal Activation de Compte Étudiant
+const activateModalOpen = ref(false)
+const activatingAccount = ref(false)
+const activateForm = reactive({
+  password: '',
+  sendEmail: true,
+})
+const activatedCredentials = ref<{ email: string; password: string } | null>(null)
+
+function generateActivationPassword() {
+  activateForm.password = `BourseFi${Math.floor(1000 + Math.random() * 9000)}!`
+}
+
+function openActivateModal() {
+  generateActivationPassword()
+  activateForm.sendEmail = true
+  activatedCredentials.value = null
+  activateModalOpen.value = true
+}
+
+async function submitActivateAccount() {
+  if (!selectedId.value) return
+  activatingAccount.value = true
+  try {
+    const res = await $fetch<{ ok: boolean; email: string; tempPassword: string; emailVerified: boolean }>(
+      `/api/admin/candidatures/${selectedId.value}/activer-compte`,
+      {
+        method: 'POST',
+        body: { ...activateForm },
+      }
+    )
+    await refresh()
+    if (detail.value) {
+      await loadDetail(selectedId.value)
+    }
+    activatedCredentials.value = {
+      email: res.email,
+      password: res.tempPassword,
+    }
+  } catch (e: unknown) {
+    alert(getAdminErrorMessage(e, 'Erreur lors de l\'activation du compte.'))
+  } finally {
+    activatingAccount.value = false
+  }
+}
+
+async function copyWhatsAppActivation(email: string, pass: string) {
+  const msg = `Bonjour,\n\nVotre compte étudiant BourseFi a été activé avec succès !\nVous pouvez vous connecter dès maintenant pour accéder à vos candidatures et télécharger votre attestation de bourse :\n\nLien : https://boursefi.sn/login\nIdentifiant : ${email}\nMot de passe : ${pass}\n\nÀ très bientôt sur BourseFi !`
+  if (await copyToClipboard(msg)) {
+    alert('Message WhatsApp copié dans le presse-papier !')
   }
 }
 </script>
@@ -950,9 +1083,19 @@ async function submitCreateDirect() {
 
           <!-- Informations Candidat -->
           <section class="rounded-xl border border-slate-100 bg-white p-4 shadow-2xs">
-            <div class="flex items-center gap-2 border-b border-slate-100 pb-2.5">
-              <span class="material-symbols-outlined text-[18px] text-primary">person</span>
-              <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Informations du Candidat</p>
+            <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-[18px] text-primary">person</span>
+                <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Informations du Candidat</p>
+              </div>
+              <button
+                type="button"
+                class="inline-flex items-center gap-1 rounded-lg bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary transition hover:bg-primary hover:text-white"
+                @click="openEditModal"
+              >
+                <span class="material-symbols-outlined text-[15px]">edit</span>
+                Modifier
+              </button>
             </div>
             <dl class="mt-3 grid gap-3 text-sm sm:grid-cols-2">
               <div><dt class="text-xs text-slate-400">Nom complet</dt><dd class="font-bold text-primary">{{ detail.fullName }}</dd></div>
@@ -962,6 +1105,28 @@ async function submitCreateDirect() {
               <div><dt class="text-xs text-slate-400">Déposé le</dt><dd class="font-medium text-slate-700">{{ formatDate(detail.createdAt) }}</dd></div>
               <div><dt class="text-xs text-slate-400">Identifiant Dossier</dt><dd class="font-mono text-xs text-slate-500">{{ detail.id }}</dd></div>
             </dl>
+
+            <!-- Statut du Compte Étudiant & Activation Rapide -->
+            <div class="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
+              <div class="flex items-center gap-1.5">
+                <span class="text-xs text-slate-500 font-medium">Statut compte :</span>
+                <span
+                  class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold"
+                  :class="detail.user?.emailVerified ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'"
+                >
+                  <span class="inline-block h-1.5 w-1.5 rounded-full" :class="detail.user?.emailVerified ? 'bg-emerald-500' : 'bg-amber-500'"></span>
+                  {{ detail.user?.emailVerified ? 'Compte actif' : 'Non activé' }}
+                </span>
+              </div>
+              <button
+                type="button"
+                class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-bold text-slate-700 shadow-2xs transition hover:bg-slate-50 hover:border-slate-300"
+                @click="openActivateModal"
+              >
+                <span class="material-symbols-outlined text-[15px] text-amber-600">vpn_key</span>
+                {{ detail.user?.emailVerified ? 'Régénérer & envoyer accès' : 'Activer & transmettre accès' }}
+              </button>
+            </div>
           </section>
 
           <!-- Parcours Académique -->
@@ -1316,6 +1481,11 @@ async function submitCreateDirect() {
                 <span class="text-[11px] font-semibold text-slate-600">Montant Encaissé (FCFA)</span>
                 <input v-model.number="createForm.montantEncaisse" type="number" min="0" class="admin-input mt-1 font-bold text-emerald-800" />
               </label>
+
+              <label class="block sm:col-span-2">
+                <span class="text-[11px] font-semibold text-slate-600">Mot de passe initial pour l'espace étudiant</span>
+                <input v-model="createForm.password" class="admin-input mt-1 font-mono font-bold text-emerald-800" placeholder="Mot de passe" />
+              </label>
             </div>
           </div>
 
@@ -1338,6 +1508,253 @@ async function submitCreateDirect() {
             </button>
           </div>
         </form>
+      </div>
+    </div>
+
+    <!-- MODAL MODIFICATION CANDIDAT & DOSSIER -->
+    <div
+      v-if="editModalOpen"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs animate-fade-in"
+    >
+      <div class="w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl animate-scale-up">
+        <!-- Header Modal -->
+        <div class="flex items-center justify-between border-b border-slate-100 bg-primary px-6 py-4 text-white">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-[22px] text-secondary">edit_note</span>
+            <h2 class="font-headline text-lg font-bold">Modifier les Informations du Candidat</h2>
+          </div>
+          <button
+            type="button"
+            class="rounded-lg p-1 text-slate-300 transition hover:bg-white/10 hover:text-white"
+            @click="editModalOpen = false"
+          >
+            <span class="material-symbols-outlined text-[20px]">close</span>
+          </button>
+        </div>
+
+        <!-- Body Form -->
+        <form class="p-6 space-y-4 max-h-[80vh] overflow-y-auto" @submit.prevent="submitEditCandidate">
+          <div class="rounded-xl border border-amber-200 bg-amber-50/80 p-3 text-xs text-amber-900 flex items-start gap-2">
+            <span class="material-symbols-outlined text-[18px] text-amber-600">info</span>
+            <span>Les modifications apportées ici mettront immédiatement à jour le dossier, le profil utilisateur et l'attestation officielle de bourse générée.</span>
+          </div>
+
+          <!-- Section 1: Coordonnées -->
+          <div class="border-b border-slate-100 pb-3">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">1. Coordonnées de l'Élève</h3>
+            <div class="grid gap-3 sm:grid-cols-2">
+              <label class="block">
+                <span class="text-[11px] font-semibold text-slate-600">Prénom <span class="text-red-500">*</span></span>
+                <input v-model="editForm.firstName" required class="admin-input mt-1" placeholder="Ex: Moussa" />
+              </label>
+              <label class="block">
+                <span class="text-[11px] font-semibold text-slate-600">Nom <span class="text-red-500">*</span></span>
+                <input v-model="editForm.lastName" required class="admin-input mt-1" placeholder="Ex: Ndiaye" />
+              </label>
+              <label class="block">
+                <span class="text-[11px] font-semibold text-slate-600">Email <span class="text-red-500">*</span></span>
+                <input v-model="editForm.email" type="email" required class="admin-input mt-1" placeholder="moussa.ndiaye@gmail.com" />
+              </label>
+              <label class="block">
+                <span class="text-[11px] font-semibold text-slate-600">Téléphone (WhatsApp)</span>
+                <input v-model="editForm.phone" type="tel" class="admin-input mt-1" placeholder="77 123 45 67" />
+              </label>
+              <label class="block sm:col-span-2">
+                <span class="text-[11px] font-semibold text-slate-600">Adresse</span>
+                <input v-model="editForm.address" class="admin-input mt-1" placeholder="Ex: Dakar, Sénégal" />
+              </label>
+            </div>
+          </div>
+
+          <!-- Section 2: Formation & Établissement -->
+          <div class="border-b border-slate-100 pb-3">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">2. Formation & Établissement Visés</h3>
+            <label class="block">
+              <span class="text-[11px] font-semibold text-slate-600">Formation demandée</span>
+              <select v-model="editForm.programmeId" class="admin-input mt-1 bg-white">
+                <option v-if="loadingProgrammes" value="" disabled>Chargement des programmes...</option>
+                <option v-for="p in programmesList" :key="p.id" :value="p.id">
+                  {{ p.etablissement.nom }} — {{ p.titre }}
+                </option>
+              </select>
+            </label>
+          </div>
+
+          <!-- Section 3: Parcours Académique -->
+          <div>
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">3. Parcours Académique</h3>
+            <div class="grid gap-3 sm:grid-cols-2">
+              <label class="block">
+                <span class="text-[11px] font-semibold text-slate-600">Dernier niveau d'études</span>
+                <select v-model="editForm.lastEducationLevel" class="admin-input mt-1 bg-white">
+                  <option value="Troisième (3ème)">Troisième (3ème)</option>
+                  <option value="Seconde">Seconde</option>
+                  <option value="Première">Première</option>
+                  <option value="Terminale">Terminale</option>
+                  <option value="Bac+1">Bac+1</option>
+                  <option value="Bac+2 (BTS, DUT)">Bac+2 (BTS, DUT)</option>
+                  <option value="Bac+3 (Licence)">Bac+3 (Licence)</option>
+                  <option value="Bac+5 (Master)">Bac+5 (Master)</option>
+                </select>
+              </label>
+              <label class="block">
+                <span class="text-[11px] font-semibold text-slate-600">Dernier diplôme</span>
+                <select v-model="editForm.lastDiploma" class="admin-input mt-1 bg-white">
+                  <option value="BFEM">BFEM</option>
+                  <option value="BAC">BAC</option>
+                  <option value="BTS">BTS</option>
+                  <option value="DUT">DUT</option>
+                  <option value="Licence">Licence</option>
+                  <option value="Master">Master</option>
+                  <option value="Autre">Autre</option>
+                </select>
+              </label>
+              <label class="block">
+                <span class="text-[11px] font-semibold text-slate-600">Niveau visé</span>
+                <input v-model="editForm.level" class="admin-input mt-1" placeholder="Ex: Licence 1, Master 1" />
+              </label>
+              <label class="block">
+                <span class="text-[11px] font-semibold text-slate-600">Établissement fréquenté</span>
+                <input v-model="editForm.institution" class="admin-input mt-1" placeholder="Ex: Lycée Lamine Guèye" />
+              </label>
+            </div>
+          </div>
+
+          <!-- Option Notification Email -->
+          <div class="rounded-xl border border-slate-200 bg-slate-50 p-3.5">
+            <label class="flex items-start gap-2.5 cursor-pointer select-none">
+              <input v-model="editForm.sendNotificationEmail" type="checkbox" class="mt-0.5 rounded text-primary focus:ring-primary h-4 w-4" />
+              <div class="text-xs">
+                <span class="font-bold text-slate-800">Notifier le candidat par email avec ses informations à jour</span>
+                <p class="text-slate-500 mt-0.5">Envoie un courriel au candidat avec le récapitulatif de ses modifications et le lien vers son attestation régénérée.</p>
+              </div>
+            </label>
+          </div>
+
+          <!-- Footer Buttons -->
+          <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+            <button
+              type="button"
+              class="rounded-xl border border-slate-200 px-4 py-2.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-50"
+              @click="editModalOpen = false"
+            >
+              Annuler
+            </button>
+            <button
+              type="submit"
+              class="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-xs font-extrabold text-white shadow-sm transition hover:bg-primary-focus active:scale-95 disabled:opacity-50"
+              :disabled="editingCandidate"
+            >
+              <span class="material-symbols-outlined text-[18px]">save</span>
+              {{ editingCandidate ? 'Enregistrement...' : 'Enregistrer les modifications' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL ACTIVATION COMPTE ÉTUDIANT DEPUIS DOSSIER -->
+    <div
+      v-if="activateModalOpen"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs animate-fade-in"
+    >
+      <div class="w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl animate-scale-up">
+        <!-- Header -->
+        <div class="flex items-center justify-between border-b border-slate-100 bg-primary px-6 py-4 text-white">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-[22px] text-amber-400">vpn_key</span>
+            <h2 class="font-headline text-lg font-bold">Activer le Compte Étudiant</h2>
+          </div>
+          <button
+            type="button"
+            class="rounded-lg p-1 text-slate-300 transition hover:bg-white/10 hover:text-white"
+            @click="activateModalOpen = false"
+          >
+            <span class="material-symbols-outlined text-[20px]">close</span>
+          </button>
+        </div>
+
+        <!-- Formulaire si non encore activé -->
+        <form v-if="!activatedCredentials" class="p-6 space-y-4" @submit.prevent="submitActivateAccount">
+          <div class="rounded-xl border border-sky-200 bg-sky-50/80 p-3 text-xs text-sky-900 flex items-start gap-2">
+            <span class="material-symbols-outlined text-[18px] text-sky-600">info</span>
+            <span>Cette action active le compte étudiant (email vérifié), configure son mot de passe et lui permet de se connecter immédiatement sur BourseFi pour consulter son dossier.</span>
+          </div>
+
+          <div class="space-y-3">
+            <div>
+              <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Candidat destinataire</p>
+              <p class="text-sm font-bold text-primary">{{ detail?.fullName }} ({{ detail?.email }})</p>
+            </div>
+
+            <label class="block">
+              <div class="flex items-center justify-between">
+                <span class="text-[11px] font-semibold text-slate-600">Mot de passe de connexion</span>
+                <button type="button" class="text-[11px] font-bold text-primary hover:underline" @click="generateActivationPassword">
+                  Générer aléatoire
+                </button>
+              </div>
+              <input v-model="activateForm.password" required class="admin-input mt-1 font-mono font-bold text-emerald-800" placeholder="Mot de passe" />
+            </label>
+
+            <label class="flex items-center gap-2 cursor-pointer pt-2">
+              <input v-model="activateForm.sendEmail" type="checkbox" class="rounded border-slate-300 text-primary focus:ring-primary" />
+              <span class="text-xs font-bold text-slate-700">Envoyer les identifiants par email à l'élève</span>
+            </label>
+          </div>
+
+          <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+            <button
+              type="button"
+              class="rounded-xl border border-slate-200 px-4 py-2.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-50"
+              @click="activateModalOpen = false"
+            >
+              Annuler
+            </button>
+            <button
+              type="submit"
+              class="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-xs font-extrabold text-white shadow-sm transition hover:bg-primary-focus active:scale-95 disabled:opacity-50"
+              :disabled="activatingAccount"
+            >
+              <span class="material-symbols-outlined text-[18px]">key</span>
+              {{ activatingAccount ? 'Activation en cours...' : 'Activer & Envoyer les Accès' }}
+            </button>
+          </div>
+        </form>
+
+        <!-- Vue Résultat Succès -->
+        <div v-else class="p-6 space-y-4">
+          <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-center space-y-2">
+            <span class="material-symbols-outlined text-4xl text-emerald-600">check_circle</span>
+            <h3 class="text-base font-bold text-emerald-950">Compte activé avec succès !</h3>
+            <p class="text-xs text-emerald-800">
+              L'élève peut dès à présent se connecter pour suivre son dossier et télécharger son attestation.
+            </p>
+          </div>
+
+          <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 font-mono text-xs space-y-1">
+            <p><span class="text-slate-400 select-none">Identifiant : </span><strong class="text-slate-800">{{ activatedCredentials.email }}</strong></p>
+            <p><span class="text-slate-400 select-none">Mot de passe : </span><strong class="text-emerald-700">{{ activatedCredentials.password }}</strong></p>
+          </div>
+
+          <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+            <button
+              type="button"
+              class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white shadow-xs transition hover:bg-emerald-700"
+              @click="copyWhatsAppActivation(activatedCredentials.email, activatedCredentials.password)"
+            >
+              <span class="material-symbols-outlined text-[18px]">chat</span>
+              Copier pour WhatsApp
+            </button>
+            <button
+              type="button"
+              class="w-full sm:w-auto rounded-xl border border-slate-200 px-5 py-2.5 text-xs font-bold text-slate-700 transition hover:bg-slate-50"
+              @click="activateModalOpen = false"
+            >
+              Fermer
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
