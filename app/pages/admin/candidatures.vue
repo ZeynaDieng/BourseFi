@@ -526,7 +526,7 @@ async function submitCreateDirect() {
 
   creatingDirect.value = true
   try {
-    const res = await $fetch<{ ok: boolean; candidatureId: string; attestationUrl: string; tempPassword?: string }>(
+    const res = await $fetch<{ ok: boolean; candidatureId: string; attestationUrl: string; isNewAccount?: boolean; tempPassword?: string | null }>(
       '/api/admin/candidatures/creer-direct',
       {
         method: 'POST',
@@ -546,7 +546,10 @@ async function submitCreateDirect() {
     
     await refresh()
     window.open(res.attestationUrl, '_blank')
-    alert(`Attestation créée avec succès !\n\nCompte étudiant activé :\nIdentifiant : ${emailSaved}\nMot de passe : ${passSaved}\n\nLe document PDF s'est ouvert pour impression.`)
+    const accountMsg = res.isNewAccount
+      ? `Nouveau compte étudiant créé :\nIdentifiant : ${emailSaved}\nMot de passe : ${passSaved}`
+      : `Compte existant détecté (${emailSaved}).\nL'attestation a été ajoutée à son espace. Son mot de passe n'a PAS été modifié.`
+    alert(`Attestation créée avec succès !\n\n${accountMsg}\n\nLe document PDF s'est ouvert pour impression.`)
   } catch (e: unknown) {
     alert(getAdminErrorMessage(e, 'Erreur lors de la création directe de l\'attestation.'))
   } finally {

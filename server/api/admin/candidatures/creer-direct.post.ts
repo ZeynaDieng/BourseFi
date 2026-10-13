@@ -41,8 +41,11 @@ export default defineEventHandler(async (event) => {
   const finalPassword = password?.trim() || `BourseFi${Math.floor(1000 + Math.random() * 9000)}!`
   const passwordHash = await bcrypt.hash(finalPassword, 10)
 
-  // 1. Trouver ou créer l'utilisateur étudiant
-  let user = await prisma.user.findUnique({ where: { email: cleanEmail } })
+  // 1. Trouver ou créer l'utilisateur étudiant (recherche insensible à la casse)
+  let user = await prisma.user.findFirst({
+    where: { email: { equals: cleanEmail, mode: 'insensitive' } },
+  })
+  const isNewAccount = !user
   if (!user) {
     user = await prisma.user.create({
       data: {
@@ -64,7 +67,7 @@ export default defineEventHandler(async (event) => {
     if (!user.lastName) patch.lastName = cleanLastName
     if (!user.phone && cleanPhone) patch.phone = cleanPhone
     if (!user.address && cleanAddress) patch.address = cleanAddress
-    if (password?.trim()) patch.passwordHash = passwordHash
+    // Compte existant : on ne touche JAMAIS au mot de passe de l'étudiant
     await prisma.user.update({ where: { id: user.id }, data: patch })
   }
 
@@ -169,17 +172,21 @@ export default defineEventHandler(async (event) => {
   const siteUrl = String(process.env.NUXT_PUBLIC_SITE_URL || 'https://boursefi.sn').replace(/\/+$/, '')
   await sendEmail({
     to: { email: cleanEmail, name: fullName },
-    subject: 'Votre attestation officielle de bourse & accès étudiant — BourseFi',
+    subject: isNewAccount
+      ? 'Votre attestation officielle de bourse & accès étudiant — BourseFi'
+      : 'Votre attestation officielle de bourse — BourseFi',
     html: renderEmail({
       title: 'Attestation de bourse émise',
       bodyHtml: `<p>Bonjour ${cleanFirstName},</p>
         <p>Votre demande de bourse pour <strong>${programme.titre}</strong> à <strong>${programme.etablissement.nom}</strong> a été validée et enregistrée.</p>
         <p>Votre attestation officielle (N° <strong>${attestationNumber}</strong>) est prête et téléchargeable.</p>
-        <div style="background:#f1f5f9;padding:14px 18px;border-radius:10px;margin:18px 0;border-left:4px solid #0b1b3a;font-family:Arial,sans-serif;">
+        ${isNewAccount
+          ? `<div style="background:#f1f5f9;padding:14px 18px;border-radius:10px;margin:18px 0;border-left:4px solid #0b1b3a;font-family:Arial,sans-serif;">
           <p style="margin:4px 0;font-size:13px;"><strong>Vos accès à votre espace étudiant :</strong></p>
           <p style="margin:4px 0;font-size:13px;">Identifiant : <strong>${cleanEmail}</strong></p>
           <p style="margin:4px 0;font-size:13px;">Mot de passe : <code>${finalPassword}</code></p>
-        </div>`,
+        </div>`
+          : `<p>Elle a été ajoutée à votre espace étudiant existant. Connectez-vous avec votre adresse <strong>${cleanEmail}</strong> et votre mot de passe habituel.</p>`}`,
       ctaLabel: 'Accéder à mon espace étudiant',
       ctaUrl: `${siteUrl}/etudiant/documents`,
     }),
@@ -200,6 +207,7 @@ export default defineEventHandler(async (event) => {
     attestationNumber,
     attestationUrl: `/api/attestations/${candidature.id}`,
     paiementId: paiement.id,
-    tempPassword: finalPassword,
+    isNewAccount,
+    tempPassword: isNewAccount ? finalPassword : null,
   }
 })
