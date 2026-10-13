@@ -114,6 +114,22 @@ export default defineEventHandler(async (event) => {
         : rawModalite)
   const typeBourseLabel = ecoleSlug === 'hecm-dakar' ? 'BOURSE ENTIÈRE' : (ecoleSlug === 'isca' ? 'FORFAIT BOURSE' : (candidature.bourse?.coveragePercent ? `Bourse ${candidature.bourse.coveragePercent}%` : 'Bourse d\'études'))
   const studentName = candidature.fullName || `${candidature.firstName} ${candidature.lastName}`
+
+  // EHES uniquement, attestation générée depuis le backoffice : montant pris en charge
+  const ecoleNomBrut = candidature.programme.etablissement.nom || ''
+  const isEhes = /(^|[^a-z])ehes([^a-z]|$)/i.test(`${ecoleSlug} ${ecoleNomBrut}`)
+  const isBackofficeGenerated = candidature.paiement?.provider === 'manual_admin_direct'
+  let montantPrisEnCharge = ''
+  if (isEhes && isBackofficeGenerated) {
+    const f = `${programmeTitle} ${candidature.programme.titre}`.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+    if (f.includes('genie civil')) {
+      montantPrisEnCharge = 'Inscription et 30% sur la scolarité pour la formation en Génie Civil'
+    } else if (f.includes('transport') || f.includes('logistique') || f.includes('gestion des entreprises')) {
+      montantPrisEnCharge = 'Inscription et 19% sur la scolarité pour le Transport Logistique et la Gestion des Entreprises'
+    } else {
+      montantPrisEnCharge = 'Inscription et 19% sur la scolarité pour le Transport Logistique et la Gestion des Entreprises<br>Inscription et 30% sur la scolarité pour la formation en Génie Civil'
+    }
+  }
   const activeTarifs = (candidature.programme.tarifs || []).filter((t) => t.status === 'ACTIVE')
   const currentTarif = activeTarifs.find((t) => t.isDefault) || activeTarifs[0] || candidature.programme.tarifs?.[0]
   const rawAnnee = currentTarif?.anneeAcademique
@@ -375,6 +391,11 @@ export default defineEventHandler(async (event) => {
               <div class="info-label">Année académique</div>
               <div class="info-val">${anneeAcademique}</div>
             </div>
+${montantPrisEnCharge ? `
+            <div class="info-group">
+              <div class="info-label">Montant pris en charge</div>
+              <div class="info-val">${montantPrisEnCharge}</div>
+            </div>` : ''}
           </div>
         </section>
 
