@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { prisma } from '../../../utils/prisma'
 import { requireRole } from '../../../utils/auth'
 import { writeAuditLog } from '../../../utils/audit'
+import { checkPassword } from '../../../../shared/password-policy'
 
 const patchSchema = z.object({
   role: z.enum(['STUDENT', 'ADMIN', 'PARTNER']).optional(),
@@ -10,7 +11,7 @@ const patchSchema = z.object({
   lastName: z.string().max(80).optional(),
   phone: z.string().max(30).optional(),
   address: z.string().max(300).optional(),
-  newPassword: z.string().min(4).optional(),
+  newPassword: z.string().optional(),
   emailVerified: z.boolean().optional(),
 })
 
@@ -45,6 +46,10 @@ export default defineEventHandler(async (event) => {
   if (parsed.data.emailVerified !== undefined) data.emailVerified = parsed.data.emailVerified
 
   if (parsed.data.newPassword) {
+    const policy = checkPassword(parsed.data.newPassword, { email: target.email })
+    if (!policy.ok) {
+      throw createError({ statusCode: 400, statusMessage: policy.message })
+    }
     const { hash } = await import('bcryptjs')
     data.passwordHash = await hash(parsed.data.newPassword, 10)
   }

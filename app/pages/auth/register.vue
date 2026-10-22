@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { authRedirectHint, isSafeStudentRedirect, resolveStudentAuthRedirect } from '~/utils/routes'
-const emailSent = ref(false)
+import { PASSWORD_MIN_LENGTH, PASSWORD_POLICY_HINT, checkPassword } from '#shared/password-policy'
 const route = useRoute()
 
 const redirectTo = computed(() =>
@@ -41,6 +41,13 @@ async function submitRegister() {
   successMessage.value = ''
   isLoading.value = true
 
+  const policy = checkPassword(form.password, { email: form.email })
+  if (!policy.ok) {
+    errorMessage.value = policy.message
+    isLoading.value = false
+    return
+  }
+
   try {
     const payload = {
       firstName: form.firstName.trim(),
@@ -52,25 +59,13 @@ async function submitRegister() {
       acceptMarketing: form.acceptMarketing,
     }
 
-    const response = await $fetch<{
-      ok: boolean
-      message: string
-      emailSent: boolean
-      email: string
-    }>('/api/auth/register', {
+    const response = await $fetch<{ ok: boolean; message: string }>('/api/auth/register', {
       method: 'POST',
       body: payload,
     })
 
-    emailSent.value = response.emailSent
- await navigateTo(loginHref.value)
-    if (response.emailSent) {
-      successMessage.value =
-        "Compte créé avec succès. Un email de vérification vous a été envoyé."
-    } else {
-      successMessage.value =
-        "Compte créé avec succès. Vous pouvez poursuivre votre candidature. Vous pourrez vérifier votre adresse email plus tard."
-    }
+    form.password = ''
+    successMessage.value = response.message
   } catch (error: unknown) {
     const data =
       error && typeof error === 'object' && 'data' in error
@@ -112,8 +107,8 @@ async function submitRegister() {
         </div>
         <input v-model="form.email" type="email" required class="w-full rounded-lg border-slate-200 px-4 py-3" placeholder="Email" />
         <input v-model="form.phone" type="tel" required class="w-full rounded-lg border-slate-200 px-4 py-3" placeholder="Numéro de téléphone (ex: 77 123 45 67)" />
-        <input v-model="form.password" type="password" minlength="4" required class="w-full rounded-lg border-slate-200 px-4 py-3" placeholder="Mot de passe (4 caractères minimum)" />
-        <p class="text-xs text-slate-500">Le mot de passe doit contenir au moins 4 caractères</p>
+        <input v-model="form.password" type="password" :minlength="PASSWORD_MIN_LENGTH" maxlength="128" required autocomplete="new-password" class="w-full rounded-lg border-slate-200 px-4 py-3" :placeholder="`Mot de passe (${PASSWORD_MIN_LENGTH} caractères minimum)`" />
+        <p class="text-xs text-slate-500">{{ PASSWORD_POLICY_HINT }}</p>
 
         <div class="space-y-3">
           <label class="flex items-start gap-3">
@@ -143,22 +138,10 @@ async function submitRegister() {
         <div class="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto">
           <span class="material-symbols-outlined text-emerald-600 text-3xl">check_circle</span>
         </div>
-        <h2 class="text-xl font-bold text-slate-900">Compte créé avec succès !</h2>
+        <h2 class="text-xl font-bold text-slate-900">Vérifiez votre boîte email</h2>
         <p class="text-slate-600">{{ successMessage }}</p>
-<p
-  v-if="emailSent"
-  class="text-sm text-slate-500"
->
-  Vérifiez votre boîte de réception pour confirmer votre adresse email.
-</p>
-
-<p
-  v-else
-  class="text-sm text-amber-600"
->
-  L'email de confirmation n'a pas pu être envoyé pour le moment.
-  Vous pouvez néanmoins continuer à utiliser votre compte.
-</p>        <NuxtLink :to="loginHref" class="inline-block bg-primary text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary/90">
+        <p class="text-sm text-slate-500">Pensez à consulter vos courriers indésirables. Le lien vous connectera automatiquement.</p>
+        <NuxtLink :to="loginHref" class="inline-block bg-primary text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary/90">
           Se connecter
         </NuxtLink>
       </div>

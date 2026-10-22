@@ -1,9 +1,11 @@
 import { z } from 'zod'
-import bcrypt from 'bcryptjs'
 import { prisma } from '../../../utils/prisma'
 import { requireRole } from '../../../utils/auth'
 import { writeAuditLog } from '../../../utils/audit'
 import { sendEmail, renderEmail } from '../../../utils/email'
+import {
+  ACTIVATION_TOKEN_TTL_MS, activationUrl, generateOneTimeToken, unusablePasswordHash,
+} from '../../../utils/one-time-token'
 
 const userCreateSchema = z.object({
   firstName: z.string().trim().optional(),
@@ -13,7 +15,7 @@ const userCreateSchema = z.object({
   phone: z.string().trim().optional(),
   address: z.string().trim().optional(),
   role: z.enum(['STUDENT', 'PARTNER', 'ADMIN']).default('STUDENT'),
-  password: z.string().min(4).optional(),
+  // Pas de champ `password` : le titulaire choisit lui-même son mot de passe via un lien d'activation.
   emailVerified: z.boolean().default(true),
   sendWelcomeEmail: z.boolean().default(true),
 })
@@ -44,8 +46,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const finalPassword = parsed.data.password?.trim() || `BourseFi${Math.floor(1000 + Math.random() * 9000)}!`
-  const passwordHash = await bcrypt.hash(finalPassword, 10)
+  const { token, tokenHash } = generateOneTimeToken()
 
   const user = await prisma.user.create({
     data: {
@@ -55,7 +56,9 @@ export default defineEventHandler(async (event) => {
       email: cleanEmail,
       phone: parsed.data.phone || null,
       address: parsed.data.address || null,
-      passwordHash,
+      passwordHash: await unusablePasswordHash(),
+      resetPasswordToken: tokenHash,
+      resetPasswordExpires: new Date(Date.now() + ACTIVATION_TOKEN_TTL_MS),
       role: parsed.data.role,
       emailVerified: parsed.data.emailVerified,
     },
@@ -79,30 +82,25 @@ export default defineEventHandler(async (event) => {
     data: { userId: user.id },
   })
 
-  // Envoi optionnel du courriel de bienvenue avec identifiants
+  // Envoi du lien d'activation (aucun mot de passe transmis)
+  let activationEmailSent = false
   if (parsed.data.sendWelcomeEmail) {
-    const siteUrl = String(process.env.NUXT_PUBLIC_SITE_URL || 'https://boursefi.sn').replace(/\/+$/, '')
-    try {
-      await sendEmail({
-        to: { email: cleanEmail, name: finalName },
-        subject: 'Vos accès à votre espace BourseFi',
-        html: renderEmail({
-          title: 'Bienvenue sur BourseFi',
-          bodyHtml: `<p>Bonjour ${cleanFirstName || finalName},</p>
-            <p>Votre compte <strong>${user.role === 'STUDENT' ? 'étudiant' : user.role}</strong> a été créé et activé par notre équipe.</p>
-            <p>Vous pouvez dès maintenant vous connecter sur la plateforme pour retrouver vos candidatures, vos documents et télécharger vos attestations officielles :</p>
-            <div style="background:#f1f5f9;padding:14px 18px;border-radius:10px;margin:18px 0;border-left:4px solid #0b1b3a;font-family:Arial,sans-serif;">
-              <p style="margin:4px 0;font-size:13px;"><strong>Identifiant (Email) :</strong> ${cleanEmail}</p>
-              <p style="margin:4px 0;font-size:13px;"><strong>Mot de passe :</strong> <code>${finalPassword}</code></p>
-            </div>
-            <p style="color:#64748b;font-size:12px;">Vous pourrez changer votre mot de passe à tout moment depuis votre profil.</p>`,
-          ctaLabel: 'Se connecter à mon espace',
-          ctaUrl: `${siteUrl}/login`,
-        }),
-      })
-    } catch (mailErr) {
-      console.warn('Erreur lors de l\'envoi de l\'email de bienvenue:', mailErr)
-    }
+    activationEmailSent = await sendEmail({
+      to: { email: cleanEmail, name: finalName },
+      subject: 'Activez votre espace BourseFi',
+      html: renderEmail({
+        title: 'Bienvenue sur BourseFi',
+        bodyHtml: `<p>Bonjour ${cleanFirstName || finalName},</p>
+          <p>Votre compte <strong>${user.role === 'STUDENT' ? 'étudiant' : user.role}</strong> (identifiant : <strong>${cleanEmail}</strong>) a été créé par notre équipe.</p>
+          <p>Pour y accéder, choisissez votre mot de passe personnel via le bouton ci-dessous. Ce lien est valable <strong>72 heures</strong> et utilisable <strong>une seule fois</strong>.</p>
+          <p style="color:#64748b;font-size:12px;">Lien expiré ? Utilisez « Mot de passe oublié » sur la page de connexion.</p>`,
+        ctaLabel: 'Choisir mon mot de passe',
+        ctaUrl: activationUrl(token),
+      }),
+    }).catch((mailErr) => {
+      console.warn('Erreur lors de l\'envoi de l\'email d\'activation:', mailErr)
+      return false
+    })
   }
 
   await writeAuditLog({
@@ -115,12 +113,13 @@ export default defineEventHandler(async (event) => {
       email: user.email,
       role: user.role,
       emailVerified: user.emailVerified,
+      activationEmailSent,
     },
   })
 
   return {
     ok: true,
     user,
-    generatedPassword: finalPassword,
+    activationEmailSent,
   }
 })

@@ -83,15 +83,10 @@ const createForm = reactive({
   phone: '',
   address: '',
   role: 'STUDENT',
-  password: '',
   emailVerified: true,
   sendWelcomeEmail: true,
 })
-const createdCredentials = ref<{ email: string; password: string } | null>(null)
-
-function generatePassword() {
-  createForm.password = `BourseFi${Math.floor(1000 + Math.random() * 9000)}!`
-}
+const createdCredentials = ref<{ email: string; activationEmailSent: boolean } | null>(null)
 
 function openCreateModal() {
   createForm.firstName = ''
@@ -102,7 +97,6 @@ function openCreateModal() {
   createForm.role = 'STUDENT'
   createForm.emailVerified = true
   createForm.sendWelcomeEmail = true
-  generatePassword()
   createdCredentials.value = null
   createModalOpen.value = true
 }
@@ -114,14 +108,14 @@ async function submitCreateUser() {
   }
   creatingUser.value = true
   try {
-    const res = await $fetch<{ ok: boolean; user: any; generatedPassword: string }>('/api/admin/users', {
+    const res = await $fetch<{ ok: boolean; user: any; activationEmailSent: boolean }>('/api/admin/users', {
       method: 'POST',
       body: { ...createForm },
     })
     await refresh()
     createdCredentials.value = {
       email: res.user.email,
-      password: res.generatedPassword,
+      activationEmailSent: res.activationEmailSent,
     }
   } catch (e: unknown) {
     alert(getAdminErrorMessage(e, 'Erreur lors de la création du compte.'))
@@ -130,8 +124,8 @@ async function submitCreateUser() {
   }
 }
 
-async function copyWhatsAppCredentials(email: string, pass: string) {
-  const msg = `Bonjour,\n\nVotre compte BourseFi a été créé et activé avec succès.\nVous pouvez dès maintenant vous connecter pour retrouver vos dossiers et télécharger vos attestations de bourse :\n\nLien : https://boursefi.sn/login\nIdentifiant : ${email}\nMot de passe : ${pass}\n\nÀ très bientôt sur BourseFi !`
+async function copyWhatsAppCredentials(email: string) {
+  const msg = `Bonjour,\n\nVotre compte BourseFi a été créé.\nNous venons de vous envoyer un email à l'adresse ${email} contenant un lien personnel (valable 72 h) pour choisir votre mot de passe.\n\nPensez à vérifier vos spams. Lien expiré ? Utilisez « Mot de passe oublié » sur https://boursefi.sn/auth/login\n\nÀ très bientôt sur BourseFi !`
   if (await copyToClipboard(msg)) {
     alert('Message WhatsApp copié dans le presse-papier !')
   }
@@ -698,15 +692,9 @@ async function deleteUser() {
               <span class="text-[11px] font-semibold text-slate-600">Adresse</span>
               <input v-model="createForm.address" class="admin-input mt-1" placeholder="Ex: Dakar, Sénégal" />
             </label>
-            <label class="block sm:col-span-2">
-              <div class="flex items-center justify-between">
-                <span class="text-[11px] font-semibold text-slate-600">Mot de passe</span>
-                <button type="button" class="text-[11px] font-bold text-primary hover:underline" @click="generatePassword">
-                  Générer aléatoire
-                </button>
-              </div>
-              <input v-model="createForm.password" class="admin-input mt-1 font-mono font-bold text-emerald-800" placeholder="Mot de passe" />
-            </label>
+            <p class="sm:col-span-2 text-[11px] text-slate-500">
+              Aucun mot de passe n'est défini par l'équipe : le titulaire reçoit un lien personnel (72 h, usage unique) pour choisir le sien.
+            </p>
           </div>
 
           <div class="rounded-xl border border-slate-100 bg-slate-50 p-3 space-y-2">
@@ -716,7 +704,7 @@ async function deleteUser() {
             </label>
             <label class="flex items-center gap-2 cursor-pointer">
               <input v-model="createForm.sendWelcomeEmail" type="checkbox" class="rounded border-slate-300 text-primary focus:ring-primary" />
-              <span class="text-xs font-bold text-slate-700">Envoyer les accès par email avec le mot de passe</span>
+              <span class="text-xs font-bold text-slate-700">Envoyer le lien d'activation par email</span>
             </label>
           </div>
 
@@ -743,22 +731,23 @@ async function deleteUser() {
         <div v-else class="p-6 space-y-4">
           <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-center space-y-2">
             <span class="material-symbols-outlined text-4xl text-emerald-600">check_circle</span>
-            <h3 class="text-base font-bold text-emerald-950">Compte créé & activé avec succès !</h3>
+            <h3 class="text-base font-bold text-emerald-950">Compte créé avec succès !</h3>
             <p class="text-xs text-emerald-800">
-              L'étudiant peut dès à présent se connecter sur <strong>https://boursefi.sn/login</strong> pour retrouver ses données.
+              {{ createdCredentials.activationEmailSent
+                ? 'Un lien personnel d\'activation a été envoyé pour choisir le mot de passe.'
+                : 'Aucun email envoyé : le titulaire peut utiliser « Mot de passe oublié » sur la page de connexion.' }}
             </p>
           </div>
 
           <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 font-mono text-xs space-y-1">
             <p><span class="text-slate-400 select-none">Identifiant : </span><strong class="text-slate-800">{{ createdCredentials.email }}</strong></p>
-            <p><span class="text-slate-400 select-none">Mot de passe : </span><strong class="text-emerald-700">{{ createdCredentials.password }}</strong></p>
           </div>
 
           <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
             <button
               type="button"
               class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white shadow-xs transition hover:bg-emerald-700"
-              @click="copyWhatsAppCredentials(createdCredentials.email, createdCredentials.password)"
+              @click="copyWhatsAppCredentials(createdCredentials.email)"
             >
               <span class="material-symbols-outlined text-[18px]">chat</span>
               Copier pour WhatsApp

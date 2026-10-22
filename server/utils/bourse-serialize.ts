@@ -207,6 +207,54 @@ export function serializeBourse(b: BourseRow) {
   }
 }
 
+/** Champs de contact exposés publiquement (liste blanche). */
+export function toPublicContact(c: ContactItem) {
+  return { type: c.type, valeur: c.valeur, label: c.label, isPrincipal: c.isPrincipal, isWhatsapp: c.isWhatsapp }
+}
+
+/** Champs de tarif exposés publiquement (liste blanche). */
+export function toPublicTarif(t: TarifItem) {
+  return {
+    id: t.id,
+    anneeAcademique: t.anneeAcademique,
+    montant: t.montant,
+    montantBourse: t.montantBourse ?? null,
+    fraisInscription: t.fraisInscription ?? null,
+    mensualite: t.mensualite ?? null,
+    nombreMois: t.nombreMois ?? null,
+    fraisSoutenance: t.fraisSoutenance ?? null,
+    fraisUniforme: t.fraisUniforme ?? null,
+    autresFrais: t.autresFrais ?? null,
+    frequence: t.frequence,
+    devise: t.devise,
+    label: t.label,
+    isDefault: t.isDefault,
+  }
+}
+
+/**
+ * Sérialisation destinée aux routes PUBLIQUES (`/api/bourses`, `/api/bourses/[slug]`).
+ * Retire les identifiants internes, métadonnées de sourcing/vérification et statuts
+ * techniques. Les routes admin/partenaire continuent d'utiliser `serializeBourse`.
+ */
+export function serializePublicBourse(b: BourseRow) {
+  const {
+    partnerId: _partnerId,
+    etablissementContactVerifiedAt: _cva,
+    programmeSourceType: _st,
+    programmeSourceUrl: _su,
+    status: _status,
+    etablissementContacts,
+    tarifs,
+    ...rest
+  } = serializeBourse(b)
+  return {
+    ...rest,
+    etablissementContacts: (etablissementContacts as ContactItem[]).map(toPublicContact),
+    tarifs: (tarifs as TarifItem[]).map(toPublicTarif),
+  }
+}
+
 export const bourseInclude = {
   programme: {
     include: {

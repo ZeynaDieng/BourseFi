@@ -11,7 +11,8 @@
     "prisma:push": "prisma db push",
     "prisma:seed": "node prisma/seed.mjs",
     "logo:transparent": "node scripts/make-logo-transparent.mjs",
-    "postinstall": "nuxt prepare && prisma generate"
+    "postinstall": "nuxt prepare && prisma generate",
+    "test": "vitest run"
   },
   "dependencies": {
     "@nuxtjs/sitemap": "^8.0.15",
@@ -28,6 +29,9 @@
   },
   "devDependencies": {
     "@types/nodemailer": "^8.0.1",
-    "sharp": "^0.34.5"
+    "sharp": "^0.34.5",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.7",
+    "vue-tsc": "^3.0.11"
   }
 }

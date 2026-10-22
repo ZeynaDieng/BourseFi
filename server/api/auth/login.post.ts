@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { prisma } from '../../utils/prisma'
 import { createSession } from '../../utils/auth'
 import { writeAuditLog } from '../../utils/audit'
-import { rateLimit } from '../../utils/rate-limit'
+import { rateLimit, rateLimitKey } from '../../utils/rate-limit'
 import { PARTNER_PORTAL_ENABLED } from '../../utils/product-config'
 import { requireCsrf } from '../../utils/csrf'
 
@@ -21,10 +21,16 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'Identifiants invalides.' })
   }
 
-  const { email, password } = parsed.data
-  const user = await prisma.user.findUnique({ where: { email } })
+  const email = parsed.data.email.trim().toLowerCase()
+  const { password } = parsed.data
+  rateLimitKey('auth-login', email, 10, 15 * 60 * 1000)
+  const user = await prisma.user.findFirst({
+    where: { email: { equals: email, mode: 'insensitive' } },
+  })
 
   if (!user) {
+    // Comparaison factice : même coût bcrypt que pour un compte existant.
+    await compare(password, '$2b$10$CwTycUXWue0Thq9StjUM0uJ8DPLKXt1FYlwYpQW2G3cAwjKoh2WZu')
     throw createError({ statusCode: 401, statusMessage: 'Email ou mot de passe incorrect.' })
   }
 

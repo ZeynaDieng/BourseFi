@@ -327,7 +327,7 @@ async function submitRegister() {
   errorMessage.value = ''
   authLoading.value = true
   try {
-    await $fetch('/api/auth/register', {
+    const res = await $fetch<{ ok: boolean; message: string }>('/api/auth/register', {
       method: 'POST',
       body: {
         firstName: registerForm.firstName.trim(),
@@ -339,7 +339,11 @@ async function submitRegister() {
         acceptMarketing: registerForm.acceptMarketing,
       },
     })
-    await afterAuthSuccess()
+    // Pas de connexion automatique : le lien reçu par email active le compte et connecte l'étudiant.
+    registerForm.password = ''
+    loginForm.email = registerForm.email.trim()
+    authMode.value = 'login'
+    errorMessage.value = `${res.message} Vous pourrez ensuite revenir sur cette page pour finaliser votre candidature.`
   } catch (e: unknown) {
     const msg =
       e && typeof e === 'object' && 'data' in e
@@ -572,7 +576,7 @@ useSeoMeta({
               </label>
               <label class="block">
                 <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Mot de passe</span>
-                <input v-model="registerForm.password" type="password" minlength="4" required class="mt-1 w-full rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-sm" placeholder="4 caractères minimum" />
+                <input v-model="registerForm.password" type="password" minlength="10" maxlength="128" required autocomplete="new-password" class="mt-1 w-full rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-sm" placeholder="10 caractères min., lettres + chiffre ou symbole" />
               </label>
               <div class="space-y-3">
                 <label class="flex items-start gap-3">

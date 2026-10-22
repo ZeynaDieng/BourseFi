@@ -1,5 +1,6 @@
 import { prisma } from '../utils/prisma'
-import { bourseInclude, serializeBourse } from '../utils/bourse-serialize'
+import { getSessionUser } from '../utils/auth'
+import { bourseInclude, serializeBourse, serializePublicBourse } from '../utils/bourse-serialize'
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
@@ -7,7 +8,12 @@ export default defineEventHandler(async (event) => {
     typeof query.programme === 'string' ? query.programme : undefined
   const partnerSlug =
     typeof query.partner === 'string' ? query.partner : undefined
-  const activeOnly = query.active !== 'false'
+
+  // `?active=false` (éléments inactifs) est réservé aux administrateurs.
+  const wantsInactive = query.active === 'false'
+  const viewer = wantsInactive ? await getSessionUser(event) : null
+  const isAdmin = viewer?.role === 'ADMIN'
+  const activeOnly = !(wantsInactive && isAdmin)
 
   const rows = await prisma.bourse.findMany({
     where: {
@@ -21,5 +27,5 @@ export default defineEventHandler(async (event) => {
     orderBy: [{ programme: { etablissement: { isDirectPartner: 'desc' } } }, { dateLimite: 'asc' }, { titre: 'asc' }],
   })
 
-  return rows.map(serializeBourse)
+  return rows.map(isAdmin ? serializeBourse : serializePublicBourse)
 })

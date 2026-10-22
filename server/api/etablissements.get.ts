@@ -1,8 +1,13 @@
 import { prisma } from '../utils/prisma'
+import { getSessionUser } from '../utils/auth'
+import { toPublicContact } from '../utils/bourse-serialize'
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
-  const activeOnly = query.active !== 'false'
+  // `?active=false` (éléments inactifs/archivés) est réservé aux administrateurs.
+  const wantsInactive = query.active === 'false'
+  const viewer = wantsInactive ? await getSessionUser(event) : null
+  const activeOnly = !(wantsInactive && viewer?.role === 'ADMIN')
 
   const ecoles = await prisma.etablissement.findMany({
     where: {
@@ -67,10 +72,7 @@ export default defineEventHandler(async (event) => {
       phoneSecondary: e.phoneSecondary,
       whatsapp: e.whatsapp,
       email: e.email,
-      status: e.status,
       contactStatus: e.contactStatus,
-      contactVerifiedAt: e.contactVerifiedAt ? e.contactVerifiedAt.toISOString() : null,
-      source: e.source,
       isDirectPartner: e.isDirectPartner,
       fraisDossier: e.fraisDossier,
       resume: e.resume,
@@ -81,7 +83,7 @@ export default defineEventHandler(async (event) => {
       boursesCount,
       tauxInsertion,
       partenairePrincipal,
-      contacts: e.contacts,
+      contacts: e.contacts.filter((c) => c.isActive).map(toPublicContact),
       programmes: e.programmes.map((p) => {
         const effectiveFrais = (p.fraisDossier !== undefined && p.fraisDossier !== null)
           ? p.fraisDossier

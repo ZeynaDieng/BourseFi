@@ -3,7 +3,9 @@ import { prisma } from '../../../utils/prisma'
 import { writeAuditLog } from '../../../utils/audit'
 import { notifyStatusChange } from '../../../utils/notifications'
 import { sendEmail, renderEmail } from '../../../utils/email'
-import bcrypt from 'bcryptjs'
+import {
+  ACTIVATION_TOKEN_TTL_MS, activationUrl, generateOneTimeToken, unusablePasswordHash,
+} from '../../../utils/one-time-token'
 
 export default defineEventHandler(async (event) => {
   const admin = await requireRole(event, ['ADMIN'])
@@ -21,7 +23,7 @@ export default defineEventHandler(async (event) => {
     lastDiploma,
     paymentMethod,
     montantEncaisse,
-    password,
+    // Tout champ `password` éventuel est volontairement ignoré (pas de secret imposé par le frontend).
   } = body
 
   if (!firstName || !lastName || !email || !programmeId) {
@@ -38,15 +40,16 @@ export default defineEventHandler(async (event) => {
   const cleanPhone = phone ? String(phone).trim() : ''
   const cleanAddress = address ? String(address).trim() : ''
 
-  const finalPassword = password?.trim() || `BourseFi${Math.floor(1000 + Math.random() * 9000)}!`
-  const passwordHash = await bcrypt.hash(finalPassword, 10)
-
   // 1. Trouver ou créer l'utilisateur étudiant (recherche insensible à la casse)
   let user = await prisma.user.findFirst({
     where: { email: { equals: cleanEmail, mode: 'insensitive' } },
   })
   const isNewAccount = !user
+  let activationToken: string | null = null
   if (!user) {
+    // Nouveau compte : mot de passe inutilisable + lien d'activation personnel.
+    const { token, tokenHash } = generateOneTimeToken()
+    activationToken = token
     user = await prisma.user.create({
       data: {
         name: fullName,
@@ -55,7 +58,9 @@ export default defineEventHandler(async (event) => {
         email: cleanEmail,
         phone: cleanPhone,
         address: cleanAddress,
-        passwordHash,
+        passwordHash: await unusablePasswordHash(),
+        resetPasswordToken: tokenHash,
+        resetPasswordExpires: new Date(Date.now() + ACTIVATION_TOKEN_TTL_MS),
         role: 'STUDENT',
         emailVerified: true,
       },
@@ -180,11 +185,11 @@ export default defineEventHandler(async (event) => {
       bodyHtml: `<p>Bonjour ${cleanFirstName},</p>
         <p>Votre demande de bourse pour <strong>${programme.titre}</strong> à <strong>${programme.etablissement.nom}</strong> a été validée et enregistrée.</p>
         <p>Votre attestation officielle (N° <strong>${attestationNumber}</strong>) est prête et téléchargeable.</p>
-        ${isNewAccount
+        ${isNewAccount && activationToken
           ? `<div style="background:#f1f5f9;padding:14px 18px;border-radius:10px;margin:18px 0;border-left:4px solid #0b1b3a;font-family:Arial,sans-serif;">
-          <p style="margin:4px 0;font-size:13px;"><strong>Vos accès à votre espace étudiant :</strong></p>
-          <p style="margin:4px 0;font-size:13px;">Identifiant : <strong>${cleanEmail}</strong></p>
-          <p style="margin:4px 0;font-size:13px;">Mot de passe : <code>${finalPassword}</code></p>
+          <p style="margin:4px 0;font-size:13px;"><strong>Votre espace étudiant a été créé</strong> (identifiant : <strong>${cleanEmail}</strong>).</p>
+          <p style="margin:4px 0;font-size:13px;">Choisissez votre mot de passe personnel via ce lien (valable 72 h, usage unique) :
+          <a href="${activationUrl(activationToken)}">activer mon compte</a></p>
         </div>`
           : `<p>Elle a été ajoutée à votre espace étudiant existant. Connectez-vous avec votre adresse <strong>${cleanEmail}</strong> et votre mot de passe habituel.</p>`}`,
       ctaLabel: 'Accéder à mon espace étudiant',
@@ -208,6 +213,6 @@ export default defineEventHandler(async (event) => {
     attestationUrl: `/api/attestations/${candidature.id}`,
     paiementId: paiement.id,
     isNewAccount,
-    tempPassword: isNewAccount ? finalPassword : null,
+    tempPassword: null,
   }
 })

@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { checkPassword, PASSWORD_POLICY_HINT } from '#shared/password-policy'
+
+const passwordHint = PASSWORD_POLICY_HINT
 
 const route = useRoute()
 const token = computed(() => (typeof route.query.token === 'string' ? route.query.token : ''))
@@ -20,8 +23,9 @@ async function submitResetPassword() {
     return
   }
 
-  if (password.value.length < 4) {
-    errorMessage.value = 'Le mot de passe doit contenir au moins 4 caractères.'
+  const policy = checkPassword(password.value)
+  if (!policy.ok) {
+    errorMessage.value = policy.message
     return
   }
 
@@ -106,7 +110,9 @@ async function submitResetPassword() {
               v-model="password"
               :type="showPassword ? 'text' : 'password'"
               required
-              minlength="4"
+              minlength="10"
+              maxlength="128"
+              autocomplete="new-password"
               class="w-full rounded-xl border-slate-200 px-4 py-3 text-sm focus:border-primary focus:ring-primary pr-10"
               placeholder="••••••••"
             />
@@ -120,6 +126,7 @@ async function submitResetPassword() {
               </span>
             </button>
           </div>
+          <p class="mt-1 text-[11px] text-slate-500">{{ passwordHint }}</p>
         </div>
 
         <div>
@@ -128,7 +135,7 @@ async function submitResetPassword() {
             v-model="confirmPassword"
             :type="showPassword ? 'text' : 'password'"
             required
-            minlength="4"
+            minlength="10"
             class="w-full rounded-xl border-slate-200 px-4 py-3 text-sm focus:border-primary focus:ring-primary"
             placeholder="••••••••"
           />

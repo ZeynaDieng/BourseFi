@@ -489,7 +489,6 @@ const createForm = reactive({
   lastDiploma: 'BAC',
   paymentMethod: 'ESPÈCES_AGENCE',
   montantEncaisse: 20000,
-  password: 'BourseFi2026!',
 })
 const creatingDirect = ref(false)
 
@@ -526,7 +525,7 @@ async function submitCreateDirect() {
 
   creatingDirect.value = true
   try {
-    const res = await $fetch<{ ok: boolean; candidatureId: string; attestationUrl: string; isNewAccount?: boolean; tempPassword?: string | null }>(
+    const res = await $fetch<{ ok: boolean; candidatureId: string; attestationUrl: string; isNewAccount?: boolean }>(
       '/api/admin/candidatures/creer-direct',
       {
         method: 'POST',
@@ -536,18 +535,16 @@ async function submitCreateDirect() {
 
     createModalOpen.value = false
     const emailSaved = createForm.email
-    const passSaved = res.tempPassword || createForm.password
     createForm.firstName = ''
     createForm.lastName = ''
     createForm.email = ''
     createForm.phone = ''
     createForm.address = ''
-    createForm.password = 'BourseFi2026!'
     
     await refresh()
     window.open(res.attestationUrl, '_blank')
     const accountMsg = res.isNewAccount
-      ? `Nouveau compte étudiant créé :\nIdentifiant : ${emailSaved}\nMot de passe : ${passSaved}`
+      ? `Nouveau compte étudiant créé (${emailSaved}).\nUn lien personnel d'activation (72 h, usage unique) lui a été envoyé par email pour choisir son mot de passe.`
       : `Compte existant détecté (${emailSaved}).\nL'attestation a été ajoutée à son espace. Son mot de passe n'a PAS été modifié.`
     alert(`Attestation créée avec succès !\n\n${accountMsg}\n\nLe document PDF s'est ouvert pour impression.`)
   } catch (e: unknown) {
@@ -672,17 +669,11 @@ async function submitEditCandidate() {
 const activateModalOpen = ref(false)
 const activatingAccount = ref(false)
 const activateForm = reactive({
-  password: '',
   sendEmail: true,
 })
-const activatedCredentials = ref<{ email: string; password: string } | null>(null)
-
-function generateActivationPassword() {
-  activateForm.password = `BourseFi${Math.floor(1000 + Math.random() * 9000)}!`
-}
+const activatedCredentials = ref<{ email: string; activationEmailSent: boolean } | null>(null)
 
 function openActivateModal() {
-  generateActivationPassword()
   activateForm.sendEmail = true
   activatedCredentials.value = null
   activateModalOpen.value = true
@@ -692,7 +683,7 @@ async function submitActivateAccount() {
   if (!selectedId.value) return
   activatingAccount.value = true
   try {
-    const res = await $fetch<{ ok: boolean; email: string; tempPassword: string; emailVerified: boolean }>(
+    const res = await $fetch<{ ok: boolean; email: string; emailVerified: boolean; activationEmailSent: boolean }>(
       `/api/admin/candidatures/${selectedId.value}/activer-compte`,
       {
         method: 'POST',
@@ -705,7 +696,7 @@ async function submitActivateAccount() {
     }
     activatedCredentials.value = {
       email: res.email,
-      password: res.tempPassword,
+      activationEmailSent: res.activationEmailSent,
     }
   } catch (e: unknown) {
     alert(getAdminErrorMessage(e, 'Erreur lors de l\'activation du compte.'))
@@ -714,8 +705,8 @@ async function submitActivateAccount() {
   }
 }
 
-async function copyWhatsAppActivation(email: string, pass: string) {
-  const msg = `Bonjour,\n\nVotre compte étudiant BourseFi a été activé avec succès !\nVous pouvez vous connecter dès maintenant pour accéder à vos candidatures et télécharger votre attestation de bourse :\n\nLien : https://boursefi.sn/login\nIdentifiant : ${email}\nMot de passe : ${pass}\n\nÀ très bientôt sur BourseFi !`
+async function copyWhatsAppActivation(email: string) {
+  const msg = `Bonjour,\n\nVotre compte étudiant BourseFi a été activé !\nNous venons de vous envoyer un email à l'adresse ${email} contenant un lien personnel (valable 72 h) pour choisir votre mot de passe.\n\nPensez à vérifier vos spams. Lien expiré ? Utilisez « Mot de passe oublié » sur https://boursefi.sn/auth/login\n\nÀ très bientôt sur BourseFi !`
   if (await copyToClipboard(msg)) {
     alert('Message WhatsApp copié dans le presse-papier !')
   }
@@ -1541,10 +1532,9 @@ async function copyWhatsAppActivation(email: string, pass: string) {
                 <input v-model.number="createForm.montantEncaisse" type="number" min="0" class="admin-input mt-1 font-bold text-emerald-800" />
               </label>
 
-              <label class="block sm:col-span-2">
-                <span class="text-[11px] font-semibold text-slate-600">Mot de passe initial pour l'espace étudiant</span>
-                <input v-model="createForm.password" class="admin-input mt-1 font-mono font-bold text-emerald-800" placeholder="Mot de passe" />
-              </label>
+              <p class="sm:col-span-2 text-[11px] text-slate-500">
+                Aucun mot de passe n'est défini ici : si le compte est nouveau, l'étudiant reçoit un lien personnel (72 h, usage unique) pour choisir son mot de passe.
+              </p>
             </div>
           </div>
 
@@ -1761,7 +1751,7 @@ async function copyWhatsAppActivation(email: string, pass: string) {
         <form v-if="!activatedCredentials" class="p-6 space-y-4" @submit.prevent="submitActivateAccount">
           <div class="rounded-xl border border-sky-200 bg-sky-50/80 p-3 text-xs text-sky-900 flex items-start gap-2">
             <span class="material-symbols-outlined text-[18px] text-sky-600">info</span>
-            <span>Cette action active le compte étudiant (email vérifié), configure son mot de passe et lui permet de se connecter immédiatement sur BourseFi pour consulter son dossier.</span>
+            <span>Cette action active le compte étudiant (email vérifié) et lui envoie un lien personnel (72 h, usage unique) pour choisir lui-même son mot de passe. Un mot de passe existant n'est jamais modifié.</span>
           </div>
 
           <div class="space-y-3">
@@ -1770,19 +1760,9 @@ async function copyWhatsAppActivation(email: string, pass: string) {
               <p class="text-sm font-bold text-primary">{{ detail?.fullName }} ({{ detail?.email }})</p>
             </div>
 
-            <label class="block">
-              <div class="flex items-center justify-between">
-                <span class="text-[11px] font-semibold text-slate-600">Mot de passe de connexion</span>
-                <button type="button" class="text-[11px] font-bold text-primary hover:underline" @click="generateActivationPassword">
-                  Générer aléatoire
-                </button>
-              </div>
-              <input v-model="activateForm.password" required class="admin-input mt-1 font-mono font-bold text-emerald-800" placeholder="Mot de passe" />
-            </label>
-
             <label class="flex items-center gap-2 cursor-pointer pt-2">
               <input v-model="activateForm.sendEmail" type="checkbox" class="rounded border-slate-300 text-primary focus:ring-primary" />
-              <span class="text-xs font-bold text-slate-700">Envoyer les identifiants par email à l'élève</span>
+              <span class="text-xs font-bold text-slate-700">Envoyer le lien d'activation par email à l'élève</span>
             </label>
           </div>
 
@@ -1800,7 +1780,7 @@ async function copyWhatsAppActivation(email: string, pass: string) {
               :disabled="activatingAccount"
             >
               <span class="material-symbols-outlined text-[18px]">key</span>
-              {{ activatingAccount ? 'Activation en cours...' : 'Activer & Envoyer les Accès' }}
+              {{ activatingAccount ? 'Activation en cours...' : 'Activer & Envoyer le lien' }}
             </button>
           </div>
         </form>
@@ -1811,20 +1791,21 @@ async function copyWhatsAppActivation(email: string, pass: string) {
             <span class="material-symbols-outlined text-4xl text-emerald-600">check_circle</span>
             <h3 class="text-base font-bold text-emerald-950">Compte activé avec succès !</h3>
             <p class="text-xs text-emerald-800">
-              L'élève peut dès à présent se connecter pour suivre son dossier et télécharger son attestation.
+              {{ activatedCredentials.activationEmailSent
+                ? 'Un lien personnel d\'activation a été envoyé à l\'élève pour qu\'il choisisse son mot de passe.'
+                : 'Aucun email n\'a pu être envoyé : l\'élève peut utiliser « Mot de passe oublié », ou relancez l\'activation.' }}
             </p>
           </div>
 
           <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 font-mono text-xs space-y-1">
             <p><span class="text-slate-400 select-none">Identifiant : </span><strong class="text-slate-800">{{ activatedCredentials.email }}</strong></p>
-            <p><span class="text-slate-400 select-none">Mot de passe : </span><strong class="text-emerald-700">{{ activatedCredentials.password }}</strong></p>
           </div>
 
           <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
             <button
               type="button"
               class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white shadow-xs transition hover:bg-emerald-700"
-              @click="copyWhatsAppActivation(activatedCredentials.email, activatedCredentials.password)"
+              @click="copyWhatsAppActivation(activatedCredentials.email)"
             >
               <span class="material-symbols-outlined text-[18px]">chat</span>
               Copier pour WhatsApp

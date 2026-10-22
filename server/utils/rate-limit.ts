@@ -14,7 +14,18 @@ function pruneExpired(now: number) {
 
 export function rateLimit(event: H3Event, scope: string, limit: number, windowMs: number) {
   const ip = getRequestIP(event, { xForwardedFor: true }) ?? 'unknown'
-  const key = `${scope}:${ip}`
+  hit(`${scope}:${ip}`, limit, windowMs)
+}
+
+/**
+ * Limite indépendante de l'IP (ex. par adresse email ciblée) : l'en-tête
+ * X-Forwarded-For étant falsifiable, la limite par IP seule est contournable.
+ */
+export function rateLimitKey(scope: string, key: string, limit: number, windowMs: number) {
+  hit(`${scope}:key:${key.trim().toLowerCase()}`, limit, windowMs)
+}
+
+function hit(key: string, limit: number, windowMs: number) {
   const now = Date.now()
   pruneExpired(now)
 
@@ -32,3 +43,4 @@ export function rateLimit(event: H3Event, scope: string, limit: number, windowMs
     })
   }
 }
+
