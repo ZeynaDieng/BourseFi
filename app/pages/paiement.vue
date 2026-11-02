@@ -292,13 +292,13 @@ useSeoMeta({ title: 'Paiement  BourseFi' })
         PayTech a validé votre paiement pour <span class="font-semibold text-primary">{{ dossier?.programmeTitre }}</span>.
         Votre attestation complète est désormais débloquée.
       </p>
-      <CandidatureApplyStepper class="mt-8 w-full" :current="4" :steps="PAYMENT_STEPS" />
+      <CandidatureApplyStepper class="mt-8 w-full" :current="4" :steps="PAYMENT_STEPS" stacked />
       <div class="mt-10 flex w-full flex-col gap-3 sm:flex-row sm:justify-center">
         <a :href="`/api/attestations/${candidatureId}`" target="_blank" class="rounded-xl bg-emerald-600 px-6 py-3.5 font-bold text-white shadow-md transition hover:bg-emerald-700 flex items-center justify-center gap-2">
           <span class="material-symbols-outlined">download</span>
           Télécharger mon attestation (PDF)
         </a>
-        <NuxtLink :to="STUDENT_HOME" class="rounded-xl bg-primary px-6 py-3.5 font-bold text-white shadow-sm transition hover:opacity-95 flex items-center justify-center">
+        <NuxtLink :to="STUDENT_HOME" class="whitespace-nowrap rounded-xl bg-primary px-6 py-3.5 font-bold text-white shadow-sm transition hover:opacity-95 flex items-center justify-center">
           Mon espace
         </NuxtLink>
       </div>
@@ -379,7 +379,7 @@ useSeoMeta({ title: 'Paiement  BourseFi' })
     <!-- Checkout -->
     <div v-else-if="showCheckout" class="mx-auto max-w-2xl px-4 py-6 pb-40 sm:px-6 lg:pb-12">
       <div class="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm sm:p-5">
-        <CandidatureApplyStepper :current="2" :steps="PAYMENT_STEPS" />
+        <CandidatureApplyStepper :current="2" :steps="PAYMENT_STEPS" stacked />
       </div>
 
       <div class="mt-6 text-center">
