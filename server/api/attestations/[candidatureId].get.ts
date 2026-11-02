@@ -141,8 +141,8 @@ export default defineEventHandler(async (event) => {
 
   // Conversion des assets officiels BourseFi (Logo, Signature, Cachet) en Base64 pour un rendu PDF/print 100% autonome
   let logoSrc = '/boursefi-logo.png'
-  let signSrc = '/signature-officielle.png'
-  let stampSrc = '/cachet-officiel.png'
+  let signSrc = ''
+  let stampSrc = ''
 
   try {
     const fs = await import('node:fs')
@@ -152,18 +152,21 @@ export default defineEventHandler(async (event) => {
     if (fs.existsSync(logoPath)) {
       logoSrc = `data:image/png;base64,${fs.readFileSync(logoPath).toString('base64')}`
     }
-
-    const signPath = path.resolve(process.cwd(), 'public/signature-officielle.png')
-    if (fs.existsSync(signPath)) {
-      signSrc = `data:image/png;base64,${fs.readFileSync(signPath).toString('base64')}`
-    }
-
-    const stampPath = path.resolve(process.cwd(), 'public/cachet-officiel.png')
-    if (fs.existsSync(stampPath)) {
-      stampSrc = `data:image/png;base64,${fs.readFileSync(stampPath).toString('base64')}`
-    }
   } catch {
     // Fallback
+  }
+
+  // Signature et cachet : hors du dossier public (non téléchargeables), embarqués côté serveur via server/assets
+  try {
+    const serverAssets = useStorage('assets:server')
+    const toPngDataUri = async (key: string) => {
+      const raw = await serverAssets.getItemRaw(key)
+      return raw ? `data:image/png;base64,${Buffer.from(raw).toString('base64')}` : ''
+    }
+    signSrc = await toPngDataUri('attestation:signature-officielle.png')
+    stampSrc = await toPngDataUri('attestation:cachet-officiel.png')
+  } catch (err) {
+    console.warn('Attestation: signature/cachet introuvables dans server/assets', err)
   }
 
   // Rendu HTML imprimable / PDF — modèle institutionnel BourseFi
