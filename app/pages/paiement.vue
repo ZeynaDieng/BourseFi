@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import AttestationPreview from '~/components/payment/AttestationPreview.vue'
 import PaytechCheckoutModal from '~/components/payment/PaytechCheckoutModal.vue'
 import { STUDENT_HOME } from '~/utils/routes'
 
@@ -63,12 +64,6 @@ onMounted(async () => {
 
   if (returnStatus.value === 'cancel') {
     cancelled.value = true
-    return
-  }
-
-  // Déclenche automatiquement PayTech
-  if (canPay.value) {
-    submitPayment()
   }
 })
 
@@ -292,21 +287,25 @@ useSeoMeta({ title: 'Paiement  BourseFi' })
       <div class="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 shadow-lg">
         <span class="material-symbols-outlined text-[44px]">check</span>
       </div>
-      <h1 class="font-headline text-3xl font-extrabold text-primary">Paiement réussi !</h1>
+      <h1 class="font-headline text-3xl font-extrabold text-primary">Paiement confirmé !</h1>
       <p class="mt-3 text-slate-600">
-        Votre dossier <span class="font-semibold text-primary">{{ dossier?.programmeTitre }}</span>
-        a été validé. Votre attestation officielle est désormais disponible.
+        PayTech a validé votre paiement pour <span class="font-semibold text-primary">{{ dossier?.programmeTitre }}</span>.
+        Votre attestation complète est désormais débloquée.
       </p>
       <CandidatureApplyStepper class="mt-8 w-full" :current="4" :steps="PAYMENT_STEPS" />
       <div class="mt-10 flex w-full flex-col gap-3 sm:flex-row sm:justify-center">
         <a :href="`/api/attestations/${candidatureId}`" target="_blank" class="rounded-xl bg-emerald-600 px-6 py-3.5 font-bold text-white shadow-md transition hover:bg-emerald-700 flex items-center justify-center gap-2">
-          <span class="material-symbols-outlined">verified</span>
-          Ouvrir l'Attestation
+          <span class="material-symbols-outlined">download</span>
+          Télécharger mon attestation (PDF)
         </a>
         <NuxtLink :to="STUDENT_HOME" class="rounded-xl bg-primary px-6 py-3.5 font-bold text-white shadow-sm transition hover:opacity-95 flex items-center justify-center">
           Mon espace
         </NuxtLink>
       </div>
+      <p class="mt-6 flex items-start gap-2 text-left text-xs text-slate-500">
+        <span class="material-symbols-outlined text-[16px] text-emerald-600">mail</span>
+        Un e-mail contenant le lien vers votre attestation vous a également été envoyé.
+      </p>
     </div>
 
     <!-- Vérification (retour PayTech  page parente, pas dans l'iframe) -->
@@ -378,56 +377,82 @@ useSeoMeta({ title: 'Paiement  BourseFi' })
     </div>
 
     <!-- Checkout -->
-    <div v-else-if="showCheckout" class="mx-auto max-w-xl px-4 py-6 pb-32 sm:px-6 lg:pb-12">
+    <div v-else-if="showCheckout" class="mx-auto max-w-2xl px-4 py-6 pb-40 sm:px-6 lg:pb-12">
       <div class="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm sm:p-5">
         <CandidatureApplyStepper :current="2" :steps="PAYMENT_STEPS" />
       </div>
 
-      <div class="mt-6 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
-        <div class="bg-gradient-to-br from-primary to-primary/80 p-6 text-center text-white relative overflow-hidden">
-          <p class="text-xs font-semibold uppercase tracking-wider text-white/60">Montant à payer</p>
-          
-          <div v-if="dossier?.montantReduction && dossier.montantReduction > 0" class="mt-2 flex items-center justify-center gap-2 opacity-80">
-            <span class="text-sm line-through">{{ (dossier.montantInitial || 0).toLocaleString('fr-FR') }}</span>
-          </div>
-          
-          <p class="mt-1 font-headline text-4xl font-extrabold flex items-center justify-center gap-2">
-            {{ totalFcfa.toLocaleString('fr-FR') }} <span class="text-xl">{{ devise }}</span>
-          </p>
-          
-          <div v-if="dossier?.montantReduction && dossier.montantReduction > 0" class="mt-1 flex items-center justify-center">
-            <span class="rounded bg-red-500 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm">
-              Promo Appliquée
+      <div class="mt-6 text-center">
+        <h1 class="font-headline text-2xl font-extrabold text-primary sm:text-3xl">Dernière étape avant votre attestation</h1>
+        <p class="mt-1 text-sm text-slate-500">Vérifiez votre nom, votre e-mail et votre téléphone sur l’aperçu ci-dessous.</p>
+      </div>
+
+      <!-- Aperçu verrouillé de l'attestation -->
+      <section
+        aria-label="Aperçu de votre attestation"
+        class="relative mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-[#eef2f6] px-3.5 pb-3.5 pt-11 sm:px-8 sm:pb-8 sm:pt-14"
+      >
+        <span class="absolute left-3 top-2.5 z-10 inline-flex items-center gap-1.5 rounded-full bg-primary px-2.5 py-1 text-[11px] font-bold text-white shadow-md sm:left-4 sm:top-3.5 sm:text-xs">
+          <span class="material-symbols-outlined text-[15px]">visibility</span>
+          Aperçu de votre attestation
+        </span>
+        <div class="relative mx-auto w-full max-w-[540px] shadow-[0_16px_35px_rgba(15,23,42,0.14)]">
+          <AttestationPreview :full-name="dossier.fullName" :email="dossier.email" :phone="dossier.phone" />
+          <div class="absolute inset-x-0 bottom-0 z-10 flex h-[37%] items-end justify-center bg-gradient-to-b from-white/0 via-white/90 to-white pb-4 sm:pb-7">
+            <span class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white py-1.5 pl-1.5 pr-3 shadow-lg sm:py-2 sm:pl-2 sm:pr-4">
+              <span class="flex h-7 w-7 items-center justify-center rounded-full bg-secondary-container text-primary sm:h-8 sm:w-8">
+                <span class="material-symbols-outlined text-[16px] sm:text-[18px]">lock</span>
+              </span>
+              <span class="text-xs font-bold text-primary sm:text-[13px]">Document complet débloqué après paiement</span>
             </span>
           </div>
-          <p v-else class="mt-1 text-xs text-white/70">Frais de dossier</p>
         </div>
-        <dl class="space-y-3 p-6 text-sm">
-          <div class="flex justify-between gap-3">
-            <dt class="text-slate-500">Programme</dt>
-            <dd class="text-right font-semibold text-primary">{{ dossier.programmeTitre }}</dd>
+      </section>
+
+      <div class="mt-6 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-premium">
+        <div class="flex items-start gap-3 p-5 sm:gap-4 sm:p-6">
+          <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 sm:h-11 sm:w-11">
+            <span class="material-symbols-outlined text-[24px]">task_alt</span>
+          </span>
+          <div>
+            <h2 class="font-headline text-lg font-extrabold text-primary sm:text-xl">Votre attestation est prête !</h2>
+            <p class="mt-1 text-sm leading-relaxed text-slate-600 sm:text-[15px]">
+              Pour obtenir et télécharger votre attestation complète, veuillez procéder au paiement des frais de dossier.
+            </p>
           </div>
-          <div class="flex justify-between gap-3">
-            <dt class="text-slate-500">Bailleur</dt>
-            <dd class="text-right font-semibold text-slate-700">{{ dossier.partnerName }}</dd>
+        </div>
+        <div class="border-t border-slate-100 p-5 sm:p-6">
+          <div class="flex items-center justify-between gap-4">
+            <div>
+              <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Frais de dossier</p>
+              <p class="mt-0.5 font-mono text-xs text-slate-500">Réf. {{ dossier.id.slice(0, 8).toUpperCase() }}</p>
+            </div>
+            <div class="text-right">
+              <p v-if="dossier.montantReduction && dossier.montantReduction > 0" class="text-sm text-slate-400 line-through">
+                {{ (dossier.montantInitial || 0).toLocaleString('fr-FR') }} {{ devise }}
+              </p>
+              <p class="font-headline text-2xl font-extrabold text-primary sm:text-3xl">
+                {{ totalFcfa.toLocaleString('fr-FR') }} <span class="text-sm sm:text-base">{{ devise }}</span>
+              </p>
+              <span
+                v-if="dossier.montantReduction && dossier.montantReduction > 0"
+                class="rounded bg-red-500 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white"
+              >
+                Promo appliquée
+              </span>
+            </div>
           </div>
-          <div class="flex justify-between gap-3">
-            <dt class="text-slate-500">Référence</dt>
-            <dd class="text-right font-mono text-xs text-slate-500">{{ dossier.id.slice(0, 8).toUpperCase() }}</dd>
-          </div>
-        </dl>
-        <div class="border-t border-slate-100 p-6">
-          <p v-if="paymentError" class="mb-3 rounded-xl bg-red-50 px-3 py-2 text-xs font-semibold text-red-700">{{ paymentError }}</p>
+          <p v-if="paymentError" class="mt-4 rounded-xl bg-red-50 px-3 py-2 text-xs font-semibold text-red-700">{{ paymentError }}</p>
           <button
             :disabled="isPaying || !canPay"
-            class="hidden w-full items-center justify-center gap-2 rounded-xl bg-secondary-container py-4 font-bold text-on-secondary-container shadow-sm transition hover:opacity-95 active:scale-[0.99] disabled:opacity-50 lg:flex"
+            class="mt-5 hidden min-h-[56px] w-full items-center justify-center gap-2 rounded-xl bg-secondary-container py-4 font-extrabold text-primary shadow-sm transition hover:opacity-95 active:scale-[0.99] disabled:opacity-50 lg:flex"
             @click="submitPayment"
           >
-            <span v-if="isPaying" class="material-symbols-outlined animate-spin text-[20px]">progress_activity</span>
-            <span>{{ isPaying ? 'Traitement…' : `Payer ${totalFcfa.toLocaleString('fr-FR')} ${devise}` }}</span>
+            <span class="material-symbols-outlined text-[20px]" :class="{ 'animate-spin': isPaying }">{{ isPaying ? 'progress_activity' : 'lock_open' }}</span>
+            <span>{{ isPaying ? 'Traitement…' : 'Payer et télécharger mon attestation' }}</span>
           </button>
-          <p class="mt-3 flex items-center justify-center gap-1.5 text-xs text-slate-400">
-            <span class="material-symbols-outlined text-[16px]">verified_user</span>
+          <p class="mt-3 flex items-center justify-center gap-1.5 text-xs text-slate-500">
+            <span class="material-symbols-outlined text-[16px] text-emerald-600">verified_user</span>
             Paiement sécurisé via PayTech
           </p>
         </div>
@@ -447,12 +472,16 @@ useSeoMeta({ title: 'Paiement  BourseFi' })
       <p v-if="paymentError" class="mb-2 text-center text-xs font-semibold text-red-600">{{ paymentError }}</p>
       <button
         :disabled="isPaying || !canPay"
-        class="flex w-full items-center justify-center gap-2 rounded-xl bg-secondary-container py-4 font-bold text-on-secondary-container shadow-lg transition active:scale-[0.99] disabled:opacity-50"
+        class="flex min-h-[54px] w-full items-center justify-center gap-2 rounded-xl bg-secondary-container py-4 font-extrabold text-primary shadow-lg transition active:scale-[0.99] disabled:opacity-50"
         @click="submitPayment"
       >
-        <span v-if="isPaying" class="material-symbols-outlined animate-spin text-[20px]">progress_activity</span>
-        <span>{{ isPaying ? 'Traitement…' : `Payer ${totalFcfa.toLocaleString('fr-FR')} ${devise}` }}</span>
+        <span class="material-symbols-outlined text-[20px]" :class="{ 'animate-spin': isPaying }">{{ isPaying ? 'progress_activity' : 'lock_open' }}</span>
+        <span>{{ isPaying ? 'Traitement…' : 'Payer et télécharger mon attestation' }}</span>
       </button>
+      <p class="mt-2 flex items-center justify-center gap-1 text-[11px] text-slate-500">
+        <span class="material-symbols-outlined text-[14px] text-emerald-600">verified_user</span>
+        Paiement sécurisé via PayTech · {{ totalFcfa.toLocaleString('fr-FR') }} {{ devise }}
+      </p>
     </div>
 
     <PaytechCheckoutModal
