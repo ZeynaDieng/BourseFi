@@ -1,5 +1,5 @@
 /**
- * Relances automatiques : candidature commencée (brouillon), compte non activé, attestation prête.
+ * Relances automatiques : candidature commencée (brouillon), compte sans candidature, attestation prête.
  * Base en mémoire minimale, emails capturés par setup-mocks.
  */
 import { describe, it, expect, beforeEach, vi } from 'vitest'
@@ -71,7 +71,7 @@ const sent = () => (globalThis as any).__sentEmails as { to: { email: string }; 
 const draft = (bourseSlug: string) => ({ bourseSlug, fields: { phone: '771234567' }, updatedAt: new Date().toISOString() })
 
 describe('Relances — candidature commencée', () => {
-  it('compte activé avec brouillon : propose de terminer la candidature de la formation choisie', async () => {
+  it('brouillon : propose de terminer la candidature de la formation choisie', async () => {
     users = [student({ email: 'awa@example.test', applicationDraft: draft('bourse-ifaa-licence') })]
     await runAutoRelanceEngine()
     const [mail] = sent()
@@ -82,21 +82,13 @@ describe('Relances — candidature commencée', () => {
     expect(mail.html).not.toContain('apercu-attestation')
   })
 
-  it('compte non activé avec brouillon : le lien active le compte (la connexion serait refusée sinon)', async () => {
-    users = [student({ email: 'moussa@example.test', emailVerified: false, emailVerificationToken: 'tok123', applicationDraft: draft('bourse-ifaa-licence') })]
+  it('email non vérifié : même relance (le compte est utilisable sans vérification)', async () => {
+    users = [student({ email: 'moussa@example.test', emailVerified: false, applicationDraft: draft('bourse-ifaa-licence') })]
     await runAutoRelanceEngine()
     const [mail] = sent()
     expect(mail.subject).toContain('Licence Comptabilité')
-    expect(mail.html).toContain('href="https://boursefi.test/auth/verify-email?token=tok123"')
-    expect(mail.html).toContain('Activer mon compte et terminer ma candidature')
-  })
-
-  it('compte non activé sans brouillon : lien d’activation au lieu du catalogue', async () => {
-    users = [student({ email: 'fatou@example.test', emailVerified: false, emailVerificationToken: 'tok456' })]
-    await runAutoRelanceEngine()
-    const [mail] = sent()
-    expect(mail.subject).toContain('activez votre compte')
-    expect(mail.html).toContain('href="https://boursefi.test/auth/verify-email?token=tok456"')
+    expect(mail.html).toContain('https://boursefi.test/postuler/bourse-ifaa-licence')
+    expect(mail.html).not.toContain('verify-email')
   })
 
   it('brouillon d’une bourse désactivée : message catalogue habituel', async () => {

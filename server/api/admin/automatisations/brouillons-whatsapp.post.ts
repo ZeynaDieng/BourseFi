@@ -24,15 +24,11 @@ export default defineEventHandler(async (event) => {
   const siteUrl = String(process.env.NUXT_PUBLIC_SITE_URL || 'https://boursefi.sn').replace(/\/+$/, '')
   const prenom = user.firstName || user.name.split(' ')[0] || ''
   const formation = bourse.programme.titre
-  // Pas de lien d'activation ici : le numéro n'est pas vérifié, ce lien ne doit transiter que par email
-  const etapeCompte = user.emailVerified
-    ? 'Vos informations sont enregistrées, il ne vous reste que 2 minutes.'
-    : 'Activez d’abord votre compte avec le lien reçu par email (pensez à vérifier vos spams), puis terminez votre candidature.'
   const message = `Bonjour ${prenom},
 
 Vous avez commencé votre demande de bourse pour *${formation}* sur BourseFi, mais elle n'est pas encore envoyée.
 
-${etapeCompte}
+Vos informations sont enregistrées, il ne vous reste que 2 minutes.
 ${siteUrl}/postuler/${bourse.slug}
 
 Besoin d'aide ? Répondez directement à ce message.

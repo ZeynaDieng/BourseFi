@@ -21,54 +21,7 @@ const { activeTarif, referenceTarif, isPromo, formatFcfa } = useTarification(bas
 const step = ref(0)
 const isSubmitting = ref(false)
 const errorMessage = ref('')
-const authMode = ref<'register' | 'login' | 'login-code' | 'code'>('register')
-// Vérification de l'email par code à 6 chiffres, sans quitter la page
-const codeEmail = ref('')
-const codeInput = ref('')
-const codeLoading = ref(false)
-const codeInfo = ref('')
-const resendCooldown = ref(0)
-let resendTimer: ReturnType<typeof setInterval> | undefined
-
-function startResendCooldown() {
-  resendCooldown.value = 30
-  clearInterval(resendTimer)
-  resendTimer = setInterval(() => {
-    resendCooldown.value--
-    if (resendCooldown.value <= 0) clearInterval(resendTimer)
-  }, 1000)
-}
-
-async function submitCode() {
-  errorMessage.value = ''
-  codeInfo.value = ''
-  codeLoading.value = true
-  const { addCsrfToHeaders } = useCsrf()
-  try {
-    await $fetch('/api/auth/verify-code', {
-      method: 'POST',
-      body: { email: codeEmail.value, code: codeInput.value.replace(/\D/g, '') },
-      headers: addCsrfToHeaders(),
-    })
-    codeInput.value = ''
-    await afterAuthSuccess()
-  } catch (e: any) {
-    errorMessage.value = e?.data?.statusMessage || 'Code invalide ou expiré. Vérifiez-le ou demandez-en un nouveau.'
-  } finally {
-    codeLoading.value = false
-  }
-}
-
-async function resendCode() {
-  errorMessage.value = ''
-  try {
-    const res = await $fetch<{ message: string }>('/api/auth/resend-code', { method: 'POST', body: { email: codeEmail.value } })
-    codeInfo.value = res.message
-  } catch (e: any) {
-    errorMessage.value = e?.data?.statusMessage || 'Impossible de renvoyer le code pour le moment.'
-  }
-  startResendCooldown()
-}
+const authMode = ref<'register' | 'login' | 'login-code'>('register')
 const authLoading = ref(false)
 const authJustCompleted = ref(false)
 
@@ -420,7 +373,9 @@ function goBack() {
 async function submitRegister() {
   errorMessage.value = ''
   authLoading.value = true
+  const { addCsrfToHeaders } = useCsrf()
   try {
+    // Le compte est utilisable tout de suite : l'étudiant continue sa candidature sans quitter la page
     await $fetch('/api/auth/register', {
       method: 'POST',
       body: {
@@ -433,25 +388,18 @@ async function submitRegister() {
         acceptMarketing: registerForm.acceptMarketing,
         bourseSlug: String(route.params.slug),
       },
+      headers: addCsrfToHeaders(),
     })
-    // Pas de connexion automatique : le code (ou le lien) reçu par email active le compte et connecte l'étudiant.
     registerForm.password = ''
-    loginForm.email = registerForm.email.trim()
-    codeEmail.value = registerForm.email.trim()
-    codeInput.value = ''
-    codeInfo.value = ''
-    authMode.value = 'code'
-    startResendCooldown()
-    // Sur mobile le formulaire d'inscription est long : on remonte au message et on place le curseur dans le code
-    await nextTick()
-    document.querySelector('[data-code-form]')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    document.querySelector<HTMLInputElement>('[data-code-form] input')?.focus({ preventScroll: true })
+    await afterAuthSuccess()
   } catch (e: unknown) {
-    const msg =
-      e && typeof e === 'object' && 'data' in e
-        ? (e as { data?: { statusMessage?: string } }).data?.statusMessage
-        : null
-    errorMessage.value = msg || 'Inscription impossible. Vérifiez vos informations.'
+    const err = e && typeof e === 'object' ? (e as { statusCode?: number; data?: { statusMessage?: string } }) : null
+    if (err?.statusCode === 409) {
+      // Adresse déjà inscrite : on bascule sur la connexion, email prérempli
+      loginForm.email = registerForm.email.trim()
+      authMode.value = 'login'
+    }
+    errorMessage.value = err?.data?.statusMessage || 'Inscription impossible. Vérifiez vos informations.'
   } finally {
     authLoading.value = false
   }
@@ -640,7 +588,7 @@ useSeoMeta({
               </p>
             </div>
 
-            <div v-if="authMode !== 'code'" class="flex gap-2 rounded-xl bg-slate-100 p-1">
+            <div class="flex gap-2 rounded-xl bg-slate-100 p-1">
               <button
                 type="button"
                 class="flex-1 rounded-lg py-2.5 text-sm font-semibold transition"
@@ -715,54 +663,6 @@ useSeoMeta({
               >
                 {{ authLoading ? 'Création…' : 'Créer mon espace et continuer' }}
               </button>
-            </form>
-
-            <form v-else-if="authMode === 'code'" data-code-form class="scroll-mt-24 space-y-4" @submit.prevent="submitCode">
-              <div class="rounded-xl bg-primary/5 p-4 text-sm text-slate-600">
-                <p class="font-bold text-primary">Vérifiez votre email</p>
-                <p class="mt-1">
-                  Nous avons envoyé un code à 6 chiffres à <strong class="break-all text-primary">{{ codeEmail }}</strong>.
-                  Saisissez-le ici pour continuer votre candidature. Pensez à regarder dans vos spams.
-                </p>
-              </div>
-              <label class="block">
-                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Code de vérification</span>
-                <input
-                  v-model="codeInput"
-                  inputmode="numeric"
-                  autocomplete="one-time-code"
-                  maxlength="6"
-                  pattern="[0-9]{6}"
-                  required
-                  placeholder="000000"
-                  class="mt-1 w-full rounded-xl border border-slate-100 bg-slate-50 px-3 py-3 text-center font-mono text-2xl font-bold tracking-[0.5em] text-primary"
-                />
-              </label>
-              <p v-if="codeInfo" class="text-xs text-emerald-700">{{ codeInfo }}</p>
-              <button
-                type="submit"
-                class="w-full rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:opacity-95 disabled:opacity-50"
-                :disabled="codeLoading || codeInput.replace(/\D/g, '').length !== 6"
-              >
-                {{ codeLoading ? 'Vérification…' : 'Vérifier et continuer' }}
-              </button>
-              <div class="flex flex-wrap items-center justify-between gap-2 text-xs">
-                <button
-                  type="button"
-                  class="font-semibold text-primary underline-offset-2 hover:underline disabled:text-slate-400 disabled:no-underline"
-                  :disabled="resendCooldown > 0"
-                  @click="resendCode"
-                >
-                  {{ resendCooldown > 0 ? `Renvoyer le code (${resendCooldown} s)` : 'Renvoyer le code' }}
-                </button>
-                <button type="button" class="text-slate-500 hover:text-primary" @click="authMode = 'register'">
-                  Modifier mon adresse
-                </button>
-              </div>
-              <p class="text-xs text-slate-500">
-                Vous avez déjà un compte ?
-                <button type="button" class="font-semibold text-primary underline-offset-2 hover:underline" @click="authMode = 'login'">Connectez-vous</button>
-              </p>
             </form>
 
             <AuthCodeLoginForm

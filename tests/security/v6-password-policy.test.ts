@@ -21,19 +21,19 @@ describe('V6 — politique de mot de passe côté serveur', () => {
 
   it('V6.1 inscription : moins de 4 caractères refusé (400), aucun compte créé', async () => {
     for (const [i, pw] of TOO_SHORT.entries()) {
-      const r = await call('POST', '/api/auth/register', { body: reg(`court${i}.v6@example.test`, pw) })
+      const r = await call('POST', '/api/auth/register', { csrf: true, body: reg(`court${i}.v6@example.test`, pw) })
       expect(r.status, pw).toBe(400)
     }
     expect(db().users).toHaveLength(0)
   })
 
   it('V6.2 inscription : trop long refusé', async () => {
-    const r = await call('POST', '/api/auth/register', { body: reg('long.v6@example.test', 'Aa1-' + 'x'.repeat(130)) })
+    const r = await call('POST', '/api/auth/register', { csrf: true, body: reg('long.v6@example.test', 'Aa1-' + 'x'.repeat(130)) })
     expect(r.status).toBe(400)
   })
 
   it('V6.3 inscription : 4 caractères suffisent', async () => {
-    const r = await call('POST', '/api/auth/register', { body: reg('ok.v6@example.test', '1234') })
+    const r = await call('POST', '/api/auth/register', { csrf: true, body: reg('ok.v6@example.test', '1234') })
     expect(r.status).toBe(200)
     expect(db().users.find((u) => u.email === 'ok.v6@example.test')).toBeTruthy()
   })
@@ -82,7 +82,7 @@ describe('V6 — politique de mot de passe côté serveur', () => {
 
   it('V6.7 types inattendus refusés (nombre, tableau, objet)', async () => {
     for (const pw of [12345678901, ['Teranga-Lac-Rose-91'], { a: 1 }, null]) {
-      const r = await call('POST', '/api/auth/register', { body: reg('type.v6@example.test', pw as any) })
+      const r = await call('POST', '/api/auth/register', { csrf: true, body: reg('type.v6@example.test', pw as any) })
       expect(r.status).toBe(400)
     }
   })

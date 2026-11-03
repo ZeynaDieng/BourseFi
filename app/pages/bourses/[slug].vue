@@ -105,9 +105,16 @@ useSiteSeo({
           {{ bourse.programmeTitre }}
         </p>
 
+        <!-- Le gain avant le coût : premier chiffre lu sur la page -->
+        <div v-if="bourse.economie && bourse.economie > 0" class="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-center">
+          <p class="text-xs font-bold uppercase tracking-wider text-emerald-700">Avec cette bourse, vous économisez</p>
+          <p class="mt-1 font-headline text-3xl font-extrabold text-emerald-700">{{ bourse.economie.toLocaleString('fr-FR') }} {{ bourse.devise }}</p>
+          <p class="mt-0.5 text-xs text-emerald-800">sur vos frais de scolarité</p>
+        </div>
+
         <!-- Stats en grille -->
-        <div class="mt-6 grid grid-cols-2 sm:grid-cols-3 divide-x divide-slate-100 rounded-2xl border border-slate-100 bg-slate-50/50">
-          <div class="p-4 text-center">
+        <div class="mt-4 grid grid-cols-2 sm:grid-cols-3 divide-x divide-slate-100 rounded-2xl border border-slate-100 bg-slate-50/50">
+          <div class="order-last p-4 text-center">
             <template v-if="isPromo">
               <p class="font-headline text-sm font-bold text-slate-400 line-through">
                 {{ formatFcfa(referenceTarif) }}
@@ -142,7 +149,16 @@ useSiteSeo({
           POSTULER À CETTE BOURSE
           <span class="material-symbols-outlined text-lg">arrow_forward</span>
         </NuxtLink>
-        <p class="mt-3 text-center text-xs text-slate-500">Compte requis · Environ 2 minutes</p>
+        <!-- Transparence sur les frais : lève le doute « arnaque » avant de postuler -->
+        <div class="mt-4 flex gap-2.5 rounded-xl bg-slate-50 p-3 text-left">
+          <span class="material-symbols-outlined shrink-0 text-[18px] text-primary">help</span>
+          <p class="text-xs leading-relaxed text-slate-600">
+            <strong class="text-primary">À quoi servent les {{ formatFcfa(activeTarif) }} {{ bourse.devise }} de frais de dossier ?</strong>
+            Ils couvrent l’étude de votre dossier, l’émission de votre attestation officielle et le suivi avec l’école.
+            Vous ne payez qu’à la fin, après avoir vu votre attestation.
+          </p>
+        </div>
+        <p class="mt-3 text-center text-xs text-slate-500">Environ 2 minutes</p>
       </div>
     </header>
 
@@ -415,17 +431,24 @@ useSiteSeo({
     <!-- CTA sticky mobile -->
     <div class="fixed inset-x-0 bottom-0 z-20 border-t border-slate-100 bg-white/95 px-4 py-3 backdrop-blur md:hidden">
       <div class="mx-auto flex max-w-4xl items-center justify-between gap-3">
+        <!-- Le gain d'abord ; les frais en second, avec le rappel qu'ils ne se paient qu'à la fin -->
         <div class="min-w-0">
-          <p class="truncate text-sm font-bold text-primary">
-            {{ formatFcfa(activeTarif) }} {{ bourse.devise }}
-            · {{ bourse.coveragePercent }} % de prise en charge
+          <p v-if="bourse.economie && bourse.economie > 0" class="truncate text-sm font-extrabold text-emerald-700">
+            Économisez {{ bourse.economie.toLocaleString('fr-FR') }} {{ bourse.devise }}
+          </p>
+          <p v-else class="truncate text-sm font-extrabold text-emerald-700">
+            {{ bourse.coveragePercent }} % de prise en charge
+          </p>
+          <p class="truncate text-[11px] text-slate-500">
+            Frais de dossier {{ formatFcfa(activeTarif) }} {{ bourse.devise }} · payés à la fin
           </p>
         </div>
         <NuxtLink
           :to="`/postuler/${route.params.slug}`"
-          class="flex-shrink-0 rounded-2xl bg-primary px-5 py-2.5 text-sm font-bold text-white"
+          class="inline-flex flex-shrink-0 items-center gap-1 rounded-2xl bg-primary px-5 py-3 text-sm font-bold text-white shadow-lg"
         >
-          Postuler
+          Je postule
+          <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
         </NuxtLink>
       </div>
     </div>

@@ -45,13 +45,6 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 403, statusMessage: DEACTIVATED_MESSAGE })
   }
 
-  if (!user.emailVerified) {
-    throw createError({
-      statusCode: 403,
-      statusMessage: 'Veuillez vérifier votre email avant de vous connecter. Un lien de vérification a été envoyé lors de votre inscription.'
-    })
-  }
-
   if (user.role === 'PARTNER' && !PARTNER_PORTAL_ENABLED) {
     throw createError({
       statusCode: 403,

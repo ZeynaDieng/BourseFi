@@ -1,9 +1,9 @@
 /**
  * Brouillon de candidature : la bourse choisie à l'inscription est retenue, l'étudiant y est ramené
- * après la vérification de son email, et sa saisie est conservée côté serveur.
+ * (réponse de l'inscription, email de bienvenue), et sa saisie est conservée côté serveur.
  */
 import { describe, it, expect, beforeEach } from 'vitest'
-import { resetEnv, db, call, createUser, sessionCookieFor, sentEmails, tokenFromEmail } from '../helpers/server'
+import { resetEnv, db, call, createUser, sessionCookieFor, sentEmails } from '../helpers/server'
 
 const SLUG = 'bourse-ifaa-licence'
 
@@ -18,31 +18,28 @@ function registerPayload(email: string, extra: Record<string, unknown> = {}) {
 describe('Brouillon de candidature', () => {
   beforeEach(() => resetEnv())
 
-  it('inscription depuis une bourse : retour au formulaire après vérification de l’email', async () => {
+  it('inscription depuis une bourse : brouillon créé, retour au formulaire', async () => {
     addBourse()
-    const r = await call('POST', '/api/auth/register', { body: registerPayload('awa.b@example.test', { bourseSlug: SLUG }) })
+    const r = await call('POST', '/api/auth/register', { csrf: true, body: registerPayload('awa.b@example.test', { bourseSlug: SLUG }) })
     expect(r.status).toBe(200)
+    expect(r.body.resumeUrl).toBe(`/postuler/${SLUG}`)
     const u = db().users.find((x) => x.email === 'awa.b@example.test')!
     expect(u.applicationDraft).toMatchObject({ bourseSlug: SLUG, fields: { phone: '771234567' } })
-
-    const token = tokenFromEmail(sentEmails().at(-1))
-    const v = await call('GET', `/api/auth/verify-email?token=${token}`)
-    expect(v.status).toBe(200)
-    expect(v.body.resumeUrl).toBe(`/postuler/${SLUG}`)
+    // L'email de bienvenue ramène à la candidature
+    expect(sentEmails().at(-1)!.html).toContain(`/postuler/${SLUG}`)
   })
 
-  it('inscription sans bourse (ou bourse inconnue) : pas de brouillon, tableau de bord habituel', async () => {
-    await call('POST', '/api/auth/register', { body: registerPayload('sans.b@example.test', { bourseSlug: 'inconnue' }) })
+  it('inscription sans bourse (ou bourse inconnue) : pas de brouillon', async () => {
+    const r = await call('POST', '/api/auth/register', { csrf: true, body: registerPayload('sans.b@example.test', { bourseSlug: 'inconnue' }) })
+    expect(r.body.resumeUrl).toBeNull()
     const u = db().users.find((x) => x.email === 'sans.b@example.test')!
     expect(u.applicationDraft ?? null).toBeNull()
-    const v = await call('GET', `/api/auth/verify-email?token=${tokenFromEmail(sentEmails().at(-1))}`)
-    expect(v.body.resumeUrl).toBeNull()
   })
 
   it('email déjà utilisé : le compte existant n’est pas modifié', async () => {
     addBourse()
     await createUser({ email: 'deja.b@example.test' })
-    await call('POST', '/api/auth/register', { body: registerPayload('deja.b@example.test', { bourseSlug: SLUG }) })
+    await call('POST', '/api/auth/register', { csrf: true, body: registerPayload('deja.b@example.test', { bourseSlug: SLUG }) })
     expect(db().users.find((x) => x.email === 'deja.b@example.test')!.applicationDraft ?? null).toBeNull()
   })
 

@@ -1,5 +1,4 @@
 import { hash } from 'bcryptjs'
-import { randomBytes } from 'node:crypto'
 import { z } from 'zod'
 import { prisma } from '../../utils/prisma'
 import { writeAuditLog } from '../../utils/audit'
@@ -8,7 +7,8 @@ import { sendEmail, renderEmail } from '../../utils/email'
 import { siteUrl } from '../../utils/one-time-token'
 import { checkPassword } from '../../../shared/password-policy'
 import { bourseSlugSchema, buildApplicationDraft, findActiveBourseForDraft } from '../../utils/application-draft'
-import { generateEmailCode, sendVerificationEmail } from '../../utils/email-code'
+import { createSession } from '../../utils/auth'
+import { requireCsrf } from '../../utils/csrf'
 
 const registerSchema = z
   .object({
@@ -20,24 +20,41 @@ const registerSchema = z
     password: z.string(),
     acceptTerms: z.boolean().refine(val => val === true, 'Vous devez accepter les conditions d\'utilisation et la politique de confidentialité'),
     acceptMarketing: z.boolean().optional(),
-    // Bourse depuis laquelle l'étudiant s'inscrit : il y sera ramené après la vérification de son email
+    // Bourse depuis laquelle l'étudiant s'inscrit : sa candidature y est préparée (brouillon)
     bourseSlug: bourseSlugSchema.optional(),
   })
   .refine((data) => data.name || (data.firstName && data.lastName), {
     message: 'Indiquez votre prénom et nom, ou un nom complet.',
   })
 
-/**
- * Réponse publique UNIQUE, que l'adresse soit nouvelle ou déjà enregistrée :
- * même statut, même corps, aucun cookie de session (anti-énumération).
- */
-const PUBLIC_RESPONSE = {
-  ok: true,
-  message: 'Si cette adresse peut être utilisée, un email vient de vous être envoyé. Cliquez sur le lien qu’il contient pour activer votre compte.',
+/** Adresse déjà utilisée : l'étudiant est invité à se connecter (avec son mot de passe ou un code par email). */
+const EMAIL_TAKEN = 'Un compte existe déjà avec cette adresse. Connectez-vous, ou choisissez « Se connecter sans mot de passe ».'
+
+/** Email de bienvenue : aucune vérification demandée, il sert de repère pour revenir terminer la candidature. */
+function sendWelcomeEmail(user: { email: string; name: string; firstName: string | null }, resumeUrl: string) {
+  void sendEmail({
+    to: { email: user.email, name: user.name },
+    subject: 'Bienvenue sur BourseFi',
+    html: renderEmail({
+      title: `Bienvenue ${user.firstName || user.name} !`,
+      bodyHtml: `
+        <p>Votre espace étudiant BourseFi est créé.</p>
+        <p>Vous pouvez reprendre votre demande de bourse à tout moment depuis le bouton ci-dessous.</p>
+      `,
+      ctaLabel: 'Reprendre ma candidature',
+      ctaUrl: resumeUrl,
+    }),
+  }).catch(() => false)
 }
 
+/**
+ * Inscription étudiante : le compte est utilisable immédiatement (pas de vérification de l'email),
+ * pour ne pas faire quitter la candidature à l'étudiant. La session est ouverte dans la foulée.
+ */
 export default defineEventHandler(async (event) => {
   rateLimit(event, 'auth-register', 10, 60 * 60 * 1000)
+  // Ouvre une session, comme la connexion : même protection CSRF
+  requireCsrf(event)
   const body = await readBody(event).catch(() => null)
   const parsed = registerSchema.safeParse(body)
 
@@ -65,34 +82,15 @@ export default defineEventHandler(async (event) => {
   const lastName = parsed.data.lastName?.trim() ?? ''
   const name = parsed.data.name?.trim() || `${firstName} ${lastName}`.trim()
 
-  // Hash calculé dans tous les cas pour homogénéiser le temps de réponse.
-  const passwordHash = await hash(password, 10)
-  const draftBourse = parsed.data.bourseSlug ? await findActiveBourseForDraft(parsed.data.bourseSlug) : null
-
   const existingUser = await prisma.user.findFirst({
     where: { email: { equals: email, mode: 'insensitive' } },
   })
-
   if (existingUser) {
-    // Le propriétaire légitime est prévenu ; aucun jeton, aucune modification du compte.
-    await sendEmail({
-      to: { email: existingUser.email, name: existingUser.name },
-      subject: 'Tentative d’inscription avec votre adresse - BourseFi',
-      html: renderEmail({
-        title: 'Vous avez déjà un compte BourseFi',
-        bodyHtml: `
-          <p>Une demande de création de compte vient d’être effectuée avec votre adresse email, qui est déjà associée à un compte BourseFi.</p>
-          <p>Si c’est vous, connectez-vous simplement. En cas d’oubli, utilisez « Mot de passe oublié ».</p>
-          <p>Si vous n’êtes pas à l’origine de cette demande, vous pouvez ignorer cet email : votre compte n’a pas été modifié.</p>
-        `,
-        ctaLabel: 'Se connecter',
-        ctaUrl: `${siteUrl()}/auth/login`,
-      }),
-    }).catch(() => false)
-    return PUBLIC_RESPONSE
+    throw createError({ statusCode: 409, statusMessage: EMAIL_TAKEN })
   }
 
-  const emailVerificationToken = randomBytes(32).toString('hex')
+  const passwordHash = await hash(password, 10)
+  const draftBourse = parsed.data.bourseSlug ? await findActiveBourseForDraft(parsed.data.bourseSlug) : null
 
   let user
   try {
@@ -104,15 +102,14 @@ export default defineEventHandler(async (event) => {
         email,
         phone: phone || null,
         passwordHash,
-        emailVerificationToken,
         emailVerified: false,
         role: 'STUDENT',
         ...(draftBourse ? { applicationDraft: buildApplicationDraft(draftBourse.slug, { phone }) } : {}),
       },
     })
   } catch (e: any) {
-    // Course entre deux inscriptions simultanées : même réponse générique.
-    if (e?.code === 'P2002') return PUBLIC_RESPONSE
+    // Course entre deux inscriptions simultanées avec la même adresse
+    if (e?.code === 'P2002') throw createError({ statusCode: 409, statusMessage: EMAIL_TAKEN })
     throw e
   }
 
@@ -125,14 +122,10 @@ export default defineEventHandler(async (event) => {
     metadata: { email: user.email, acceptMarketing: acceptMarketing || false },
   })
 
-  // Code à 6 chiffres (saisi sur la page de candidature) en plus du lien ; seul son hash est stocké
-  const { code, data: codeData } = generateEmailCode(user.id)
-  await prisma.user.update({ where: { id: user.id }, data: codeData })
+  await createSession(event, user.id)
 
-  // L'échec d'envoi n'active JAMAIS le compte automatiquement (l'utilisateur
-  // pourra redemander un code) et n'est pas reflété dans la réponse publique.
-  const sent = await sendVerificationEmail(user, emailVerificationToken, code)
-  if (!sent) console.warn('[AUTH_REGISTER] Échec d’envoi de l’email de vérification', { userId: user.id })
+  const resumePath = draftBourse ? `/postuler/${draftBourse.slug}` : '/bourses'
+  sendWelcomeEmail(user, `${siteUrl()}${resumePath}`)
 
-  return PUBLIC_RESPONSE
+  return { ok: true, user: { role: user.role }, resumeUrl: draftBourse ? resumePath : null }
 })

@@ -66,14 +66,6 @@ describe('V10 — connexion par code', () => {
     db().users.find((x) => x.id === u.id)!.loginCodeExpires = new Date(Date.now() - 1000)
     expect((await verify('exp.v10@example.test', code)).status).toBe(400)
   })
-
-  it('V10.5 un code de vérification d’email ne sert pas à se connecter', async () => {
-    await call('POST', '/api/auth/register', {
-      body: { firstName: 'Ami', lastName: 'Gaye', email: 'mix.v10@example.test', phone: '771112233', password: 'abcd', acceptTerms: true },
-    })
-    const verificationCode = codeFrom('mix.v10@example.test')!
-    expect((await verify('mix.v10@example.test', verificationCode)).status).toBe(400)
-  })
 })
 
 describe('V10 bis — attestation envoyée par WhatsApp', () => {

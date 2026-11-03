@@ -230,10 +230,6 @@ export async function runAutoRelanceEngine(options: RunEngineOptions = {}) {
     const draft = parseApplicationDraft(user.applicationDraft)
     const draftBourse = draft ? await findActiveBourseForDraft(draft.bourseSlug) : null
     const formation = draftBourse?.programme.titre ?? null
-    // Compte non activé : la connexion est refusée tant que l'email n'est pas vérifié, on renvoie donc son lien d'activation
-    const lienActivation = !user.emailVerified && user.emailVerificationToken
-      ? `${appUrl}/auth/verify-email?token=${user.emailVerificationToken}`
-      : null
 
     let text: string
     let title: string
@@ -242,33 +238,15 @@ export async function runAutoRelanceEngine(options: RunEngineOptions = {}) {
     let subject: string
 
     if (formation && draftBourse) {
-      ctaUrl = lienActivation ?? `${appUrl}/postuler/${draftBourse.slug}`
-      ctaLabel = lienActivation ? 'Activer mon compte et terminer ma candidature →' : 'Terminer ma candidature →'
+      ctaUrl = `${appUrl}/postuler/${draftBourse.slug}`
+      ctaLabel = 'Terminer ma candidature →'
       title = `Votre candidature pour ${formation} vous attend`
       subject = `[BourseFi] ${prenom}, terminez votre candidature pour ${formation}`
       text = `Bonjour ${prenom},
 
 Vous avez commencé votre candidature pour ${formation} sur BourseFi, mais elle n'est pas encore envoyée.
 
-${lienActivation
-  ? `Il vous reste à activer votre compte : le lien ci-dessous l'active et vous ramène directement à votre candidature.`
-  : `Vos informations sont enregistrées : il ne vous reste que 2 minutes pour la terminer et obtenir votre attestation de bourse.`}
-${ctaUrl}
-
-${lignePromo}
-
-À très bientôt,
-L'équipe BourseFi.`
-    } else if (lienActivation) {
-      ctaUrl = lienActivation
-      ctaLabel = 'Activer mon compte →'
-      title = 'Activez votre compte BourseFi'
-      subject = `[BourseFi] ${prenom}, activez votre compte pour déposer votre candidature`
-      text = `Bonjour ${prenom},
-
-Vous avez créé votre compte étudiant BourseFi mais il n'est pas encore activé.
-
-Activez-le en un clic pour choisir votre formation et déposer votre dossier en 2 minutes :
+Vos informations sont enregistrées : il ne vous reste que 2 minutes pour la terminer et obtenir votre attestation de bourse.
 ${ctaUrl}
 
 ${lignePromo}

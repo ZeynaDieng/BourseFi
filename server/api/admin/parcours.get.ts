@@ -15,9 +15,8 @@ export default defineEventHandler(async (event) => {
   const since = new Date(Date.now() - jours * 24 * 60 * 60 * 1000)
 
   const cohort: Prisma.UserWhereInput = { role: 'STUDENT', createdAt: { gte: since } }
-  const [comptes, verifies, commences, envoyees, payees, blocages] = await Promise.all([
+  const [comptes, commences, envoyees, payees, blocages] = await Promise.all([
     prisma.user.count({ where: cohort }),
-    prisma.user.count({ where: { ...cohort, emailVerified: true } }),
     prisma.user.count({
       where: { ...cohort, OR: [{ applicationDraft: { not: Prisma.DbNull } }, { candidatures: { some: {} } }] },
     }),
@@ -36,7 +35,6 @@ export default defineEventHandler(async (event) => {
     jours,
     etapes: [
       { key: 'comptes', label: 'Comptes créés', count: comptes },
-      { key: 'verifies', label: 'Email vérifié', count: verifies },
       { key: 'commences', label: 'Candidature commencée', count: commences },
       { key: 'envoyees', label: 'Candidature envoyée', count: envoyees },
       { key: 'payees', label: 'Paiement validé', count: payees },

@@ -30,7 +30,6 @@ const form = reactive({
 
 const isLoading = ref(false)
 const errorMessage = ref('')
-const successMessage = ref('')
 
 function resolvePostRegisterPath() {
   return resolveStudentAuthRedirect(redirectTo.value)
@@ -38,7 +37,6 @@ function resolvePostRegisterPath() {
 
 async function submitRegister() {
   errorMessage.value = ''
-  successMessage.value = ''
   isLoading.value = true
 
   const policy = checkPassword(form.password, { email: form.email })
@@ -59,13 +57,16 @@ async function submitRegister() {
       acceptMarketing: form.acceptMarketing,
     }
 
-    const response = await $fetch<{ ok: boolean; message: string }>('/api/auth/register', {
+    const { addCsrfToHeaders } = useCsrf()
+    // Le compte est utilisable tout de suite : connexion automatique
+    await $fetch('/api/auth/register', {
       method: 'POST',
       body: payload,
+      headers: addCsrfToHeaders(),
     })
 
     form.password = ''
-    successMessage.value = response.message
+    await navigateTo(resolvePostRegisterPath())
   } catch (error: unknown) {
     const data =
       error && typeof error === 'object' && 'data' in error
@@ -100,7 +101,7 @@ async function submitRegister() {
       </p>
       <p class="mb-6 text-sm text-slate-500">Créez votre compte étudiant BourseFi.</p>
 
-      <form v-if="!successMessage" class="space-y-4" @submit.prevent="submitRegister">
+      <form class="space-y-4" @submit.prevent="submitRegister">
         <div class="grid gap-4 sm:grid-cols-2">
           <input v-model="form.firstName" required class="w-full rounded-lg border-slate-200 px-4 py-3" placeholder="Prénom" />
           <input v-model="form.lastName" required class="w-full rounded-lg border-slate-200 px-4 py-3" placeholder="Nom" />
@@ -133,18 +134,6 @@ async function submitRegister() {
           {{ isLoading ? 'Inscription…' : "S'inscrire" }}
         </button>
       </form>
-
-      <div v-else class="space-y-4 text-center">
-        <div class="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto">
-          <span class="material-symbols-outlined text-emerald-600 text-3xl">check_circle</span>
-        </div>
-        <h2 class="text-xl font-bold text-slate-900">Vérifiez votre boîte email</h2>
-        <p class="text-slate-600">{{ successMessage }}</p>
-        <p class="text-sm text-slate-500">Pensez à consulter vos courriers indésirables. Le lien vous connectera automatiquement.</p>
-        <NuxtLink :to="loginHref" class="inline-block bg-primary text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary/90">
-          Se connecter
-        </NuxtLink>
-      </div>
 
       <p class="mt-5 text-center text-sm text-slate-600">
         Déjà inscrit ?
