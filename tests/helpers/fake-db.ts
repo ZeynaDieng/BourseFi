@@ -139,7 +139,10 @@ export function createFakeDb() {
       findUnique: async (args: any) => programmes.find((p) => matches(p, args.where)) ?? null,
     },
     bourse: {
-      findFirst: async () => null,
+      findFirst: async (args: any = {}) => {
+        log('bourse', 'findFirst', args)
+        return bourses.find((b) => matches(b, args.where)) ?? null
+      },
       findMany: async (args: any) => {
         log('bourse', 'findMany', args)
         const w = args.where ?? {}

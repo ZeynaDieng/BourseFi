@@ -253,6 +253,8 @@ model User {
   autoRelanceStep        Int            @default(0)
   lastAutoRelanceAt      DateTime?
   relanceLogs            AutoRelanceLog[]
+  /// Candidature commencée mais pas encore envoyée (bourse choisie + champs saisis)
+  applicationDraft       Json?
 
   @@index([role])
   @@index([createdAt])

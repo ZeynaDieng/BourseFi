@@ -2,6 +2,7 @@ import { prisma } from './prisma'
 import { sendEmail, renderEmail } from './email'
 import { ensureAutoRelanceRulesSeeded } from './auto-relance-seed'
 import { writeAuditLog } from './audit'
+import { findActiveBourseForDraft, parseApplicationDraft } from './application-draft'
 
 export type RunEngineOptions = {
   force?: boolean
@@ -105,19 +106,25 @@ export async function runAutoRelanceEngine(options: RunEngineOptions = {}) {
       .replace(/\{\{code_promo\}\}/g, codePromo)
 
     let emailSentSuccess = false
+    // En attente de paiement, l'attestation est prête et visible en aperçu sur la page de paiement
+    const attestationPrete = cand.status === 'EN_ATTENTE_PAIEMENT'
 
     if (rule.channel === 'EMAIL' || rule.channel === 'BOTH') {
       try {
         const htmlContent = renderEmail({
-          title: `Rappel de votre candidature — ${formation}`,
+          title: attestationPrete ? `Votre attestation est prête — ${formation}` : `Rappel de votre candidature — ${formation}`,
           bodyHtml: `<p>${text.replace(/\n/g, '<br>')}</p>`,
-          ctaLabel: 'Finaliser mon inscription →',
+          ctaLabel: attestationPrete ? 'Voir mon attestation →' : 'Finaliser mon inscription →',
           ctaUrl: lienPaiement,
         })
 
         emailSentSuccess = await sendEmail({
           to: { email: cand.email, name: `${prenom} ${nom}`.trim() },
-          subject: `[BourseFi] ${rule.name.includes('PROMO') ? '🎁 Réduction exclusive :' : 'Finalisez votre inscription pour'} ${formation}`,
+          subject: rule.name.includes('PROMO')
+            ? `[BourseFi] 🎁 Réduction exclusive : ${formation}`
+            : attestationPrete
+              ? `[BourseFi] ${prenom}, votre attestation pour ${formation} est prête`
+              : `[BourseFi] Finalisez votre inscription pour ${formation}`,
           html: htmlContent,
           text,
         })
@@ -208,33 +215,89 @@ export async function runAutoRelanceEngine(options: RunEngineOptions = {}) {
     const appUrl = (process.env.NUXT_PUBLIC_APP_URL || process.env.NUXT_PUBLIC_SITE_URL || 'https://boursefi.sn').replace(/\/+$/, '')
     const lienCatalogue = `${appUrl}/bourses`
     const codePromo = rule.codePromo || 'RENTREE2026'
+    const lignePromo = rule.codePromo ? `🎁 Profitez du code promo ${codePromo} lors de votre inscription !` : ''
 
-    let text = `Bonjour ${prenom},
+    // Candidature commencée depuis une bourse : on propose de la terminer plutôt que de renvoyer au catalogue
+    const draft = parseApplicationDraft(user.applicationDraft)
+    const draftBourse = draft ? await findActiveBourseForDraft(draft.bourseSlug) : null
+    const formation = draftBourse?.programme.titre ?? null
+    // Compte non activé : la connexion est refusée tant que l'email n'est pas vérifié, on renvoie donc son lien d'activation
+    const lienActivation = !user.emailVerified && user.emailVerificationToken
+      ? `${appUrl}/auth/verify-email?token=${user.emailVerificationToken}`
+      : null
+
+    let text: string
+    let title: string
+    let ctaLabel: string
+    let ctaUrl: string
+    let subject: string
+
+    if (formation && draftBourse) {
+      ctaUrl = lienActivation ?? `${appUrl}/postuler/${draftBourse.slug}`
+      ctaLabel = lienActivation ? 'Activer mon compte et terminer ma candidature →' : 'Terminer ma candidature →'
+      title = `Votre candidature pour ${formation} vous attend`
+      subject = `[BourseFi] ${prenom}, terminez votre candidature pour ${formation}`
+      text = `Bonjour ${prenom},
+
+Vous avez commencé votre candidature pour ${formation} sur BourseFi, mais elle n'est pas encore envoyée.
+
+${lienActivation
+  ? `Il vous reste à activer votre compte : le lien ci-dessous l'active et vous ramène directement à votre candidature.`
+  : `Vos informations sont enregistrées : il ne vous reste que 2 minutes pour la terminer et obtenir votre attestation de bourse.`}
+${ctaUrl}
+
+${lignePromo}
+
+À très bientôt,
+L'équipe BourseFi.`
+    } else if (lienActivation) {
+      ctaUrl = lienActivation
+      ctaLabel = 'Activer mon compte →'
+      title = 'Activez votre compte BourseFi'
+      subject = `[BourseFi] ${prenom}, activez votre compte pour déposer votre candidature`
+      text = `Bonjour ${prenom},
+
+Vous avez créé votre compte étudiant BourseFi mais il n'est pas encore activé.
+
+Activez-le en un clic pour choisir votre formation et déposer votre dossier en 2 minutes :
+${ctaUrl}
+
+${lignePromo}
+
+À très bientôt,
+L'équipe BourseFi.`
+    } else {
+      ctaUrl = lienCatalogue
+      ctaLabel = 'Découvrir les bourses d\'études →'
+      title = `Découvrez nos bourses d'études disponibles — BourseFi`
+      subject = `[BourseFi] ${prenom}, choisissez votre formation et bénéficiez de votre bourse`
+      text = `Bonjour ${prenom},
 
 Bienvenue sur BourseFi ! Vous avez créé votre compte étudiant mais vous n'avez pas encore sélectionné de formation.
 
 Découvrez des dizaines de formations et bourses d'études disponibles et déposez votre dossier en 2 minutes :
 ${lienCatalogue}
 
-${rule.codePromo ? `🎁 Profitez du code promo ${codePromo} lors de votre inscription !` : ''}
+${lignePromo}
 
 À très bientôt,
 L'équipe BourseFi.`
+    }
 
     let emailSentSuccess = false
 
     if (rule.channel === 'EMAIL' || rule.channel === 'BOTH') {
       try {
         const htmlContent = renderEmail({
-          title: `Découvrez nos bourses d'études disponibles — BourseFi`,
+          title,
           bodyHtml: `<p>${text.replace(/\n/g, '<br>')}</p>`,
-          ctaLabel: 'Découvrir les bourses d\'études →',
-          ctaUrl: lienCatalogue,
+          ctaLabel,
+          ctaUrl,
         })
 
         emailSentSuccess = await sendEmail({
           to: { email: user.email, name: `${prenom} ${nom}`.trim() },
-          subject: `[BourseFi] ${prenom}, choisissez votre formation et bénéficiez de votre bourse`,
+          subject,
           html: htmlContent,
           text,
         })

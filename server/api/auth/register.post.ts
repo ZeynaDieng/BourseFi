@@ -7,6 +7,7 @@ import { rateLimit, rateLimitKey } from '../../utils/rate-limit'
 import { sendEmail, renderEmail } from '../../utils/email'
 import { siteUrl } from '../../utils/one-time-token'
 import { checkPassword } from '../../../shared/password-policy'
+import { bourseSlugSchema, buildApplicationDraft, findActiveBourseForDraft } from '../../utils/application-draft'
 
 const registerSchema = z
   .object({
@@ -18,6 +19,8 @@ const registerSchema = z
     password: z.string(),
     acceptTerms: z.boolean().refine(val => val === true, 'Vous devez accepter les conditions d\'utilisation et la politique de confidentialité'),
     acceptMarketing: z.boolean().optional(),
+    // Bourse depuis laquelle l'étudiant s'inscrit : il y sera ramené après la vérification de son email
+    bourseSlug: bourseSlugSchema.optional(),
   })
   .refine((data) => data.name || (data.firstName && data.lastName), {
     message: 'Indiquez votre prénom et nom, ou un nom complet.',
@@ -63,6 +66,7 @@ export default defineEventHandler(async (event) => {
 
   // Hash calculé dans tous les cas pour homogénéiser le temps de réponse.
   const passwordHash = await hash(password, 10)
+  const draftBourse = parsed.data.bourseSlug ? await findActiveBourseForDraft(parsed.data.bourseSlug) : null
 
   const existingUser = await prisma.user.findFirst({
     where: { email: { equals: email, mode: 'insensitive' } },
@@ -102,6 +106,7 @@ export default defineEventHandler(async (event) => {
         emailVerificationToken,
         emailVerified: false,
         role: 'STUDENT',
+        ...(draftBourse ? { applicationDraft: buildApplicationDraft(draftBourse.slug, { phone }) } : {}),
       },
     })
   } catch (e: any) {

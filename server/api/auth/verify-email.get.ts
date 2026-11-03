@@ -2,6 +2,7 @@ import { createError, getQuery } from 'h3'
 import { prisma } from '../../utils/prisma'
 import { createSession } from '../../utils/auth'
 import { writeAuditLog } from '../../utils/audit'
+import { parseApplicationDraft } from '../../utils/application-draft'
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
@@ -42,5 +43,9 @@ export default defineEventHandler(async (event) => {
 
   await createSession(event, user.id)
 
-  return { ok: true, email: user.email }
+  // Inscription faite depuis le formulaire de candidature : on y ramène l'étudiant
+  const draft = parseApplicationDraft(user.applicationDraft)
+  const resumeUrl = draft ? `/postuler/${draft.bourseSlug}` : null
+
+  return { ok: true, email: user.email, resumeUrl }
 })

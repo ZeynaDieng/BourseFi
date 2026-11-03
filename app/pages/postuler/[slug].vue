@@ -214,7 +214,49 @@ watch(
   { deep: true },
 )
 
-onMounted(() => {
+// Brouillon côté serveur : l'étudiant retrouve sa saisie depuis un autre appareil ou après la vérification
+// de son email, et les relances automatiques peuvent lui proposer de terminer cette candidature.
+const SERVER_DRAFT_FIELDS = ['phone', 'address', 'lastEducationLevel', 'lastDiploma', 'graduationDate'] as const
+const serverDraftReady = ref(false)
+let serverDraftTimer: ReturnType<typeof setTimeout> | undefined
+
+async function restoreServerDraft() {
+  if (!isLoggedIn.value || me.value?.user?.role !== 'STUDENT') return
+  try {
+    const { draft } = await $fetch<{ draft: { bourseSlug: string; fields: Partial<Record<(typeof SERVER_DRAFT_FIELDS)[number], string>> } | null }>(
+      '/api/candidatures/brouillon',
+    )
+    if (draft?.bourseSlug === String(route.params.slug)) {
+      for (const key of SERVER_DRAFT_FIELDS) {
+        const value = draft.fields[key]
+        if (value && !form[key]) form[key] = value
+      }
+    }
+  } catch {
+    // brouillon indisponible : la saisie reste possible
+  } finally {
+    serverDraftReady.value = true
+  }
+}
+
+function saveServerDraft() {
+  if (!serverDraftReady.value || !isLoggedIn.value || me.value?.user?.role !== 'STUDENT') return
+  const fields = Object.fromEntries(SERVER_DRAFT_FIELDS.map((key) => [key, form[key].trim()]))
+  $fetch('/api/candidatures/brouillon', {
+    method: 'PUT',
+    body: { bourseSlug: String(route.params.slug), fields },
+  }).catch(() => {})
+}
+
+watch(
+  () => SERVER_DRAFT_FIELDS.map((key) => form[key]),
+  () => {
+    clearTimeout(serverDraftTimer)
+    serverDraftTimer = setTimeout(saveServerDraft, 1500)
+  },
+)
+
+onMounted(async () => {
   restoreDraft()
   if (isLoggedIn.value) {
     step.value = 0
@@ -222,6 +264,7 @@ onMounted(() => {
       authJustCompleted.value = true
     }
   }
+  await restoreServerDraft()
 })
 
 async function afterAuthSuccess() {
@@ -231,6 +274,7 @@ async function afterAuthSuccess() {
   authJustCompleted.value = true
   errorMessage.value = ''
   restoreDraft()
+  await restoreServerDraft()
 }
 
 function niveauToSelect(niveau?: string) {
@@ -309,6 +353,8 @@ function goNext() {
   if (currentStepName.value === 'Compte') return
   authJustCompleted.value = false
   if (!validateStep(step.value)) return
+  clearTimeout(serverDraftTimer)
+  saveServerDraft()
   if (step.value < STEPS.value.length - 1) step.value++
 }
 
@@ -337,6 +383,7 @@ async function submitRegister() {
         password: registerForm.password,
         acceptTerms: registerForm.acceptTerms,
         acceptMarketing: registerForm.acceptMarketing,
+        bourseSlug: String(route.params.slug),
       },
     })
     // Pas de connexion automatique : le lien reçu par email active le compte et connecte l'étudiant.
@@ -445,6 +492,8 @@ async function submit() {
     const requiresPayment =
       res.candidature.status === 'EN_ATTENTE_PAIEMENT' && res.candidature.fraisDossier > 0
     clearDraft()
+    clearTimeout(serverDraftTimer)
+    serverDraftReady.value = false
     if (requiresPayment) {
       router.push(`/paiement?candidatureId=${encodeURIComponent(res.candidature.id)}`)
     } else {

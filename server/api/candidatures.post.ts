@@ -1,6 +1,7 @@
 import { requireRole } from '../utils/auth'
 import { prisma } from '../utils/prisma'
 import { z } from 'zod'
+import { Prisma } from '@prisma/client'
 import { writeAuditLog } from '../utils/audit'
 import type { CandidatureStatus } from '../utils/candidature-types'
 import { saveUserIdentityImage, saveUserEducationDocument } from '../utils/candidature-files'
@@ -264,6 +265,9 @@ export default defineEventHandler(async (event) => {
       bacTranscriptUrl: bacUrl || null,
     },
   })
+
+  // La candidature est envoyée : le brouillon n'a plus lieu d'être (et ne doit plus déclencher de relance « à terminer »)
+  await prisma.user.update({ where: { id: user.id }, data: { applicationDraft: Prisma.DbNull } })
 
   await createNotification({
     userId: user.id,

@@ -4,6 +4,7 @@ const token = route.query.token as string
 const verifying = ref(true)
 const success = ref(false)
 const error = ref('')
+const nextUrl = ref('/etudiant/dashboard')
 
 onMounted(async () => {
   if (!token) {
@@ -13,15 +14,16 @@ onMounted(async () => {
   }
 
   try {
-    const response = await $fetch<{ ok: boolean }>('/api/auth/verify-email', {
+    const response = await $fetch<{ ok: boolean; resumeUrl?: string | null }>('/api/auth/verify-email', {
       method: 'GET',
       query: { token }
     })
 
     if (response?.ok) {
       success.value = true
+      if (response.resumeUrl?.startsWith('/postuler/')) nextUrl.value = response.resumeUrl
       setTimeout(() => {
-        navigateTo('/etudiant/dashboard')
+        navigateTo(nextUrl.value)
       }, 3000)
     }
   } catch (e: unknown) {
@@ -46,9 +48,12 @@ onMounted(async () => {
             <span class="material-symbols-outlined text-emerald-600 text-3xl">check_circle</span>
           </div>
           <h1 class="text-2xl font-bold text-slate-900 mb-2">Email vérifié !</h1>
-          <p class="text-slate-600 mb-6">Votre compte est maintenant activé. Vous allez être redirigé vers votre tableau de bord.</p>
-          <NuxtLink to="/etudiant/dashboard" class="inline-block bg-primary text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary/90">
-            Accéder à mon espace
+          <p class="text-slate-600 mb-6">
+            Votre compte est maintenant activé.
+            {{ nextUrl === '/etudiant/dashboard' ? 'Vous allez être redirigé vers votre tableau de bord.' : 'Vous allez être redirigé vers votre candidature pour la terminer.' }}
+          </p>
+          <NuxtLink :to="nextUrl" class="inline-block bg-primary text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary/90">
+            {{ nextUrl === '/etudiant/dashboard' ? 'Accéder à mon espace' : 'Reprendre ma candidature' }}
           </NuxtLink>
         </div>
 
