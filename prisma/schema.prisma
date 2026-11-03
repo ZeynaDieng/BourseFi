@@ -232,6 +232,10 @@ model User {
   partnerId              String?
   emailVerified          Boolean        @default(false)
   emailVerificationToken String?        @unique
+  /// Code à 6 chiffres envoyé par email (alternative au lien) : seul son hash est stocké
+  emailVerificationCodeHash     String?
+  emailVerificationCodeExpires  DateTime?
+  emailVerificationCodeAttempts Int       @default(0)
   resetPasswordToken     String?        @unique
   resetPasswordExpires   DateTime?
   createdAt              DateTime       @default(now())

@@ -28,7 +28,10 @@ export default defineEventHandler(async (event) => {
     where: { id: user.id },
     data: {
       emailVerified: true,
-      emailVerificationToken: null
+      emailVerificationToken: null,
+      emailVerificationCodeHash: null,
+      emailVerificationCodeExpires: null,
+      emailVerificationCodeAttempts: 0,
     }
   })
 

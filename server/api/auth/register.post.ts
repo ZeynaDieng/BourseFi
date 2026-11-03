@@ -8,6 +8,7 @@ import { sendEmail, renderEmail } from '../../utils/email'
 import { siteUrl } from '../../utils/one-time-token'
 import { checkPassword } from '../../../shared/password-policy'
 import { bourseSlugSchema, buildApplicationDraft, findActiveBourseForDraft } from '../../utils/application-draft'
+import { generateEmailCode, sendVerificationEmail } from '../../utils/email-code'
 
 const registerSchema = z
   .object({
@@ -124,23 +125,13 @@ export default defineEventHandler(async (event) => {
     metadata: { email: user.email, acceptMarketing: acceptMarketing || false },
   })
 
-  const verificationUrl = `${siteUrl()}/auth/verify-email?token=${emailVerificationToken}`
+  // Code à 6 chiffres (saisi sur la page de candidature) en plus du lien ; seul son hash est stocké
+  const { code, data: codeData } = generateEmailCode(user.id)
+  await prisma.user.update({ where: { id: user.id }, data: codeData })
 
   // L'échec d'envoi n'active JAMAIS le compte automatiquement (l'utilisateur
-  // pourra redemander un lien) et n'est pas reflété dans la réponse publique.
-  const sent = await sendEmail({
-    to: { email: user.email, name: user.name },
-    subject: 'Vérifiez votre email - BourseFi 🎓',
-    html: renderEmail({
-      title: `Bienvenue ${user.name} !`,
-      bodyHtml: `
-        <p>Votre compte BourseFi a bien été créé.</p>
-        <p>Pour l’activer, confirmez votre adresse email en cliquant sur le bouton ci-dessous.</p>
-      `,
-      ctaLabel: 'Vérifier mon email',
-      ctaUrl: verificationUrl,
-    }),
-  }).catch(() => false)
+  // pourra redemander un code) et n'est pas reflété dans la réponse publique.
+  const sent = await sendVerificationEmail(user, emailVerificationToken, code)
   if (!sent) console.warn('[AUTH_REGISTER] Échec d’envoi de l’email de vérification', { userId: user.id })
 
   return PUBLIC_RESPONSE

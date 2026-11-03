@@ -9,6 +9,8 @@ import login from '../../server/api/auth/login.post'
 import forgot from '../../server/api/auth/forgot-password.post'
 import reset from '../../server/api/auth/reset-password.post'
 import verifyEmail from '../../server/api/auth/verify-email.get'
+import verifyCode from '../../server/api/auth/verify-code.post'
+import resendCode from '../../server/api/auth/resend-code.post'
 import me from '../../server/api/auth/me.get'
 import activer from '../../server/api/admin/candidatures/[id]/activer-compte.post'
 import creerDirect from '../../server/api/admin/candidatures/creer-direct.post'
@@ -26,6 +28,8 @@ router.post('/api/auth/login', login)
 router.post('/api/auth/forgot-password', forgot)
 router.post('/api/auth/reset-password', reset)
 router.get('/api/auth/verify-email', verifyEmail)
+router.post('/api/auth/verify-code', verifyCode)
+router.post('/api/auth/resend-code', resendCode)
 router.get('/api/auth/me', me)
 router.post('/api/admin/candidatures/:id/activer-compte', activer)
 router.post('/api/admin/candidatures/creer-direct', creerDirect)
