@@ -6,6 +6,8 @@
 **Périmètre :** six vulnérabilités identifiées + tests de sécurité et de non-régression, typecheck, build.
 **Environnement :** local/test uniquement. Aucune donnée réelle, aucun test intrusif, aucun déploiement en production.
 
+> **Mise à jour du 2026-11-03 :** deux corrections de ce rapport ont été **volontairement assouplies** pour des raisons produit : **V4** (l'inscription signale de nouveau une adresse déjà utilisée et ne demande plus de vérification de l'email) et **V6** (4 caractères minimum pour les étudiants ; la règle renforcée reste pour l'équipe). De nouvelles fonctions sensibles ont aussi été ajoutées (désactivation de compte, liens de connexion à usage unique, connexion par code). Les sections d'origine sont conservées pour l'historique ; l'état actuel est décrit en **Annexe M**.
+
 ---
 
 ## 1. Résumé exécutif
@@ -169,6 +171,8 @@ Avertissement h3 répété :
 
 ### V4 — Énumération de comptes à l'inscription
 
+> **Remplacé le 2026-11-03 (Annexe M.2) :** l'inscription renvoie de nouveau `409` pour une adresse déjà utilisée, ouvre la session immédiatement et ne demande plus de vérification de l'email. Le tableau ci-dessous décrit la version du 2026-10-22.
+
 **Problème initial :** l'inscription renvoyait `409 « Cet email est déjà utilisé »`, révélant l'existence du compte ; session ouverte immédiatement.
 
 **Correction :** `register.post.ts` renvoie la **même réponse publique** (200, `PUBLIC_RESPONSE`, aucun cookie de session) que l'email soit nouveau ou déjà pris ; en cas de doublon, le **propriétaire légitime** est prévenu par email (sans jeton) et aucun compte n'est modifié ; course concurrente `P2002` → même réponse ; compte créé **non vérifié**, session ouverte seulement après vérification d'email ; si l'email échoue, pas d'auto-vérification ni de session.
@@ -216,6 +220,8 @@ Avertissement h3 répété :
 ---
 
 ### V6 — Politique de mot de passe trop faible (4 caractères, aucune exclusion)
+
+> **Assoupli le 2026-11-03 (Annexe M.1) :** les comptes **étudiants** acceptent de nouveau 4 caractères minimum ; la règle décrite ci-dessous (10 caractères, composition, mots interdits) ne s'applique plus qu'aux comptes **admin et partenaire**.
 
 **Problème initial :** minimum 4 caractères, aucune liste d'exclusion ; incohérence entre les parcours.
 
@@ -471,6 +477,10 @@ Cette checklist distingue explicitement ce qui a été **réellement vérifié**
 | R5 | Avertissement h3 `statusMessage` (compatibilité future) | Négligeable | **Accepté** — sans impact sécurité (§5) |
 | R6 | Comportements dépendant de PostgreSQL / email réels | — | **Validation production restant à faire** |
 | R7 | Node.js 25.9.0 (production) est une ligne **Current, non-LTS** (fin de vie ~6 mois après sortie), alors que le développement utilise Node 22.12.0 (LTS) | Moyenne (cycle de vie), aucune régression fonctionnelle détectée | **Testé empiriquement en local (80/80 tests + build + boot serveur sous Node 25.9.0, voir Annexe B) — migration vers une LTS recommandée à moyen terme, non urgente** |
+| R8 | Inscription : une adresse déjà utilisée est signalée (`409`), ce qui permet de tester l'existence d'un compte (décision produit du 2026-11-03, Annexe M.2) | Faible | **Accepté** — limité à 10 inscriptions/h par IP et 5/h par adresse |
+| R9 | Mots de passe étudiants de 4 caractères (décision produit, Annexe M.1) | Moyenne | **Accepté** — connexion limitée à 10 essais / 15 min par IP et par adresse ; comptes de l'équipe exclus |
+| R10 | Adresses email non vérifiées : une faute de frappe prive l'étudiant des emails (confirmation, relances, code de connexion) ; une inscription avec l'adresse d'un tiers lui envoie des emails BourseFi | Faible | **Accepté** — lien de désabonnement dans chaque relance |
+| R11 | Liens de connexion à usage unique transmis dans une URL (retour PayTech, email, WhatsApp) : visibles par PayTech et dans l'historique du navigateur | Faible | **Accepté** — usage unique, durée limitée, comptes étudiants seulement, paiement validé exigé (Annexe M.4) |
 
 ---
 
@@ -1239,3 +1249,116 @@ Puisque l'infrastructure et le code fonctionnent correctement à l'instant du te
 | Compte de test créé sur la production (`id: cmvk5lqx80002kf9cctio2smg`) | Suppression demandée à l'utilisateur (pas d'accès direct à la base de production) — à confirmer |
 
 **Limite de cette investigation :** le test prouve que le système fonctionne **pour un compte neuf, avec une boîte mail de test sans filtrage spam**. Il ne reproduit pas exactement les conditions du fournisseur email réel de l'utilisateur plaignant. Si le problème persiste après vérification des hypothèses ci-dessus, il faudra obtenir l'adresse exacte utilisée par cette personne (avec son consentement) pour un diagnostic ciblé.
+
+---
+
+## Annexe M — Évolutions de sécurité après le déploiement (2026-10-24 → 2026-11-03)
+
+**Contexte :** depuis le déploiement d'octobre, plusieurs fonctionnalités ont été ajoutées pour réduire l'abandon des étudiants avant le paiement. Certaines touchent l'authentification. Cette annexe décrit l'état **actuel** du code (commit `f7c3de0`), les décisions produit qui assouplissent V4 et V6, et les protections associées. Tous les tests cités ont été exécutés localement (`npx vitest run` : **127/127**) ; les parcours principaux ont aussi été vérifiés dans un navigateur réel (iPhone simulé, serveur local, base PostgreSQL locale). **Rien de cette annexe n'a encore été vérifié en production.**
+
+### M.1 — Politique de mot de passe différenciée (assouplit V6)
+
+| Compte | Règle | Raison |
+|---|---|---|
+| Étudiant | 4 à 128 caractères, sans autre contrainte | Décision produit : la règle de 10 caractères bloquait des inscriptions |
+| Admin, partenaire | Règle V6 inchangée (10 caractères, lettre + chiffre/symbole, mots interdits, pas l'email) | Ces comptes donnent accès aux dossiers de tous les étudiants |
+
+- `shared/password-policy.ts` : `checkPassword(password, { email, role })` applique la règle renforcée si `role` vaut `ADMIN` ou `PARTNER`.
+- La réinitialisation applique la règle **du rôle du compte** ; la modification par un admin applique celle du **rôle final** (une promotion en admin avec un mot de passe faible est refusée).
+- Tests : `tests/unit/password-policy.test.ts` (28), `tests/security/v6-password-policy.test.ts` (7, réécrits).
+
+### M.2 — Inscription sans vérification de l'email (remplace V4)
+
+**Décision produit :** l'étape « code reçu par email » faisait quitter la candidature (application Instagram/Facebook → boîte mail → retour) ; elle a été supprimée.
+
+| Point | Avant (V4, 2026-10-22) | Maintenant |
+|---|---|---|
+| Adresse déjà utilisée | Réponse identique, aucune information | `409` « Un compte existe déjà… », l'étudiant est basculé sur la connexion |
+| Session | Ouverte seulement après vérification | Ouverte dès l'inscription |
+| Connexion d'un compte non vérifié | Refusée (`403`) | Autorisée |
+| Email envoyé | Lien + code de vérification | Email de bienvenue, **sans** lien ni code |
+| CSRF | Non requis (pas de session créée) | **Requis** : l'inscription ouvre désormais une session (protection contre l'inscription forcée d'une victime dans un compte de l'attaquant) |
+
+- Supprimés : `server/api/auth/verify-code.post.ts`, `resend-code.post.ts` et leurs tests ; relances « activez votre compte ».
+- Conservé : `GET /api/auth/verify-email` (anciens liens encore dans les boîtes mail).
+- `User.emailVerified` reste à `false` à l'inscription ; il passe à `true` quand l'étudiant prouve la possession de son adresse (lien de réinitialisation, code de connexion).
+- Tests : `tests/security/v4-register.test.ts` (8, réécrits) — nouvelle adresse → session + email sans jeton ; adresse existante (même casse différente) → `409`, compte intact ; sans CSRF → `403`, aucun compte ; connexion immédiate possible ; échec d'email sans effet ; mot de passe jamais journalisé.
+- Risques acceptés : R8, R10 (§8).
+
+### M.3 — Désactivation de compte depuis le backoffice
+
+- `POST /api/admin/users/[id]/statut` (`{ active, reason? }`), réservé aux admins ; refusé sur son propre compte et sur le dernier admin actif.
+- Effets : sessions supprimées immédiatement ; `createSession` refuse un compte désactivé (`403`) ; `getSessionUser` supprime toute session restante ; « mot de passe oublié » n'envoie rien (réponse publique inchangée) ; relances arrêtées ; journal d'audit `USER_DEACTIVATED` / `USER_REACTIVATED`.
+- **Aucun email** n'est envoyé à l'étudiant (désactivation silencieuse, choix du métier).
+- Tests : `tests/security/v8-desactivation.test.ts` (6).
+
+### M.4 — Liens de connexion à usage unique liés à un paiement
+
+**Problème :** un étudiant arrivé par le navigateur intégré d'Instagram/Facebook qui paie avec Wave peut revenir dans Safari, où il n'est pas connecté.
+
+**Mécanisme :** table `LoginLink` (seul le hash SHA-256 du jeton de 256 bits est stocké). Le jeton est transmis dans `/paiement/retour?…&k=<jeton>` et consommé par `POST /api/auth/lien-connexion`.
+
+| Usage | Durée | Émis par |
+|---|---|---|
+| `PAYMENT_RETURN` | 2 h | Initiation du paiement PayTech (URL de retour) |
+| `ATTESTATION_EMAIL` | 72 h | Email « paiement validé » |
+| `ATTESTATION_WHATSAPP` | 72 h | Bouton admin « Envoyer l'attestation par WhatsApp » |
+
+**Protections :**
+- usage unique, consommation atomique (`updateMany … usedAt: null`) ; un nouveau lien du même usage remplace l'ancien ;
+- session ouverte **seulement si le paiement du dossier est `Valide`** ; sinon réponse « en attente » sans consommer le lien (la page réessaie jusqu'à 45 s, le temps que l'IPN arrive) ;
+- **comptes étudiants uniquement**, propriétaires du dossier ; jamais pour un admin ou un partenaire ; compte désactivé → `403` ;
+- consommation par un `POST` en JavaScript avec CSRF : un antivirus d'email ou l'aperçu de lien WhatsApp qui suit l'URL ne consomme rien ;
+- la page de retour retire le jeton de l'adresse (`history.replaceState`) et déclare `<meta name="referrer" content="no-referrer">`.
+
+**Correctif associé :** `/paiement/retour` était une route imbriquée sous `/paiement` (middleware « étudiant connecté » hérité, page jamais affichée) ; `paiement.vue` a été déplacé en `paiement/index.vue`. Le retour PayTech revient aussi sur le domaine de la requête (`boursefi.sn` ou `www.boursefi.sn` uniquement, liste blanche) pour conserver le cookie de session.
+
+Tests : `tests/security/v9-lien-connexion.test.ts` (7) + vérification navigateur (iPhone sans session : attente pendant le paiement en cours, connexion une fois validé, second usage refusé).
+
+### M.5 — Connexion sans mot de passe (code par email)
+
+- `POST /api/auth/connexion-code` envoie un code à 6 chiffres ; `POST /api/auth/connexion-code-verifier` (CSRF requis) ouvre la session.
+- Réservé aux étudiants ; réponse identique que le compte existe ou non (admin, inconnu, désactivé : aucun email).
+- Code valable 30 min, 5 essais puis destruction ; hash lié au compte et à l'usage ; code absent de l'objet de l'email (les objets sont journalisés) ; limites 10 demandes/h par IP, 5/h par adresse.
+- Tests : `tests/security/v10-connexion-code.test.ts` (6, dont l'envoi WhatsApp de l'attestation : dossier payé exigé, admin uniquement).
+
+### M.6 — Autres points
+
+| Point | Détail |
+|---|---|
+| Désabonnement des relances | Lien signé HMAC-SHA256 (clé `UNSUBSCRIBE_SECRET`, sinon dérivée d'un secret serveur existant), comparaison à temps constant ; confirmation par clic sur la page (pas de désabonnement au simple chargement) — `tests/unit/whatsapp.test.ts` |
+| Code promo exposé | Le champ de saisie affichait « Ex : BF50, BF100… » ; `BF100` est un vrai code (100 % gratuit, sans limite d'utilisation). Exemple retiré (commit `2a09657`). **Action restant à faire en production : désactiver ou limiter `BF100`.** |
+| Rattachement des candidatures | La connexion (mot de passe ou code) rattache au compte les candidatures déposées avec la même adresse ; logique commune dans `server/utils/student-candidatures.ts` |
+
+### M.7 — Tests au 2026-11-03
+
+| Fichier | Tests |
+|---|---|
+| `tests/security/v1-generated-passwords.test.ts` | 11 |
+| `tests/security/v2-default-password.test.ts` | 6 |
+| `tests/security/v3-forgot-password.test.ts` | 5 |
+| `tests/security/v4-register.test.ts` (réécrit, M.2) | 8 |
+| `tests/security/v5-public-apis.test.ts` | 7 |
+| `tests/security/v6-password-policy.test.ts` (réécrit, M.1) | 7 |
+| `tests/security/v8-desactivation.test.ts` | 6 |
+| `tests/security/v9-lien-connexion.test.ts` | 7 |
+| `tests/security/v10-connexion-code.test.ts` | 6 |
+| `tests/security/d-complementary.test.ts` | 15 |
+| `tests/unit/password-policy.test.ts` | 28 |
+| `tests/unit/auto-relance-brouillon.test.ts` | 11 |
+| `tests/unit/brouillon-candidature.test.ts` | 5 |
+| `tests/unit/whatsapp.test.ts` | 5 |
+| **Total** | **127 / 127** |
+
+`tests/security/v7-email-code.test.ts` (vérification de l'email par code) a été supprimé avec la fonctionnalité (M.2). Typecheck : 212 erreurs, toutes préexistantes, aucune introduite.
+
+### M.8 — À vérifier après le prochain `deploy.sh`
+
+| Vérification | Comment |
+|---|---|
+| Table `LoginLink` et champs `loginCode*` créés | `deploy.sh` exécute `prisma db push` ; vérifier qu'il se termine sans erreur |
+| Inscription → session immédiate | Créer un compte de test sur `https://boursefi.sn`, vérifier l'arrivée sur « Informations » puis le supprimer |
+| Retour PayTech dans un autre navigateur | Paiement réel de test depuis le navigateur d'Instagram, retour dans Safari |
+| Code `BF100` | Désactivé ou limité dans l'admin (Codes Promo) |
+| Messages de relance | Cliquer « Appliquer les messages recommandés » dans l'admin (Relances automatiques) |
+
