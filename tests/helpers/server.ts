@@ -22,6 +22,7 @@ import brouillonGet from '../../server/api/candidatures/brouillon.get'
 import userStatut from '../../server/api/admin/users/[id]/statut.post'
 import brouillonPut from '../../server/api/candidatures/brouillon.put'
 import etablissements from '../../server/api/etablissements.get'
+import lienConnexion from '../../server/api/auth/lien-connexion.post'
 
 const router = createRouter()
 router.post('/api/auth/register', register)
@@ -42,6 +43,7 @@ router.get('/api/candidatures/brouillon', brouillonGet)
 router.post('/api/admin/users/:id/statut', userStatut)
 router.put('/api/candidatures/brouillon', brouillonPut)
 router.get('/api/etablissements', etablissements)
+router.post('/api/auth/lien-connexion', lienConnexion)
 
 const app = createApp()
 app.use(router)

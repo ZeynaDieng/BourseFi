@@ -10,6 +10,7 @@ import {
   requestPayment
 } from '../../utils/paytech'
 import { finalizePaiement } from '../../utils/paiement-finalize'
+import { createLoginLink, paymentReturnPath } from '../../utils/login-link'
 
 const schema = z.object({
   candidatureId: z.string().min(1),
@@ -151,7 +152,12 @@ export default defineEventHandler(async (event) => {
 
   // Retour sur le domaine où l'étudiant est connecté (boursefi.sn ou www.boursefi.sn) :
   // le cookie de session est propre à chaque domaine, un retour sur l'autre le déconnecterait.
-  const returnBase = `${paymentReturnOrigin(event, publicSiteUrl)}/paiement/retour?candidatureId=${candidature.id}`
+  const returnOrigin = paymentReturnOrigin(event, publicSiteUrl)
+  const returnBase = `${returnOrigin}/paiement/retour?candidatureId=${candidature.id}`
+  // Le retour peut s'ouvrir dans un autre navigateur (Facebook / Instagram puis Safari) : lien de reconnexion
+  const returnToken = candidature.userId && candidature.userId === user.id && user.role === 'STUDENT'
+    ? await createLoginLink({ userId: user.id, candidatureId: candidature.id, purpose: 'PAYMENT_RETURN' })
+    : null
   const result = await requestPayment({
     itemName: `Frais de dossier - ${candidature.programme.titre}`,
     itemPrice: total,
@@ -160,7 +166,7 @@ export default defineEventHandler(async (event) => {
     // Méthode vide => PayTech propose tous les moyens de paiement sur son écran.
     targetPayment: method ? mapMethodToTarget(method) : undefined,
     ipnUrl: `${publicSiteUrl}/api/paiements/ipn`,
-    successUrl: `${returnBase}&status=success`,
+    successUrl: `${returnOrigin}${paymentReturnPath(candidature.id, returnToken)}`,
     cancelUrl: `${returnBase}&status=cancel`,
     customField: { paiementId: paiement.id, candidatureId: candidature.id },
     customer: {

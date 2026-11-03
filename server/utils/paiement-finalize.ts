@@ -2,6 +2,8 @@ import { prisma } from './prisma'
 import { writeAuditLog } from './audit'
 import { createNotification } from './notifications'
 import { sendEmail, renderEmail } from './email'
+import { createLoginLink, paymentReturnPath } from './login-link'
+import { siteUrl } from './one-time-token'
 
 type FinalizeOptions = {
   method?: string
@@ -111,6 +113,10 @@ export async function finalizePaiement(
     })
 
     // Envoi d'email automatique à l'étudiant
+    const attestationToken = candidature.userId
+      ? await createLoginLink({ userId: candidature.userId, candidatureId: candidature.id, purpose: 'ATTESTATION_EMAIL' })
+        .catch((err) => { console.warn('[paiement] lien de reconnexion non créé', err); return null })
+      : null
     const studentEmail = renderEmail({
       title: 'Attestation de bourse disponible',
       bodyHtml: `
@@ -120,7 +126,8 @@ export async function finalizePaiement(
         <p>Vous pouvez dès à présent télécharger ou imprimer votre attestation officielle en cliquant sur le bouton ci-dessous :</p>
       `,
       ctaLabel: 'Ouvrir mon attestation',
-      ctaUrl: `${process.env.NUXT_PUBLIC_SITE_URL || 'https://boursefi.sn'}/api/attestations/${candidature.id}`
+      // Lien de reconnexion : l'email peut être ouvert dans un navigateur où l'étudiant n'est pas connecté
+      ctaUrl: `${siteUrl()}${paymentReturnPath(candidature.id, attestationToken)}`
     })
 
     await sendEmail({

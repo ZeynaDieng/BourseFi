@@ -42,6 +42,7 @@ export function createFakeDb() {
   const etablissements: Row[] = []
   const programmes: Row[] = []
   const paiements: Row[] = []
+  const loginLinks: Row[] = []
   const calls: { model: string; method: string; args: any }[] = []
 
   const log = (model: string, method: string, args: any) => calls.push({ model, method, args })
@@ -119,7 +120,11 @@ export function createFakeDb() {
       findUnique: async (args: any) => {
         const c = candidatures.find((x) => matches(x, args.where))
         if (!c) return null
-        return { ...c, user: users.find((u) => u.id === c.userId) ?? null }
+        return {
+          ...c,
+          user: users.find((u) => u.id === c.userId) ?? null,
+          paiement: paiements.find((p) => p.candidatureId === c.id) ?? null,
+        }
       },
       updateMany: async (args: any) => {
         const rows = candidatures.filter((c) => matches(c, args.where))
@@ -167,10 +172,30 @@ export function createFakeDb() {
         return row
       },
     },
+    loginLink: {
+      create: async (args: any) => {
+        const row = { id: id(), usedAt: null, createdAt: new Date(), ...args.data }
+        loginLinks.push(row)
+        return { ...row }
+      },
+      findFirst: async (args: any) => loginLinks.find((l) => matches(l, args.where)) ?? null,
+      updateMany: async (args: any) => {
+        const rows = loginLinks.filter((l) => matches(l, args.where))
+        rows.forEach((r) => Object.assign(r, args.data))
+        return { count: rows.length }
+      },
+      deleteMany: async (args: any) => {
+        const before = loginLinks.length
+        for (let i = loginLinks.length - 1; i >= 0; i--) {
+          if (matches(loginLinks[i], args.where)) loginLinks.splice(i, 1)
+        }
+        return { count: before - loginLinks.length }
+      },
+    },
     auditLog: { create: async () => ({}) },
   }
 
-  return { prisma, users, sessions, candidatures, bourses, etablissements, programmes, paiements, calls }
+  return { prisma, users, sessions, candidatures, bourses, etablissements, programmes, paiements, loginLinks, calls }
 }
 
 export type FakeDb = ReturnType<typeof createFakeDb>

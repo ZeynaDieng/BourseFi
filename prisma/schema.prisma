@@ -58,36 +58,36 @@ model Partner {
 }
 
 model Etablissement {
-  id                String                    @id @default(cuid())
-  slug              String                    @unique
-  nom               String
-  ville             String
-  accreditation     String?
-  site              String?
-  resume            String?
-  coverImageUrl     String?
-  logoUrl           String?
-  typeLabel         String?
-  adresse           String?
-  phone             String?
-  phoneSecondary    String?
-  whatsapp          String?
-  email             String?
-  status            EntityStatus              @default(ACTIVE)
-  source            ContactSource?
-  contactStatus     ContactVerificationStatus @default(TO_VERIFY)
-  contactVerifiedAt DateTime?
+  id                   String                    @id @default(cuid())
+  slug                 String                    @unique
+  nom                  String
+  ville                String
+  accreditation        String?
+  site                 String?
+  resume               String?
+  coverImageUrl        String?
+  logoUrl              String?
+  typeLabel            String?
+  adresse              String?
+  phone                String?
+  phoneSecondary       String?
+  whatsapp             String?
+  email                String?
+  status               EntityStatus              @default(ACTIVE)
+  source               ContactSource?
+  contactStatus        ContactVerificationStatus @default(TO_VERIFY)
+  contactVerifiedAt    DateTime?
   isDirectPartner      Boolean                   @default(false)
   fraisDossier         Int                       @default(20000)
   autoIssueAttestation Boolean                   @default(false)
   commissionType       String                    @default("FIXED_AMOUNT")
   commissionValue      Int                       @default(0)
   commissionPaidStatus String                    @default("UP_TO_DATE")
-  updatedBy         String?
-  createdAt         DateTime                  @default(now())
-  updatedAt         DateTime                  @updatedAt
-  programmes        Programme[]
-  contacts          EtablissementContact[]
+  updatedBy            String?
+  createdAt            DateTime                  @default(now())
+  updatedAt            DateTime                  @updatedAt
+  programmes           Programme[]
+  contacts             EtablissementContact[]
 
   @@index([status])
   @@index([isDirectPartner])
@@ -224,46 +224,47 @@ model Bourse {
 }
 
 model User {
-  id                     String         @id @default(cuid())
-  name                   String
-  email                  String         @unique
-  passwordHash           String
-  role                   Role           @default(STUDENT)
-  partnerId              String?
-  emailVerified          Boolean        @default(false)
-  emailVerificationToken String?        @unique
+  id                            String           @id @default(cuid())
+  name                          String
+  email                         String           @unique
+  passwordHash                  String
+  role                          Role             @default(STUDENT)
+  partnerId                     String?
+  emailVerified                 Boolean          @default(false)
+  emailVerificationToken        String?          @unique
   /// Code à 6 chiffres envoyé par email (alternative au lien) : seul son hash est stocké
   emailVerificationCodeHash     String?
   emailVerificationCodeExpires  DateTime?
-  emailVerificationCodeAttempts Int       @default(0)
-  resetPasswordToken     String?        @unique
-  resetPasswordExpires   DateTime?
-  createdAt              DateTime       @default(now())
-  updatedAt              DateTime       @updatedAt
-  address                String?
-  firstName              String?
-  identityCardRectoUrl   String?
-  identityCardVersoUrl   String?
-  bfemAttestationUrl     String?
-  bacTranscriptUrl       String?
-  lastName               String?
-  phone                  String?
-  auditLogs              AuditLog[]
-  candidatures           Candidature[]
-  notifications          Notification[]
-  paiements              Paiement[]
-  sessions               Session[]
-  partner                Partner?       @relation(fields: [partnerId], references: [id])
-  autoRelanceStep        Int            @default(0)
-  lastAutoRelanceAt      DateTime?
-  relanceLogs            AutoRelanceLog[]
+  emailVerificationCodeAttempts Int              @default(0)
+  resetPasswordToken            String?          @unique
+  resetPasswordExpires          DateTime?
+  createdAt                     DateTime         @default(now())
+  updatedAt                     DateTime         @updatedAt
+  address                       String?
+  firstName                     String?
+  identityCardRectoUrl          String?
+  identityCardVersoUrl          String?
+  bfemAttestationUrl            String?
+  bacTranscriptUrl              String?
+  lastName                      String?
+  phone                         String?
+  auditLogs                     AuditLog[]
+  candidatures                  Candidature[]
+  notifications                 Notification[]
+  paiements                     Paiement[]
+  sessions                      Session[]
+  loginLinks                    LoginLink[]
+  partner                       Partner?         @relation(fields: [partnerId], references: [id])
+  autoRelanceStep               Int              @default(0)
+  lastAutoRelanceAt             DateTime?
+  relanceLogs                   AutoRelanceLog[]
   /// Candidature commencée mais pas encore envoyée (bourse choisie + champs saisis)
-  applicationDraft       Json?
+  applicationDraft              Json?
   /// Désabonné des relances automatiques (lien en bas des emails de relance)
-  relancesOptOutAt       DateTime?
+  relancesOptOutAt              DateTime?
   /// Compte désactivé depuis le backoffice : plus de connexion, sessions révoquées, plus de relances
-  deactivatedAt          DateTime?
-  deactivationReason     String?
+  deactivatedAt                 DateTime?
+  deactivationReason            String?
 
   @@index([role])
   @@index([createdAt])
@@ -276,6 +277,23 @@ model Session {
   createdAt DateTime @default(now())
   expiresAt DateTime
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+/// Lien de connexion à usage unique lié à un paiement : reconnecte l'étudiant qui revient de PayTech
+/// (ou ouvre l'email de confirmation) dans un autre navigateur que celui où il était connecté.
+model LoginLink {
+  id            String    @id @default(cuid())
+  tokenHash     String    @unique
+  purpose       String
+  userId        String
+  candidatureId String
+  expiresAt     DateTime
+  usedAt        DateTime?
+  createdAt     DateTime  @default(now())
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([candidatureId])
 }
 
 model Candidature {
@@ -405,7 +423,7 @@ model CandidatureNote {
   attachmentUrl  String?
   createdAt      DateTime        @default(now())
 
-  candidature    Candidature     @relation(fields: [candidatureId], references: [id], onDelete: Cascade)
+  candidature Candidature @relation(fields: [candidatureId], references: [id], onDelete: Cascade)
 
   @@index([candidatureId])
   @@index([nextRelanceAt])
@@ -417,19 +435,19 @@ enum PromoType {
 }
 
 model PromoCode {
-  id              String        @id @default(cuid())
-  code            String        @unique @db.VarChar(50)
+  id              String    @id @default(cuid())
+  code            String    @unique @db.VarChar(50)
   type            PromoType
   valeur          Float
   maxUses         Int?
-  usedCount       Int           @default(0)
+  usedCount       Int       @default(0)
   expiresAt       DateTime?
-  isActive        Boolean       @default(true)
+  isActive        Boolean   @default(true)
   etablissementId String?
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
-  candidatures    Candidature[]
+  candidatures Candidature[]
 
   @@index([code])
   @@index([etablissementId])
