@@ -1059,6 +1059,183 @@ Confirme directement (plutôt que par simple déclaration) : une seule instance 
 | Commit réellement déployé sur le VPS | Non vérifié, hypothèse | **✅ Confirmé identique à `HEAD` local** |
 | Architecture PM2 (mono-instance, fork) | Rapporté verbalement | **✅ Confirmé par lecture directe (`pm2 describe`)** |
 | Doublons d'email en production | Non vérifié | Toujours en attente (Annexe F.3) |
-| Commit des corrections de sécurité | Inexistant | Toujours en attente (F.4.a, non créé) |
-| Dérive `package-lock.json` sur le VPS | Inconnue | **Identifiée et expliquée (I.1)** — résolution proposée, non exécutée |
+| Commit des corrections de sécurité | Inexistant | **✅ Créé (`90cfa24`) et poussé vers `origin/main` (Annexe J)** |
+| Dérive `package-lock.json` sur le VPS | Inconnue | **✅ Résolue (`git checkout -- package-lock.json` exécuté par l'utilisateur, `git status --short` revenu vide — Annexe J)** |
 | Node 25.9.0 sur l'OS/architecture réelle du VPS | Non vérifié | Toujours en attente |
+
+---
+
+## Annexe J — Création et poussée du commit de sécurité, résolution de la dérive VPS (Phase 9, 2026-10-22)
+
+### J.1 — Commit créé et poussé
+
+Après validation du contenu exact à committer (`git diff --cached --stat`, 35 fichiers passés en revue) et du message proposé :
+
+```
+git commit -m "fix(security): corrige 6 vulnérabilités d'authentification et d'exposition de données ..."
+→ [main 90cfa24] 36 files changed, 3356 insertions(+), 331 deletions(-)
+
+git push origin main
+→ 6267e23..90cfa24  main -> main
+```
+
+**Commit `90cfa24`, enfant direct de `6267e23`, poussé sur `origin/main` (GitHub).** `git status -sb` confirme `main...origin/main` sans écart après le push. Le fichier `docs/rapport-securite.md` a été inclus dans ce commit (décision de l'utilisateur).
+
+**Aucune action sur le VPS à ce stade** — pousser vers GitHub ne modifie en rien le code exécuté en production ; seul un futur `git pull`/`deploy.sh` sur le VPS le ferait.
+
+### J.2 — Dérive `package-lock.json` sur le VPS : résolue
+
+Conformément à la recommandation de l'Annexe I.1, l'utilisateur a exécuté, sur le VPS :
+```
+git checkout -- package-lock.json
+git status --short
+→ (vide)
+```
+**Confirmé : le working tree du VPS correspond exactement à `6267e23`.** Un futur `git pull origin main` sur le VPS récupérera désormais `90cfa24` sans aucune divergence locale à fusionner sur ce fichier.
+
+### J.3 — État mis à jour avant tout `deploy.sh`
+
+| Prérequis | Statut |
+|---|---|
+| Commit des corrections créé et poussé vers `origin/main` | ✅ Fait |
+| Working tree du VPS propre (`git status --short` vide) | ✅ Confirmé |
+| Commit déployé = référence de comparaison de ce rapport | ✅ Confirmé (Annexe I.2) |
+| Sauvegardes avant déploiement (`pg_dump`, uploads, `.env`, dump PM2) | **✅ Faites (J.4)** |
+| Doublons d'email en production (requête SQL, Annexe F.3) | **✅ Résolu — 1 doublon trouvé, traité, re-vérifié à 0 (J.5/J.6)** |
+| Exécution de `deploy.sh` | ❌ Pas encore lancée |
+
+### J.4 — Sauvegardes de production exécutées (horodatage `20261023_0044`)
+
+Exécuté par l'utilisateur sur le VPS :
+```bash
+pg_dump "$DBURL" -Fc -f /var/backups/boursefi_$TS.dump
+tar -czf /var/backups/uploads_$TS.tar.gz uploads
+cp .env /var/backups/env_$TS.bak
+pm2 save && cp ~/.pm2/dump.pm2 /var/backups/pm2_dump_$TS.pm2
+git rev-parse HEAD > /var/backups/deployed_commit_$TS.txt
+```
+
+| Fichier | Taille | Statut |
+|---|---|---|
+| `boursefi_20261023_0044.dump` | 6 619 791 octets | ✅ Non vide, cohérent avec le volume de données connu |
+| `uploads_20261023_0044.tar.gz` | 200 797 615 octets | ✅ Non vide |
+| `env_20261023_0044.bak` | 609 octets | ✅ Non vide |
+| `pm2_dump_20261023_0044.pm2` | 10 935 octets | ✅ Non vide |
+| `deployed_commit_20261023_0044.txt` | 41 octets | ✅ Taille exacte attendue (hash 40 car. + retour ligne), cohérent avec `6267e23...` |
+
+**Point de restauration établi, daté du 2026-10-23 00:44 UTC, antérieur à tout déploiement.** C'est ce jeu de sauvegardes qui serait utilisé en cas de retour arrière (Annexe C.5/F.4.d).
+
+### J.5 — Doublons d'email : risque CONFIRMÉ (pas théorique), déploiement suspendu
+
+Exécuté par l'utilisateur sur le VPS, en lecture stricte (`BEGIN TRANSACTION READ ONLY ... ROLLBACK`) :
+```
+SELECT count(*) AS groupes_de_doublons FROM (SELECT lower(email) FROM "User" GROUP BY lower(email) HAVING count(*) > 1) t;
+→ groupes_de_doublons = 1
+```
+
+**Résultat : `1` groupe de doublons.** Le risque identifié en Annexe D.5/E.1 comme « théorique » est donc **confirmé réel** sur la base de production.
+
+**Impact concret si le déploiement se poursuit sans traiter ce cas :** après déploiement, les recherches insensibles à la casse (`login`, `register`, `forgot-password`, `activer-compte`, `creer-direct`, `admin/users`) utilisent `findFirst` sans `ORDER BY` déterministe — Postgres peut retourner l'une ou l'autre des deux lignes de façon non garantie. Concrètement : l'un des deux titulaires du couple de comptes pourrait se voir refuser la connexion avec ses identifiants corrects (le hash de mot de passe comparé serait celui de l'AUTRE compte), de façon intermittente. **Pas de fuite de données ni d'accès croisé entre comptes** (le mot de passe de l'un ne peut jamais ouvrir le compte de l'autre), mais une **vraie gêne de disponibilité** pour un utilisateur existant — exactement le type de régression que cette mission cherche à éviter.
+
+**Décision initiale : déploiement suspendu tant que ce cas n'est pas résolu ou compris.** Une requête de diagnostic (lisant email, statut de vérification, rôle, date de création, nombre de candidatures, dernière session) a été fournie à l'utilisateur pour qu'il l'examine et décide de la suite.
+
+### J.6 — Diagnostic et remédiation du doublon
+
+**Diagnostic (résultat communiqué par l'utilisateur) :** les deux comptes correspondaient à la **même boîte Gmail réelle** (Gmail ignorant la casse), l'un créé le 2026-10-02 (2 candidatures, session active jusqu'au 2026-10-20 — le compte réellement utilisé), l'autre créé le 2026-10-06 (0 candidature, **aucune session, jamais utilisé**) — un doublon créé par le bug même que cette correction résout (absence de détection de doublon insensible à la casse à l'inscription).
+
+**Remédiation appliquée (exécutée par l'utilisateur sur le VPS, après vérification du contenu exact ciblé avant validation) :**
+```sql
+BEGIN;
+UPDATE "User"
+SET email = id || '.disabled-duplicate@boursefi.invalid'
+WHERE id = 'cmuvzh3vu00d3kfzfnrl2m7da'  -- le compte inactif, identifié par son id, pas par motif d'email
+RETURNING id, email, "emailVerified";
+COMMIT;
+→ UPDATE 1
+```
+Le compte inactif a été renommé vers une adresse non livrable (domaine `.invalid`, réservé RFC 2606) — **renommage, pas suppression** : aucune perte de données (il n'y avait rien à perdre : 0 candidature), action réversible si nécessaire.
+
+**Vérifications post-remédiation :**
+| Contrôle | Résultat |
+|---|---|
+| Le compte actif n'a pas été modifié | ✅ Confirmé — email et `emailVerified` inchangés |
+| Nombre de groupes de doublons | ✅ **`0`** (était `1`) |
+
+**Statut final : risque résolu.** Plus aucun doublon d'email insensible à la casse en production. Le point bloquant de l'Annexe E/F est levé.
+
+---
+
+## Annexe K — Exécution de `deploy.sh` en production (Phase 10, 2026-10-23)
+
+**Exécuté par l'utilisateur sur le VPS (`./deploy.sh`). L'assistant n'a aucun accès SSH ; ce qui suit est une analyse de la sortie réelle communiquée, pas une exécution directe.**
+
+### K.1 — Déroulé observé, étape par étape
+
+| Étape de `deploy.sh` | Résultat observé | Conforme à l'attendu (Annexe G) |
+|---|---|---|
+| `git pull origin main` | `6267e23..90cfa24 main -> origin/main`, **fast-forward**, 36 fichiers, **aucun conflit** sur `package-lock.json` | ✅ — la résolution préalable de la dérive (Annexe J.2) a fonctionné |
+| `npm install` | Terminé sans erreur, 40 paquets ajoutés (`typescript`, `vitest`, `vue-tsc` + dépendances) | ✅ |
+| `npx prisma generate` | Client régénéré avec succès | ✅ |
+| `npx prisma db push` | *« The database is already in sync with the Prisma schema »* | ✅ — confirmé : zéro migration, exactement comme prévu (Annexe D.3) |
+| `npm run build` | Client (553 modules) et serveur (486 modules) compilés, `✨ Build complete!` | ✅ |
+| `pm2 restart boursefi` | `[PM2] Applying action restartProcessId on app [boursefi](ids: [0])` → `✓` | ✅ — **le repli `pm2 restart all` n'a jamais été déclenché** |
+| État PM2 post-redémarrage | `mode: fork`, `↺: 1`, `status: online` | ✅ — mono-instance préservée |
+| Message final | `✅ [BourseFi] Déploiement terminé avec succès !` | ✅ |
+
+**Aucune anomalie détectée dans l'ensemble du déroulé.** Les trois points de vigilance identifiés en Annexe G (conflit `git pull`, repli `pm2 restart all`, absence de sauvegarde intégrée) ne se sont pas matérialisés en problème — le premier a été neutralisé par la résolution préalable (J.2), le deuxième ne s'est pas produit (`pm2 restart boursefi` a réussi du premier coup), le troisième était couvert par les sauvegardes manuelles faites en amont (J.4).
+
+### K.2 — Vérifications post-déploiement demandées (en attente de résultat)
+
+```bash
+curl -I https://boursefi.sn
+pm2 logs boursefi --lines 30 --nostream
+```
+
+**Statut : demandées à l'utilisateur, résultat non encore reçu au moment de la rédaction de cette section.** Investigation détournée vers un signalement utilisateur prioritaire (Annexe L) avant d'y revenir.
+
+---
+
+## Annexe L — Signalement « mot de passe oublié ne fonctionne pas » : investigation en production (Phase 11, 2026-10-23)
+
+**Contexte :** peu après le déploiement, l'utilisateur rapporte qu'un retour lui indique que la réinitialisation de mot de passe « ne marche pas ». Investigation menée immédiatement, en production réelle (avec autorisation explicite), via un compte de test jetable — **pas de simulation locale cette fois, test direct contre `https://boursefi.sn`.**
+
+### L.1 — Méthode : test de bout en bout avec boîte mail jetable réelle
+
+Pour vérifier la **réception réelle des emails** (ce qu'un test API seul ne peut pas prouver, la réponse publique étant toujours « succès » par conception anti-énumération), une adresse jetable a été créée via le service public `mail.tm` (aucune inscription requise, interrogeable par API), avec autorisation explicite de créer un compte de test sur la production.
+
+| Étape | Action | Résultat |
+|---|---|---|
+| 1 | Création boîte jetable `diag1792710590@maxxspace.com` (mail.tm) | ✅ |
+| 2 | `POST /api/auth/register` sur `https://boursefi.sn` avec cette adresse | `200`, réponse publique attendue |
+| 3 | Réception de l'email de vérification d'inscription | ✅ **Reçu en quelques secondes**, expéditeur `no-reply@boursefi.sn` via `smtp-relay.mailin.fr` (Brevo) |
+| 4 | `POST /api/auth/forgot-password` pour ce compte | `200` |
+| 5 | Réception de l'email de réinitialisation | ✅ **Reçu en quelques secondes**, même expéditeur |
+| 6 | Résolution du lien de suivi Brevo (`bbejbcga.r.bh.d.sendibt3.com/tr/cl/...`) | ✅ Redirige correctement vers `https://boursefi.sn/auth/reset-password?token=...` (`HTTP 200`) |
+| 7 | `POST /api/auth/reset-password` avec le jeton réel extrait de l'email | `200`, « Votre mot de passe a été enregistré avec succès ! » |
+| 8 | `POST /api/auth/login` avec le nouveau mot de passe | `200`, session ouverte |
+
+**Conclusion : le parcours complet « mot de passe oublié » fonctionne correctement de bout en bout, en production, à l'instant du test — y compris l'envoi réel via Brevo.** Ce n'est donc **pas** une panne généralisée ni une régression du déploiement.
+
+### L.2 — Point vérifié en cours de route : le suivi de clics Brevo ne pose pas de risque fonctionnel
+
+Brevo réécrit tous les liens des emails pour son suivi de clics. Hypothèse initialement envisagée : qu'un scanner de sécurité email « pré-clique » ce lien et consomme le jeton à usage unique avant l'utilisateur réel. **Vérifiée et écartée** : la page `app/pages/auth/reset-password.vue` n'appelle l'API de réinitialisation qu'à la **soumission explicite du formulaire** (clic sur « Enregistrer »), jamais au simple chargement de la page — visiter le lien (même via un robot) ne consomme rien.
+
+### L.3 — Hypothèses retenues pour le signalement initial (non confirmées individuellement, infrastructure prouvée saine)
+
+Puisque l'infrastructure et le code fonctionnent correctement à l'instant du test, le signalement initial s'explique plus probablement par l'une de ces causes **spécifiques à l'utilisateur concerné**, à vérifier directement avec lui :
+
+| Hypothèse | Comment vérifier |
+|---|---|
+| Email arrivé en courrier indésirable/spam | Demander à l'utilisateur concerné de vérifier son dossier spam, en particulier si son fournisseur (Gmail, Outlook...) filtre plus agressivement que le domaine de test utilisé ici |
+| Adresse email mal saisie (faute de frappe) | Confirmer l'adresse exacte utilisée par l'utilisateur |
+| Limite de tentatives atteinte (`429`) | Si l'utilisateur a réessayé plusieurs fois rapidement, la limite de 3 demandes/heure par adresse ou 5/heure par IP peut avoir bloqué une tentative ultérieure — vérifier les logs à l'heure exacte du signalement : `pm2 logs boursefi --lines 500 --nostream \| grep -iE "429\|forgot"` |
+| Confusion avec le compte doublon déjà corrigé (Annexe J.6) | Si l'utilisateur concerné est le titulaire du compte Gmail dont le doublon inactif a été neutralisé, vérifier qu'il utilise bien son compte actif habituel |
+
+### L.4 — Nettoyage
+
+| Élément | Action |
+|---|---|
+| Boîte mail jetable `diag1792710590@maxxspace.com` (mail.tm) | ✅ Supprimée (`DELETE /accounts/...` → `204`) |
+| Compte de test créé sur la production (`id: cmvk5lqx80002kf9cctio2smg`) | Suppression demandée à l'utilisateur (pas d'accès direct à la base de production) — à confirmer |
+
+**Limite de cette investigation :** le test prouve que le système fonctionne **pour un compte neuf, avec une boîte mail de test sans filtrage spam**. Il ne reproduit pas exactement les conditions du fournisseur email réel de l'utilisateur plaignant. Si le problème persiste après vérification des hypothèses ci-dessus, il faudra obtenir l'adresse exacte utilisée par cette personne (avec son consentement) pour un diagnostic ciblé.
