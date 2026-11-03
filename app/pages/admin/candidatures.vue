@@ -111,6 +111,8 @@ const selectedIds = ref<string[]>([])
 const bulkPromoCode = ref('RENTREE2026')
 const bulkChannel = ref<'WHATSAPP' | 'EMAIL'>('WHATSAPP')
 const bulkSending = ref(false)
+// Liens WhatsApp de la dernière relance groupée : un clic par candidat (le navigateur bloque les ouvertures multiples)
+const bulkWhatsappLinks = ref<Array<{ id: string; name: string; whatsappUrl: string | null }>>([])
 
 // Formulaire Note Commerciale
 const noteForm = reactive({
@@ -363,6 +365,8 @@ async function deleteDossier() {
 // Relances WhatsApp & Email 1-Clic
 async function triggerRelance(candidatureId: string, channel: 'WHATSAPP' | 'EMAIL', codePromo = 'RENTREE2026') {
   singleRelanceSending.value = candidatureId
+  // Fenêtre ouverte pendant le clic, avant l'appel réseau, sinon le navigateur la bloque
+  const waWindow = channel === 'WHATSAPP' ? window.open('', '_blank') : null
   try {
     const res = await $fetch<{ ok: boolean; whatsappUrl?: string; messageText?: string }>(
       '/api/admin/candidatures/relancer',
@@ -371,17 +375,23 @@ async function triggerRelance(candidatureId: string, channel: 'WHATSAPP' | 'EMAI
         body: { candidatureId, channel, codePromo },
       }
     )
+    if (channel === 'WHATSAPP' && res.whatsappUrl) {
+      if (waWindow) waWindow.location.href = res.whatsappUrl
+      else window.open(res.whatsappUrl, '_blank')
+    } else {
+      waWindow?.close()
+    }
+
     await refresh()
     if (detail.value && detail.value.id === candidatureId) {
       await loadDetail(candidatureId)
     }
 
-    if (channel === 'WHATSAPP' && res.whatsappUrl) {
-      window.open(res.whatsappUrl, '_blank')
-    } else if (channel === 'EMAIL') {
+    if (channel === 'EMAIL') {
       alert('Email de relance envoyé avec succès au candidat !')
     }
   } catch (e: unknown) {
+    waWindow?.close()
     alert(getAdminErrorMessage(e, 'Erreur lors de la relance.'))
   } finally {
     singleRelanceSending.value = null
@@ -393,7 +403,7 @@ async function executeBulkRelance() {
   if (!selectedIds.value.length) return
   bulkSending.value = true
   try {
-    const res = await $fetch<{ ok: boolean; count: number; results: Array<{ id: string; whatsappUrl: string | null }> }>(
+    const res = await $fetch<{ ok: boolean; count: number; results: Array<{ id: string; name: string; whatsappUrl: string | null }> }>(
       '/api/admin/candidatures/relancer-masse',
       {
         method: 'POST',
@@ -406,12 +416,10 @@ async function executeBulkRelance() {
     )
 
     await refresh()
-    alert(`Relance exécutée avec succès pour ${res.count} candidat(s) !`)
-
     if (bulkChannel.value === 'WHATSAPP') {
-      res.results.slice(0, 3).forEach((r) => {
-        if (r.whatsappUrl) window.open(r.whatsappUrl, '_blank')
-      })
+      bulkWhatsappLinks.value = res.results
+    } else {
+      alert(`Relance exécutée avec succès pour ${res.count} candidat(s) !`)
     }
     selectedIds.value = []
   } catch (e: unknown) {
@@ -855,6 +863,35 @@ async function copyWhatsAppActivation(email: string) {
           <button type="button" class="text-xs font-medium text-slate-500 hover:text-slate-700" @click="selectedIds = []">
             Annuler
           </button>
+        </div>
+      </div>
+
+      <!-- Liens WhatsApp de la relance groupée -->
+      <div v-if="bulkWhatsappLinks.length" class="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4">
+        <div class="flex items-center justify-between gap-3">
+          <p class="text-xs font-bold text-emerald-900">
+            Relance groupée prête : ouvrez WhatsApp pour chaque candidat ({{ bulkWhatsappLinks.length }})
+          </p>
+          <button type="button" class="text-xs font-medium text-slate-500 hover:text-slate-700" @click="bulkWhatsappLinks = []">
+            Fermer
+          </button>
+        </div>
+        <div class="mt-3 flex flex-wrap gap-2">
+          <template v-for="r in bulkWhatsappLinks" :key="r.id">
+            <a
+              v-if="r.whatsappUrl"
+              :href="r.whatsappUrl"
+              target="_blank"
+              rel="noopener"
+              class="inline-flex items-center gap-1 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-emerald-700 visited:bg-emerald-800"
+            >
+              <span class="material-symbols-outlined text-[16px]">chat</span>
+              {{ r.name }}
+            </a>
+            <span v-else class="inline-flex items-center rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-500" title="Numéro manquant ou invalide">
+              {{ r.name }} — pas de numéro
+            </span>
+          </template>
         </div>
       </div>
 

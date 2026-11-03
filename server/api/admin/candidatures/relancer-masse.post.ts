@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { prisma } from '../../../utils/prisma'
 import { requireRole } from '../../../utils/auth'
 import { writeAuditLog } from '../../../utils/audit'
+import { whatsappLink } from '../../../utils/whatsapp'
 
 const bulkRelancerSchema = z.object({
   candidatureIds: z.array(z.string()).min(1, 'Sélectionnez au moins une candidature.'),
@@ -35,19 +36,14 @@ export default defineEventHandler(async (event) => {
     const formation = c.targetProgram
     const ecole = c.programme.etablissement.nom
 
-    let cleanPhone = (c.phone || c.user.phone || '').replace(/\D/g, '')
-    if (cleanPhone.startsWith('7') || cleanPhone.startsWith('77') || cleanPhone.startsWith('78') || cleanPhone.startsWith('76') || cleanPhone.startsWith('70') || cleanPhone.startsWith('75')) {
-      if (cleanPhone.length === 9) cleanPhone = '221' + cleanPhone
-    }
-
-    let msg = `Bonjour ${prenom} 👋\n\nVotre demande de bourse pour ${formation} à ${ecole} est presque enregistrée.`
+    let msg = `Bonjour ${prenom},\n\nVotre attestation de bourse pour *${formation}* à ${ecole} est prête.`
     if (parsed.data.codePromo) {
-      msg += `\n\n🎁 Profitez du code promo *${parsed.data.codePromo}* pour finaliser votre dossier.\n👉 ${paymentUrl}`
+      msg += `\n\nProfitez du code promo *${parsed.data.codePromo}* pour régler vos frais de dossier :\n${paymentUrl}`
     } else {
-      msg += `\n\nFinalisez votre paiement pour obtenir votre attestation officielle BourseFi :\n👉 ${paymentUrl}`
+      msg += `\n\nRéglez vos frais de dossier pour la télécharger :\n${paymentUrl}`
     }
 
-    const waUrl = cleanPhone ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}` : null
+    const waUrl = whatsappLink(c.phone || c.user.phone, msg)
 
     await prisma.candidature.update({
       where: { id: c.id },

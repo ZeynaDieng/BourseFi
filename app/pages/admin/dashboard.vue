@@ -83,17 +83,22 @@ const sendingRelanceId = ref<string | null>(null)
 
 async function triggerQuickRelance(candidatureId: string, channel: 'WHATSAPP' | 'EMAIL') {
   sendingRelanceId.value = candidatureId
+  // Fenêtre ouverte pendant le clic, avant l'appel réseau, sinon le navigateur la bloque
+  const waWindow = channel === 'WHATSAPP' ? window.open('', '_blank') : null
   try {
     const res = await $fetch<{ ok: boolean; whatsappUrl?: string }>('/api/admin/candidatures/relancer', {
       method: 'POST',
       body: { candidatureId, channel, codePromo: 'RENTREE2026' },
     })
     if (channel === 'WHATSAPP' && res.whatsappUrl) {
-      window.open(res.whatsappUrl, '_blank')
+      if (waWindow) waWindow.location.href = res.whatsappUrl
+      else window.open(res.whatsappUrl, '_blank')
     } else {
+      waWindow?.close()
       alert('Relance effectuée avec succès !')
     }
   } catch (e: unknown) {
+    waWindow?.close()
     alert(getAdminErrorMessage(e, 'Erreur relance'))
   } finally {
     sendingRelanceId.value = null

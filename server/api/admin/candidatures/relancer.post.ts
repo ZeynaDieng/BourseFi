@@ -3,6 +3,7 @@ import { prisma } from '../../../utils/prisma'
 import { requireRole } from '../../../utils/auth'
 import { writeAuditLog } from '../../../utils/audit'
 import { sendEmail, renderEmail } from '../../../utils/email'
+import { whatsappLink } from '../../../utils/whatsapp'
 
 const relancerSchema = z.object({
   candidatureId: z.string().min(1, 'Candidature ID requis.'),
@@ -42,26 +43,23 @@ export default defineEventHandler(async (event) => {
   const ecole = candidature.programme.etablissement.nom
   const montantAregler = candidature.montantFinal ?? candidature.programme.fraisDossier ?? candidature.programme.etablissement.fraisDossier ?? 20000
 
-  // Formatage du numéro de téléphone international
-  let cleanPhone = (candidature.phone || candidature.user.phone || '').replace(/\D/g, '')
-  if (cleanPhone.startsWith('7') || cleanPhone.startsWith('77') || cleanPhone.startsWith('78') || cleanPhone.startsWith('76') || cleanPhone.startsWith('70') || cleanPhone.startsWith('75')) {
-    if (cleanPhone.length === 9) cleanPhone = '221' + cleanPhone
-  }
-
   let messageText = parsed.data.customMessage
 
   if (!messageText) {
     if (parsed.data.codePromo) {
-      messageText = `Bonjour ${prenom} 👋\n\nVotre demande de bourse pour ${formation} à ${ecole} est presque finalisée.\n\n🎁 Bonne nouvelle : profitez du code promo *${parsed.data.codePromo}* pour réduire vos frais de dossier !\n\nFinalisez votre inscription ici :\n👉 ${paymentUrl}\n\nL'équipe BourseFi.`
+      messageText = `Bonjour ${prenom},\n\nVotre attestation de bourse pour *${formation}* à ${ecole} est prête.\n\nBonne nouvelle : profitez du code promo *${parsed.data.codePromo}* pour réduire vos frais de dossier !\n\nVoir et débloquer votre attestation :\n${paymentUrl}\n\nL'équipe BourseFi.`
     } else {
-      messageText = `Bonjour ${prenom} 👋\n\nVotre demande de bourse pour ${formation} est presque enregistrée.\n\nIl ne vous reste qu'une dernière étape (${montantAregler.toLocaleString('fr-FR')} FCFA) pour débloquer votre attestation d'admission officielle.\n\nFinalisez votre dossier ici :\n👉 ${paymentUrl}\n\nBesoin d'aide ? Répondez directement à ce message.\nL'équipe BourseFi.`
+      messageText = `Bonjour ${prenom},\n\nVotre attestation de bourse pour *${formation}* est prête.\n\nIl ne vous reste qu'une dernière étape : régler les frais de dossier (${montantAregler.toLocaleString('fr-FR')} FCFA) pour la télécharger.\n\nVoir et débloquer votre attestation :\n${paymentUrl}\n\nBesoin d'aide ? Répondez directement à ce message.\nL'équipe BourseFi.`
     }
   }
 
   let whatsappUrl: string | null = null
 
   if (parsed.data.channel === 'WHATSAPP') {
-    whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(messageText)}`
+    whatsappUrl = whatsappLink(candidature.phone || candidature.user.phone, messageText)
+    if (!whatsappUrl) {
+      throw createError({ statusCode: 422, statusMessage: 'Numéro de téléphone manquant ou invalide pour ce candidat.' })
+    }
   } else if (parsed.data.channel === 'EMAIL') {
     const htmlEmail = renderEmail({
       title: `Rappel : Votre candidature pour ${formation}`,
