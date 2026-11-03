@@ -236,6 +236,10 @@ model User {
   emailVerificationCodeHash     String?
   emailVerificationCodeExpires  DateTime?
   emailVerificationCodeAttempts Int              @default(0)
+  /// Connexion sans mot de passe (étudiants) : code à 6 chiffres envoyé par email, seul le hash est stocké
+  loginCodeHash                 String?
+  loginCodeExpires              DateTime?
+  loginCodeAttempts             Int              @default(0)
   resetPasswordToken            String?          @unique
   resetPasswordExpires          DateTime?
   createdAt                     DateTime         @default(now())

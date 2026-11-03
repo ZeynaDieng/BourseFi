@@ -21,7 +21,7 @@ const { activeTarif, referenceTarif, isPromo, formatFcfa } = useTarification(bas
 const step = ref(0)
 const isSubmitting = ref(false)
 const errorMessage = ref('')
-const authMode = ref<'register' | 'login' | 'code'>('register')
+const authMode = ref<'register' | 'login' | 'login-code' | 'code'>('register')
 // Vérification de l'email par code à 6 chiffres, sans quitter la page
 const codeEmail = ref('')
 const codeInput = ref('')
@@ -651,7 +651,7 @@ useSeoMeta({
               <button
                 type="button"
                 class="flex-1 rounded-lg py-2.5 text-sm font-semibold transition"
-                :class="authMode === 'login' ? 'bg-white text-primary shadow-sm' : 'text-slate-500'"
+                :class="authMode === 'login' || authMode === 'login-code' ? 'bg-white text-primary shadow-sm' : 'text-slate-500'"
                 @click="authMode = 'login'"
               >
                 J'ai déjà un compte
@@ -764,6 +764,14 @@ useSeoMeta({
               </p>
             </form>
 
+            <AuthCodeLoginForm
+              v-else-if="authMode === 'login-code'"
+              :initial-email="loginForm.email"
+              submit-label="Se connecter et continuer"
+              @success="afterAuthSuccess"
+              @cancel="authMode = 'login'"
+            />
+
             <form v-else class="space-y-4" @submit.prevent="submitLogin">
               <label class="block">
                 <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Email</span>
@@ -784,6 +792,13 @@ useSeoMeta({
                 :disabled="authLoading"
               >
                 {{ authLoading ? 'Connexion…' : 'Se connecter et continuer' }}
+              </button>
+              <button
+                type="button"
+                class="w-full rounded-xl border border-slate-200 px-6 py-3 text-sm font-semibold text-primary transition hover:bg-slate-50"
+                @click="authMode = 'login-code'"
+              >
+                Se connecter sans mot de passe
               </button>
             </form>
           </div>

@@ -6,6 +6,7 @@ import { writeAuditLog } from '../../utils/audit'
 import { rateLimit, rateLimitKey } from '../../utils/rate-limit'
 import { PARTNER_PORTAL_ENABLED } from '../../utils/product-config'
 import { requireCsrf } from '../../utils/csrf'
+import { linkStudentCandidatures } from '../../utils/student-candidatures'
 
 const loginSchema = z.object({
   email: z.email(),
@@ -58,19 +59,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  if (user.role === 'STUDENT' && user.email) {
-    try {
-      await prisma.candidature.updateMany({
-        where: {
-          email: { equals: user.email.trim(), mode: 'insensitive' },
-          userId: { not: user.id },
-        },
-        data: { userId: user.id },
-      })
-    } catch (e) {
-      console.warn('[AUTH_LOGIN] Auto-sync candidatures:', e)
-    }
-  }
+  await linkStudentCandidatures(user)
 
   await createSession(event, user.id)
   await writeAuditLog({

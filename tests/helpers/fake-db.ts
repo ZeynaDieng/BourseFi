@@ -43,6 +43,7 @@ export function createFakeDb() {
   const programmes: Row[] = []
   const paiements: Row[] = []
   const loginLinks: Row[] = []
+  const candidatureNotes: Row[] = []
   const calls: { model: string; method: string; args: any }[] = []
 
   const log = (model: string, method: string, args: any) => calls.push({ model, method, args })
@@ -192,10 +193,17 @@ export function createFakeDb() {
         return { count: before - loginLinks.length }
       },
     },
+    candidatureNote: {
+      create: async (args: any) => {
+        const row = { id: id(), createdAt: new Date(), ...args.data }
+        candidatureNotes.push(row)
+        return row
+      },
+    },
     auditLog: { create: async () => ({}) },
   }
 
-  return { prisma, users, sessions, candidatures, bourses, etablissements, programmes, paiements, loginLinks, calls }
+  return { prisma, users, sessions, candidatures, bourses, etablissements, programmes, paiements, loginLinks, candidatureNotes, calls }
 }
 
 export type FakeDb = ReturnType<typeof createFakeDb>

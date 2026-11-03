@@ -362,6 +362,25 @@ async function deleteDossier() {
   }
 }
 
+// Dossier payé : lien d'accès à l'attestation envoyé par WhatsApp (l'étudiant n'a pas besoin de son mot de passe)
+const attestationWhatsappSending = ref(false)
+async function sendAttestationWhatsapp(candidatureId: string) {
+  attestationWhatsappSending.value = true
+  // Fenêtre ouverte pendant le clic, avant l'appel réseau, sinon le navigateur la bloque
+  const waWindow = window.open('', '_blank')
+  try {
+    const res = await $fetch<{ whatsappUrl: string }>(`/api/admin/candidatures/${candidatureId}/attestation-whatsapp`, { method: 'POST' })
+    if (waWindow) waWindow.location.href = res.whatsappUrl
+    else window.open(res.whatsappUrl, '_blank')
+    if (detail.value?.id === candidatureId) await loadDetail(candidatureId)
+  } catch (e: unknown) {
+    waWindow?.close()
+    alert(getAdminErrorMessage(e, 'Impossible de préparer le message WhatsApp.'))
+  } finally {
+    attestationWhatsappSending.value = false
+  }
+}
+
 // Relances WhatsApp & Email 1-Clic
 async function triggerRelance(candidatureId: string, channel: 'WHATSAPP' | 'EMAIL', codePromo = 'RENTREE2026') {
   singleRelanceSending.value = candidatureId
@@ -1273,13 +1292,24 @@ async function copyWhatsAppActivation(email: string) {
                 <div><dt class="text-slate-400">Référence transaction</dt><dd class="font-mono text-slate-700">{{ detail.paiement.refCommand || 'N/A' }}</dd></div>
                 <div><dt class="text-slate-400">Date du règlement</dt><dd class="text-slate-700">{{ formatDate(detail.paiement.createdAt) }}</dd></div>
               </dl>
-              <div class="pt-2">
+              <div class="flex flex-wrap items-center justify-between gap-2 pt-2">
                 <NuxtLink
                   :to="`/admin/transactions?id=${detail.paiement.id}`"
                   class="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
                 >
                   Voir le détail de la transaction →
                 </NuxtLink>
+                <button
+                  v-if="detail.paiement.status === 'Valide'"
+                  type="button"
+                  class="inline-flex items-center gap-1.5 rounded-lg bg-[#25D366] px-3 py-1.5 text-xs font-bold text-white shadow-sm transition hover:opacity-90 disabled:opacity-50"
+                  :disabled="attestationWhatsappSending"
+                  title="Message WhatsApp avec un lien personnel (72 h) qui connecte l'étudiant et ouvre son attestation"
+                  @click="sendAttestationWhatsapp(detail.id)"
+                >
+                  <span class="material-symbols-outlined text-[16px]">workspace_premium</span>
+                  {{ attestationWhatsappSending ? 'Préparation…' : 'Envoyer l’attestation par WhatsApp' }}
+                </button>
               </div>
             </div>
             <div v-else class="mt-3 p-2 text-sm text-amber-700 font-medium">

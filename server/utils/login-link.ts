@@ -10,6 +10,7 @@ import { generateOneTimeToken } from './one-time-token'
 export const LOGIN_LINK_TTL_MS = {
   PAYMENT_RETURN: 2 * 60 * 60 * 1000, // 2 h : couvre le temps de payer sur Wave / Orange Money
   ATTESTATION_EMAIL: 72 * 60 * 60 * 1000, // 72 h : email de confirmation du paiement
+  ATTESTATION_WHATSAPP: 72 * 60 * 60 * 1000, // 72 h : envoyé par l'équipe depuis le backoffice
 } as const
 
 export type LoginLinkPurpose = keyof typeof LOGIN_LINK_TTL_MS

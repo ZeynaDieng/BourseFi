@@ -25,6 +25,11 @@ const form = reactive({
 
 const isLoading = ref(false)
 const errorMessage = ref('')
+const useCode = ref(false)
+
+async function onCodeLogin(role: string) {
+  await navigateTo(resolvePostLoginPath(role))
+}
 
 function resolvePostLoginPath(role: string): string {
   const custom = redirectTo.value
@@ -83,7 +88,9 @@ async function submitLogin() {
       </p>
       <p class="mb-6 text-sm text-slate-500">Accedez a votre espace BourseFi.</p>
 
-      <form class="space-y-4" @submit.prevent="submitLogin">
+      <AuthCodeLoginForm v-if="useCode" :initial-email="form.email" @success="onCodeLogin" @cancel="useCode = false" />
+
+      <form v-else class="space-y-4" @submit.prevent="submitLogin">
         <div>
           <input v-model="form.email" type="email" required class="w-full rounded-lg border-slate-200 px-4 py-3" placeholder="Email" />
         </div>
@@ -101,6 +108,9 @@ async function submitLogin() {
         </div>
         <button :disabled="isLoading" type="submit" class="w-full rounded-lg bg-primary px-4 py-3 font-semibold text-white disabled:opacity-60">
           {{ isLoading ? 'Connexion...' : 'Se connecter' }}
+        </button>
+        <button type="button" class="w-full rounded-lg border border-slate-200 px-4 py-3 text-sm font-semibold text-primary transition hover:bg-slate-50" @click="useCode = true">
+          Se connecter sans mot de passe
         </button>
       </form>
 
