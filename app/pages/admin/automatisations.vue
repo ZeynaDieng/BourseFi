@@ -67,6 +67,42 @@ const stats = computed(() => statsData.value || {
 })
 const logs = computed(() => logsData.value?.logs || [])
 
+type Brouillon = {
+  userId: string
+  fullName: string
+  email: string
+  phone: string
+  emailVerified: boolean
+  formation: string | null
+  etablissement: string | null
+  bourseActive: boolean
+  updatedAt: string
+  lastWhatsappAt: string | null
+}
+const { data: brouillonsData, refresh: refreshBrouillons } = await useFetch<{ ok: boolean; brouillons: Brouillon[] }>('/api/admin/automatisations/brouillons')
+const brouillons = computed(() => brouillonsData.value?.brouillons || [])
+const sendingWhatsapp = ref<string | null>(null)
+
+async function relancerBrouillonWhatsapp(b: Brouillon) {
+  // Fenêtre ouverte avant l'appel réseau pour ne pas être bloquée par le navigateur
+  const win = window.open('', '_blank')
+  sendingWhatsapp.value = b.userId
+  try {
+    const res = await $fetch<{ ok: boolean; whatsappUrl: string }>('/api/admin/automatisations/brouillons-whatsapp', {
+      method: 'POST',
+      body: { userId: b.userId },
+    })
+    if (win) win.location.href = res.whatsappUrl
+    else window.location.href = res.whatsappUrl
+    await refreshBrouillons()
+  } catch (e: unknown) {
+    win?.close()
+    alert(getAdminErrorMessage(e, 'Impossible de préparer le message WhatsApp.'))
+  } finally {
+    sendingWhatsapp.value = null
+  }
+}
+
 const runningEngine = ref(false)
 const editingRule = ref<AutoRule | null>(null)
 const ruleModalOpen = ref(false)
@@ -309,6 +345,69 @@ async function saveRule() {
                 Configurer
               </button>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Candidatures commencées non envoyées : relance WhatsApp manuelle -->
+      <div class="mt-8 space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <h2 class="text-sm font-bold uppercase tracking-wider text-slate-800">✍️ Candidatures commencées, non envoyées</h2>
+          <span class="text-xs text-slate-500">Étudiants qui ont choisi une bourse sans envoyer leur dossier</span>
+        </div>
+        <div class="admin-card overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="admin-table min-w-[900px]">
+              <thead>
+                <tr>
+                  <th class="admin-th">Étudiant</th>
+                  <th class="admin-th">Formation</th>
+                  <th class="admin-th">Compte</th>
+                  <th class="admin-th">Dernière saisie</th>
+                  <th class="admin-th">Dernier WhatsApp</th>
+                  <th class="admin-th text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-if="!brouillons.length">
+                  <td colspan="6" class="p-8 text-center text-xs text-slate-400">
+                    Aucune candidature commencée en attente.
+                  </td>
+                </tr>
+                <tr v-for="b in brouillons" :key="b.userId" class="hover:bg-slate-50/80">
+                  <td class="admin-td">
+                    <p class="font-bold text-slate-900">{{ b.fullName }}</p>
+                    <p class="text-[11px] text-slate-400">{{ b.email }}<span v-if="b.phone"> · {{ b.phone }}</span></p>
+                  </td>
+                  <td class="admin-td">
+                    <p class="text-xs font-medium">{{ b.formation || 'Bourse introuvable' }}</p>
+                    <p class="text-[10px] text-slate-400">{{ b.etablissement }}</p>
+                  </td>
+                  <td class="admin-td">
+                    <span
+                      class="whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold"
+                      :class="b.emailVerified ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'"
+                    >
+                      {{ b.emailVerified ? 'Activé' : 'Email non vérifié' }}
+                    </span>
+                  </td>
+                  <td class="admin-td text-xs font-mono text-slate-500">{{ formatDate(b.updatedAt) }}</td>
+                  <td class="admin-td text-xs text-slate-500">{{ b.lastWhatsappAt ? formatDate(b.lastWhatsappAt) : '—' }}</td>
+                  <td class="admin-td text-right">
+                    <button
+                      type="button"
+                      class="inline-flex items-center gap-1 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-emerald-700 disabled:opacity-50"
+                      :disabled="!b.phone || !b.bourseActive || sendingWhatsapp === b.userId"
+                      :title="!b.phone ? 'Numéro manquant' : !b.bourseActive ? 'Bourse désactivée' : 'Ouvrir WhatsApp avec le message pré-rempli'"
+                      @click="relancerBrouillonWhatsapp(b)"
+                    >
+                      <span class="material-symbols-outlined text-[16px]">chat</span>
+                      WhatsApp
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>

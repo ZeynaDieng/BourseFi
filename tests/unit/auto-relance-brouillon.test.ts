@@ -67,6 +67,7 @@ describe('Relances — candidature commencée', () => {
     expect(mail.html).toContain('https://boursefi.test/postuler/bourse-ifaa-licence')
     expect(mail.html).toContain('Terminer ma candidature')
     expect(mail.html).not.toContain('/bourses"')
+    expect(mail.html).not.toContain('apercu-attestation')
   })
 
   it('compte non activé avec brouillon : le lien active le compte (la connexion serait refusée sinon)', async () => {
@@ -116,5 +117,6 @@ describe('Relances — dossier en attente de paiement', () => {
     expect(mail.subject).toBe('[BourseFi] Awa, votre attestation pour Licence Comptabilité est prête')
     expect(mail.html).toContain('Votre attestation est prête')
     expect(mail.html).toContain('href="https://boursefi.test/paiement?candidatureId=c1"')
+    expect(mail.html).toContain('src="https://boursefi.test/emails/apercu-attestation.jpg"')
   })
 })

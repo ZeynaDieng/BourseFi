@@ -8,6 +8,7 @@ import { saveUserIdentityImage, saveUserEducationDocument } from '../utils/candi
 import { createNotification } from '../utils/notifications'
 import { sendEmail, renderEmail } from '../utils/email'
 import { getGlobalFraisDossierConfig } from '../utils/frais-dossier'
+import { attestationPreviewEmailHtml } from '../utils/attestation-preview-email'
 
 const documentDataUrl = z
   .string()
@@ -290,10 +291,10 @@ export default defineEventHandler(async (event) => {
         <p>Votre demande de bourse pour <strong>${programme.titre}</strong> a bien été enregistrée.</p>
         ${
           needsPayment
-            ? `<p>Pour finaliser votre dossier, il reste à régler les frais de dossier (${formattedFrais} ${programme.devise}) depuis votre espace.</p>`
+            ? `<p>Votre attestation est prête. Pour l'obtenir, il reste à régler les frais de dossier (${formattedFrais} ${programme.devise}).</p>${attestationPreviewEmailHtml(siteUrl)}`
             : `<p>Votre dossier est transmis pour analyse. Vous serez notifié dès qu'il y a du nouveau.</p>`
         }`,
-      ctaLabel: needsPayment ? 'Régler les frais de dossier' : 'Suivre ma candidature',
+      ctaLabel: needsPayment ? 'Voir et débloquer mon attestation' : 'Suivre ma candidature',
       ctaUrl: needsPayment ? `${siteUrl}/paiement?candidatureId=${candidature.id}` : `${siteUrl}/etudiant/candidatures`,
     }),
   })

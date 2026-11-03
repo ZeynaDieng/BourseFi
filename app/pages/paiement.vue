@@ -97,6 +97,49 @@ const showCheckout = computed(
   () => canPay.value && !isPaid.value && !confirmingPayment.value && !cancelled.value,
 )
 
+// « Je ne peux pas payer maintenant » : le motif est transmis à l'équipe et la réponse s'adapte
+type BlocageReason = 'FINANCIAL_DIFFICULTY' | 'PARENT_APPROVAL' | 'TECHNICAL_ISSUE'
+const BLOCAGE_OPTIONS: { value: BlocageReason; label: string; icon: string }[] = [
+  { value: 'FINANCIAL_DIFFICULTY', label: 'Je n’ai pas l’argent pour le moment', icon: 'savings' },
+  { value: 'PARENT_APPROVAL', label: 'Je dois d’abord en parler à mes parents', icon: 'family_restroom' },
+  { value: 'TECHNICAL_ISSUE', label: 'J’ai un problème avec Wave ou Orange Money', icon: 'report' },
+]
+const blocageOpen = ref(false)
+const blocageReason = ref<BlocageReason | null>(null)
+const blocageSending = ref(false)
+const { cleanWhatsappNumber: boursefiWhatsapp } = useBoursefiContact()
+
+async function chooseBlocage(reason: BlocageReason) {
+  if (!candidatureId.value) return
+  blocageSending.value = true
+  try {
+    await $fetch(`/api/candidatures/${encodeURIComponent(candidatureId.value)}/blocage`, { method: 'POST', body: { reason } })
+  } catch {
+    // le conseil reste affiché même si l'enregistrement du motif échoue
+  } finally {
+    blocageSending.value = false
+    blocageReason.value = reason
+  }
+}
+
+const parentsShareUrl = computed(() => {
+  const d = dossier.value
+  if (!d) return ''
+  const site = typeof window !== 'undefined' ? window.location.origin : 'https://boursefi.sn'
+  const text = `Bonjour, j’ai obtenu une bourse d’études pour la formation ${d.programmeTitre} (${d.etablissementNom}) grâce à BourseFi.
+
+Mon attestation de bourse est prête. Pour la recevoir, il faut régler les frais de dossier de ${totalFcfa.value.toLocaleString('fr-FR')} ${devise.value} (Wave, Orange Money…).
+
+Plus d’informations : ${site}`
+  return `https://wa.me/?text=${encodeURIComponent(text)}`
+})
+
+const supportWhatsappUrl = computed(() => {
+  const d = dossier.value
+  const text = `Bonjour BourseFi, je n’arrive pas à payer les frais de dossier${d ? ` pour ${d.programmeTitre}` : ''} (réf. ${candidatureId.value}).`
+  return `https://wa.me/${boursefiWhatsapp.value || '221771133926'}?text=${encodeURIComponent(text)}`
+})
+
 function openPaytechModal(url: string) {
   paytechUrl.value = url
   showPaytechModal.value = true
@@ -455,6 +498,70 @@ useSeoMeta({ title: 'Paiement  BourseFi' })
             <span class="material-symbols-outlined text-[16px] text-emerald-600">verified_user</span>
             Paiement sécurisé via PayTech
           </p>
+
+          <div class="mt-4 border-t border-slate-100 pt-4">
+            <button
+              v-if="!blocageOpen"
+              type="button"
+              class="mx-auto block text-xs font-semibold text-slate-500 underline underline-offset-2 transition hover:text-primary"
+              @click="blocageOpen = true"
+            >
+              Je ne peux pas payer maintenant
+            </button>
+
+            <div v-else-if="!blocageReason">
+              <p class="text-center text-sm font-bold text-primary">Qu’est-ce qui vous bloque ?</p>
+              <div class="mt-3 space-y-2">
+                <button
+                  v-for="opt in BLOCAGE_OPTIONS"
+                  :key="opt.value"
+                  type="button"
+                  :disabled="blocageSending"
+                  class="flex w-full items-center gap-3 rounded-xl border border-slate-200 px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:border-primary hover:bg-slate-50 disabled:opacity-50"
+                  @click="chooseBlocage(opt.value)"
+                >
+                  <span class="material-symbols-outlined text-[20px] text-primary">{{ opt.icon }}</span>
+                  {{ opt.label }}
+                </button>
+              </div>
+            </div>
+
+            <div v-else class="rounded-xl bg-slate-50 p-4 text-sm text-slate-600">
+              <template v-if="blocageReason === 'FINANCIAL_DIFFICULTY'">
+                <p class="font-bold text-primary">Pas de souci, votre dossier est conservé.</p>
+                <p class="mt-1">Votre attestation reste réservée. Revenez sur cette page dès que vous êtes prêt(e) : elle est aussi accessible depuis votre espace.</p>
+                <NuxtLink :to="STUDENT_HOME" class="mt-3 inline-flex items-center gap-1 font-bold text-primary underline underline-offset-2">
+                  Retour à mon espace
+                </NuxtLink>
+              </template>
+              <template v-else-if="blocageReason === 'PARENT_APPROVAL'">
+                <p class="font-bold text-primary">Partagez la bonne nouvelle à vos parents</p>
+                <p class="mt-1">Envoyez-leur un message qui explique votre bourse et le montant des frais de dossier.</p>
+                <a
+                  :href="parentsShareUrl"
+                  target="_blank"
+                  rel="noopener"
+                  class="mt-3 inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-emerald-700"
+                >
+                  <span class="material-symbols-outlined text-[18px]">share</span>
+                  Envoyer à mes parents sur WhatsApp
+                </a>
+              </template>
+              <template v-else>
+                <p class="font-bold text-primary">Nous allons vous aider</p>
+                <p class="mt-1">Écrivez-nous sur WhatsApp, un conseiller vous accompagne pour finaliser le paiement.</p>
+                <a
+                  :href="supportWhatsappUrl"
+                  target="_blank"
+                  rel="noopener"
+                  class="mt-3 inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-emerald-700"
+                >
+                  <span class="material-symbols-outlined text-[18px]">chat</span>
+                  Contacter BourseFi sur WhatsApp
+                </a>
+              </template>
+            </div>
+          </div>
         </div>
       </div>
 

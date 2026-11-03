@@ -3,6 +3,7 @@ import { sendEmail, renderEmail } from './email'
 import { ensureAutoRelanceRulesSeeded } from './auto-relance-seed'
 import { writeAuditLog } from './audit'
 import { findActiveBourseForDraft, parseApplicationDraft } from './application-draft'
+import { attestationPreviewEmailHtml } from './attestation-preview-email'
 
 export type RunEngineOptions = {
   force?: boolean
@@ -113,7 +114,7 @@ export async function runAutoRelanceEngine(options: RunEngineOptions = {}) {
       try {
         const htmlContent = renderEmail({
           title: attestationPrete ? `Votre attestation est prête — ${formation}` : `Rappel de votre candidature — ${formation}`,
-          bodyHtml: `<p>${text.replace(/\n/g, '<br>')}</p>`,
+          bodyHtml: `<p>${text.replace(/\n/g, '<br>')}</p>${attestationPrete ? attestationPreviewEmailHtml(appUrl) : ''}`,
           ctaLabel: attestationPrete ? 'Voir mon attestation →' : 'Finaliser mon inscription →',
           ctaUrl: lienPaiement,
         })
