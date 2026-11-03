@@ -4,6 +4,13 @@ import { ensureAutoRelanceRulesSeeded } from './auto-relance-seed'
 import { writeAuditLog } from './audit'
 import { findActiveBourseForDraft, parseApplicationDraft } from './application-draft'
 import { attestationPreviewEmailHtml } from './attestation-preview-email'
+import {
+  BLOCAGE_MESSAGES,
+  candidatureRelanceVars,
+  fillRelanceTemplate,
+  isPromoUsable,
+  unsubscribeFooterHtml,
+} from './relance-message'
 
 export type RunEngineOptions = {
   force?: boolean
@@ -26,19 +33,33 @@ export async function runAutoRelanceEngine(options: RunEngineOptions = {}) {
     return { ok: true, processed: 0, message: 'Aucune règle de relance active.' }
   }
 
-  // 2. Récupérer les candidatures éligibles aux relances :
-  // non payées (soit pas de paiement, soit paiement.status !== 'Valide'), non rejetées/finalisées, non perdues
+  const appUrl = (process.env.NUXT_PUBLIC_APP_URL || process.env.NUXT_PUBLIC_SITE_URL || 'https://boursefi.sn').replace(/\/+$/, '')
+
+  // Codes promo des règles : proposés seulement s'ils seront réellement acceptés au paiement
+  const promoCodes = [...new Set(rules.map((r) => r.codePromo?.trim().toUpperCase()).filter((c): c is string => Boolean(c)))]
+  const promos = promoCodes.length
+    ? await prisma.promoCode.findMany({ where: { code: { in: promoCodes } } })
+    : []
+  const usablePromo = (code: string | null) => {
+    const promo = code ? promos.find((p) => p.code === code.trim().toUpperCase()) ?? null : null
+    return isPromoUsable(promo) ? promo!.code : null
+  }
+
+  // 2. Candidatures en attente de paiement (les seules pour lesquelles le lien de paiement a un sens),
+  // non perdues, dont l'étudiant ne s'est pas désabonné
   const candidates = await prisma.candidature.findMany({
     where: {
-      status: { in: ['SOUMIS', 'EN_ATTENTE_PAIEMENT', 'BROUILLON', 'EN_REVUE_PARTENAIRE', 'COMPLEMENT_DEMANDE'] },
+      status: 'EN_ATTENTE_PAIEMENT',
       isLost: false,
+      user: { relancesOptOutAt: null },
       OR: [
         { paiement: null },
         { paiement: { status: { not: 'Valide' } } },
       ],
     },
     include: {
-      programme: { include: { etablissement: true } },
+      programme: { include: { etablissement: true, tarifs: true } },
+      bourse: true,
       user: true,
       paiement: true,
     },
@@ -62,28 +83,28 @@ export async function runAutoRelanceEngine(options: RunEngineOptions = {}) {
       if (hoursSinceLastRelance < 20) continue
     }
 
-    // Ignorer les dossiers déjà validés / annulés / archivés
-    if (['ACCEPTE', 'DOCUMENT_EMIS', 'REFUSE', 'TERMINE'].includes(cand.status)) {
-      continue
-    }
-
     const ageHours = (now.getTime() - new Date(cand.createdAt).getTime()) / (1000 * 60 * 60)
 
-    // Sélection du scénario
+    // L'étudiant a indiqué ne pas avoir l'argent pour le moment : pas de relances rapprochées, on attend J+7
+    const blocage = cand.blockingReason && cand.blockingReason in BLOCAGE_MESSAGES
+      ? (cand.blockingReason as keyof typeof BLOCAGE_MESSAGES)
+      : null
+    const eligibleRules = blocage === 'FINANCIAL_DIFFICULTY' ? rules.filter((r) => r.triggerHours >= 168) : rules
+
+    // Sélection du scénario : le suivant dans l'ordre des étapes (une étape désactivée ou supprimée est sautée)
     let targetRule: typeof rules[0] | null = null
 
     if (cand.autoRelanceStep === 0) {
       if (force) {
-        // En mode forcé, commencer par l'étape 1
-        targetRule = rules.find(r => r.scenarioStep === 1) || rules[0]
+        targetRule = eligibleRules[0] ?? null
       } else {
-        const validRules = rules.filter(r => ageHours >= r.triggerHours)
+        const validRules = eligibleRules.filter(r => ageHours >= r.triggerHours)
         if (validRules.length > 0) {
-          targetRule = validRules[validRules.length - 1]
+          targetRule = validRules[validRules.length - 1] ?? null
         }
       }
     } else {
-      const nextRule = rules.find(r => r.scenarioStep === cand.autoRelanceStep + 1)
+      const nextRule = eligibleRules.find(r => r.scenarioStep > cand.autoRelanceStep)
       if (nextRule && (force || ageHours >= nextRule.triggerHours)) {
         targetRule = nextRule
       }
@@ -92,55 +113,41 @@ export async function runAutoRelanceEngine(options: RunEngineOptions = {}) {
     if (!targetRule) continue
 
     const rule = targetRule
-    const prenom = cand.firstName || cand.fullName.split(' ')[0] || 'Candidat'
-    const nom = cand.lastName || ''
-    const formation = cand.programme?.titre || cand.targetProgram || 'votre formation'
-    const appUrl = (process.env.NUXT_PUBLIC_APP_URL || process.env.NUXT_PUBLIC_SITE_URL || 'https://boursefi.sn').replace(/\/+$/, '')
     const lienPaiement = `${appUrl}/paiement?candidatureId=${cand.id}`
-    const codePromo = rule.codePromo || 'RENTREE2026'
+    const vars = candidatureRelanceVars(cand, { lienPaiement, codePromo: usablePromo(rule.codePromo), now })
+    const prenom = vars.prenom!
+    const formation = vars.formation!
 
-    let text = rule.messageTemplate
-      .replace(/\{\{prenom\}\}/g, prenom)
-      .replace(/\{\{nom\}\}/g, nom)
-      .replace(/\{\{formation\}\}/g, formation)
-      .replace(/\{\{lien_paiement\}\}/g, lienPaiement)
-      .replace(/\{\{code_promo\}\}/g, codePromo)
+    // Motif indiqué par l'étudiant (« Je ne peux pas payer maintenant ») : message adapté, sans code promo
+    const template = blocage ? BLOCAGE_MESSAGES[blocage] : { subject: rule.subjectTemplate || '', body: rule.messageTemplate }
+    const text = fillRelanceTemplate(template.body, blocage ? { ...vars, code_promo: '' } : vars)
+    const subject = fillRelanceTemplate(template.subject, vars) || `${prenom}, votre attestation pour ${formation} est prête`
 
+    // Seul l'email part automatiquement (WhatsApp : relance manuelle depuis l'admin)
     let emailSentSuccess = false
-    // En attente de paiement, l'attestation est prête et visible en aperçu sur la page de paiement
-    const attestationPrete = cand.status === 'EN_ATTENTE_PAIEMENT'
+    try {
+      const htmlContent = renderEmail({
+        title: `Votre attestation est prête — ${formation}`,
+        bodyHtml: `<p>${text.replace(/\n/g, '<br>')}</p>${attestationPreviewEmailHtml(appUrl)}${unsubscribeFooterHtml(appUrl, cand.email)}`,
+        ctaLabel: 'Voir mon attestation →',
+        ctaUrl: lienPaiement,
+      })
 
-    if (rule.channel === 'EMAIL' || rule.channel === 'BOTH') {
-      try {
-        const htmlContent = renderEmail({
-          title: attestationPrete ? `Votre attestation est prête — ${formation}` : `Rappel de votre candidature — ${formation}`,
-          bodyHtml: `<p>${text.replace(/\n/g, '<br>')}</p>${attestationPrete ? attestationPreviewEmailHtml(appUrl) : ''}`,
-          ctaLabel: attestationPrete ? 'Voir mon attestation →' : 'Finaliser mon inscription →',
-          ctaUrl: lienPaiement,
-        })
-
-        emailSentSuccess = await sendEmail({
-          to: { email: cand.email, name: `${prenom} ${nom}`.trim() },
-          subject: rule.name.includes('PROMO')
-            ? `[BourseFi] 🎁 Réduction exclusive : ${formation}`
-            : attestationPrete
-              ? `[BourseFi] ${prenom}, votre attestation pour ${formation} est prête`
-              : `[BourseFi] Finalisez votre inscription pour ${formation}`,
-          html: htmlContent,
-          text,
-        })
-      } catch (err) {
-        console.error(`❌ Erreur email relance auto pour ${cand.email}:`, err)
-      }
-    } else {
-      emailSentSuccess = true
+      emailSentSuccess = await sendEmail({
+        to: { email: cand.email, name: `${prenom} ${vars.nom ?? ''}`.trim() },
+        subject: `[BourseFi] ${subject}`,
+        html: htmlContent,
+        text,
+      })
+    } catch (err) {
+      console.error(`❌ Erreur email relance auto pour ${cand.email}:`, err)
     }
 
     const log = await prisma.autoRelanceLog.create({
       data: {
         candidatureId: cand.id,
         scenarioStep: rule.scenarioStep,
-        channel: rule.channel,
+        channel: 'EMAIL',
         status: emailSentSuccess ? 'SENT' : 'FAILED',
       },
     })
@@ -152,7 +159,7 @@ export async function runAutoRelanceEngine(options: RunEngineOptions = {}) {
         lastAutoRelanceAt: now,
         relanceCount: cand.relanceCount + 1,
         lastRelanceAt: now,
-        lastChannelUsed: rule.channel,
+        lastChannelUsed: 'EMAIL',
       },
     })
 
@@ -160,8 +167,8 @@ export async function runAutoRelanceEngine(options: RunEngineOptions = {}) {
       data: {
         candidatureId: cand.id,
         agentName: '🤖 Moteur Marketing BourseFi',
-        exchangeType: rule.channel === 'WHATSAPP' ? 'WHATSAPP' : rule.channel === 'EMAIL' ? 'EMAIL' : 'SUPPORT',
-        content: `[AUTOMATION MARKETING ${rule.name}]\n${text}`,
+        exchangeType: 'EMAIL',
+        content: `[AUTOMATION MARKETING ${rule.name}${blocage ? ` — message adapté : ${blocage}` : ''}]\n${text}`,
         nextAction: rule.scenarioStep >= 4 ? 'WAIT_CANDIDATE' : 'SEND_PAYMENT_LINK',
       },
     })
@@ -176,6 +183,7 @@ export async function runAutoRelanceEngine(options: RunEngineOptions = {}) {
     where: {
       role: 'STUDENT',
       candidatures: { none: {} },
+      relancesOptOutAt: null,
     },
   })
 
@@ -194,15 +202,15 @@ export async function runAutoRelanceEngine(options: RunEngineOptions = {}) {
 
     if (user.autoRelanceStep === 0) {
       if (force) {
-        targetRule = rules.find(r => r.scenarioStep === 1) || rules[0]
+        targetRule = rules[0] ?? null
       } else {
         const validRules = rules.filter(r => ageHours >= r.triggerHours)
         if (validRules.length > 0) {
-          targetRule = validRules[validRules.length - 1]
+          targetRule = validRules[validRules.length - 1] ?? null
         }
       }
     } else {
-      const nextRule = rules.find(r => r.scenarioStep === user.autoRelanceStep + 1)
+      const nextRule = rules.find(r => r.scenarioStep > user.autoRelanceStep)
       if (nextRule && (force || ageHours >= nextRule.triggerHours)) {
         targetRule = nextRule
       }
@@ -213,10 +221,9 @@ export async function runAutoRelanceEngine(options: RunEngineOptions = {}) {
     const rule = targetRule
     const prenom = user.firstName || user.name.split(' ')[0] || 'Étudiant'
     const nom = user.lastName || ''
-    const appUrl = (process.env.NUXT_PUBLIC_APP_URL || process.env.NUXT_PUBLIC_SITE_URL || 'https://boursefi.sn').replace(/\/+$/, '')
     const lienCatalogue = `${appUrl}/bourses`
-    const codePromo = rule.codePromo || 'RENTREE2026'
-    const lignePromo = rule.codePromo ? `🎁 Profitez du code promo ${codePromo} lors de votre inscription !` : ''
+    const codePromo = usablePromo(rule.codePromo)
+    const lignePromo = codePromo ? `Profitez du code promo ${codePromo} lors de votre inscription.` : ''
 
     // Candidature commencée depuis une bourse : on propose de la terminer plutôt que de renvoyer au catalogue
     const draft = parseApplicationDraft(user.applicationDraft)
@@ -285,35 +292,32 @@ ${lignePromo}
 L'équipe BourseFi.`
     }
 
+    text = text.replace(/\n{3,}/g, '\n\n')
+
     let emailSentSuccess = false
+    try {
+      const htmlContent = renderEmail({
+        title,
+        bodyHtml: `<p>${text.replace(/\n/g, '<br>')}</p>${unsubscribeFooterHtml(appUrl, user.email)}`,
+        ctaLabel,
+        ctaUrl,
+      })
 
-    if (rule.channel === 'EMAIL' || rule.channel === 'BOTH') {
-      try {
-        const htmlContent = renderEmail({
-          title,
-          bodyHtml: `<p>${text.replace(/\n/g, '<br>')}</p>`,
-          ctaLabel,
-          ctaUrl,
-        })
-
-        emailSentSuccess = await sendEmail({
-          to: { email: user.email, name: `${prenom} ${nom}`.trim() },
-          subject,
-          html: htmlContent,
-          text,
-        })
-      } catch (err) {
-        console.error(`❌ Erreur relance compte utilisateur pour ${user.email}:`, err)
-      }
-    } else {
-      emailSentSuccess = true
+      emailSentSuccess = await sendEmail({
+        to: { email: user.email, name: `${prenom} ${nom}`.trim() },
+        subject,
+        html: htmlContent,
+        text,
+      })
+    } catch (err) {
+      console.error(`❌ Erreur relance compte utilisateur pour ${user.email}:`, err)
     }
 
     const log = await prisma.autoRelanceLog.create({
       data: {
         userId: user.id,
         scenarioStep: rule.scenarioStep,
-        channel: rule.channel,
+        channel: 'EMAIL',
         status: emailSentSuccess ? 'SENT' : 'FAILED',
       },
     })

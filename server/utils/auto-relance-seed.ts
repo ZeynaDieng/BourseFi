@@ -1,113 +1,106 @@
 import { prisma } from './prisma'
 
+/**
+ * Messages recommandés (nov. 2026) : parler de ce que l'étudiant gagne, avec des chiffres réels
+ * (une ligne dont la donnée manque est retirée), et un seul code promo, au dernier message.
+ * L'envoi automatique se fait par email ; WhatsApp reste une relance manuelle depuis l'admin.
+ */
 export const DEFAULT_AUTO_RELANCE_RULES = [
   {
     scenarioStep: 1,
-    name: 'SCÉNARIO 1 — RELANCE RAPIDE (1H)',
+    name: 'SCÉNARIO 1 — ATTESTATION PRÊTE (1H)',
     triggerHours: 1,
-    channel: 'BOTH',
+    channel: 'EMAIL',
     codePromo: null,
+    subjectTemplate: '{{prenom}}, votre attestation de bourse est prête',
     messageTemplate: `Bonjour {{prenom}},
 
-Vous avez commencé votre inscription pour {{formation}} sur BourseFi mais vous n'avez pas encore finalisé votre paiement.
+Votre attestation de bourse pour {{formation}} est prête.
+Elle vous fait bénéficier de {{pourcentage}} % de prise en charge à {{ecole}}.
 
-Vos informations ont bien été conservées. Cliquez ci-dessous pour finaliser votre dossier en 2 minutes :
+Il ne reste qu'à régler les frais de dossier ({{montant}}) pour la télécharger :
 {{lien_paiement}}
 
-À très vite,
 L'équipe BourseFi.`,
     isActive: true,
   },
   {
     scenarioStep: 2,
-    name: 'SCÉNARIO 2 — RELANCE J+1 (24H)',
+    name: 'SCÉNARIO 2 — CE QUE VOUS GAGNEZ (24H)',
     triggerHours: 24,
-    channel: 'BOTH',
+    channel: 'EMAIL',
     codePromo: null,
+    subjectTemplate: '{{pourcentage}} % de votre scolarité pris en charge',
     messageTemplate: `Bonjour {{prenom}},
 
-Votre demande de bourse pour {{formation}} est toujours disponible, mais le nombre de places par établissement partenaire est limité.
+Votre bourse couvre {{pourcentage}} % de votre scolarité en {{formation}} à {{ecole}}.
+Cela représente une économie de {{economie}} sur votre formation.
 
-Vous pouvez réserver définitivement votre place en finalisant ici :
+Les frais de dossier sont de {{montant}}, payables par Wave, Orange Money ou carte bancaire en 2 minutes :
 {{lien_paiement}}
 
-Si vous rencontrez des difficultés avec votre règlement (Wave, Orange Money, Carte bancaire), répondez directement à cet email.
-
-Cordialement,
 L'équipe BourseFi.`,
     isActive: true,
   },
   {
     scenarioStep: 3,
-    name: 'SCÉNARIO 3 — RELANCE J+3 AVEC CODE PROMO (72H)',
+    name: 'SCÉNARIO 3 — DATE LIMITE (72H)',
     triggerHours: 72,
-    channel: 'BOTH',
-    codePromo: 'RENTREE2026',
+    channel: 'EMAIL',
+    codePromo: null,
+    subjectTemplate: 'Votre attestation pour {{formation}} vous attend',
     messageTemplate: `Bonjour {{prenom}},
 
-Pour vous aider à concrétiser votre inscription pour {{formation}}, nous vous offrons exceptionnellement le code promo {{code_promo}} !
+Votre attestation de bourse pour {{formation}} vous attend toujours.
 
-Saisissez ce code lors de votre paiement ici :
+Les candidatures pour cette bourse ferment le {{date_limite}}.
+
+Débloquez votre attestation ici :
 {{lien_paiement}}
 
-Cette offre est valable pendant 48 heures seulement.
-
-À très bientôt,
 L'équipe BourseFi.`,
     isActive: true,
   },
   {
     scenarioStep: 4,
-    name: 'SCÉNARIO 4 — DERNIER RAPPEL SEMAINE (J+7 / 168H)',
+    name: 'SCÉNARIO 4 — BESOIN D’AIDE ? (J+7)',
     triggerHours: 168,
-    channel: 'BOTH',
+    channel: 'EMAIL',
     codePromo: null,
+    subjectTemplate: '{{prenom}}, un souci pour finaliser ?',
     messageTemplate: `Bonjour {{prenom}},
 
-Ceci est un rappel concernant votre dossier d'inscription pour {{formation}}.
+Votre dossier pour {{formation}} n'est pas encore finalisé. Si quelque chose vous bloque, nous sommes là pour vous aider :
 
-Sans action de votre part, votre place pré-réservée pourra être attribuée à un candidat sur liste d'attente.
+- des parents à convaincre ?
+- un paiement Wave ou Orange Money qui ne passe pas ?
+- une question sur la formation ?
 
-Finalisez votre dossier dès maintenant :
+Répondez simplement à cet email, un conseiller vous répond.
+
+Votre attestation :
 {{lien_paiement}}
 
-Excellente journée,
 L'équipe BourseFi.`,
     isActive: true,
   },
   {
     scenarioStep: 5,
-    name: 'SCÉNARIO 5 — RECONQUÊTE 2 SEMAINES (J+14 / 336H)',
-    triggerHours: 336,
-    channel: 'BOTH',
+    name: 'SCÉNARIO 5 — DERNIER MESSAGE + CODE PROMO (J+15)',
+    triggerHours: 360,
+    channel: 'EMAIL',
     codePromo: 'RENTREE2026',
+    subjectTemplate: 'Dernier message pour votre bourse {{formation}}',
     messageTemplate: `Bonjour {{prenom}},
 
-Cela fait 2 semaines que vous avez démarré votre candidature pour {{formation}}.
+C'est notre dernier message au sujet de votre bourse pour {{formation}}.
 
-Nous serions ravis de vous compter parmi nos étudiants cette année. Si vous avez des questions sur le programme ou le règlement, répondez directement à cet email.
+Pour vous aider à finaliser, voici un code promo à saisir au paiement : {{code_promo}}
 
-Vous pouvez toujours finaliser votre inscription avec votre code promo {{code_promo}} ici :
+Votre attestation :
 {{lien_paiement}}
 
-À très vite,
-L'équipe BourseFi.`,
-    isActive: true,
-  },
-  {
-    scenarioStep: 6,
-    name: 'SCÉNARIO 6 — RELANCE MENSUELLE (J+30 / 720H)',
-    triggerHours: 720,
-    channel: 'BOTH',
-    codePromo: null,
-    messageTemplate: `Bonjour {{prenom}},
-
-Les inscriptions pour la session en cours touchent à leur fin pour {{formation}}.
-
-Si vous souhaitez confirmer votre candidature ou reporter votre rentrée à la session suivante, cliquez sur le lien ci-dessous :
-{{lien_paiement}}
-
-Restant à votre disposition,
+Nous vous souhaitons une excellente réussite dans vos études.
 L'équipe BourseFi.`,
     isActive: true,
   },
@@ -127,4 +120,12 @@ export async function ensureAutoRelanceRulesSeeded() {
   } catch (err) {
     console.error('⚠️ [BourseFi AutoRelance] Seeding error:', err)
   }
+}
+
+/** Remplace toutes les règles par les messages recommandés (bouton de l'admin). */
+export async function resetAutoRelanceRulesToDefaults() {
+  await prisma.$transaction([
+    prisma.autoRelanceRule.deleteMany({}),
+    ...DEFAULT_AUTO_RELANCE_RULES.map((rule) => prisma.autoRelanceRule.create({ data: rule })),
+  ])
 }

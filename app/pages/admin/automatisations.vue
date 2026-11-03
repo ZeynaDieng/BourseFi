@@ -11,6 +11,7 @@ type AutoRule = {
   triggerHours: number
   channel: 'WHATSAPP' | 'EMAIL' | 'BOTH'
   codePromo: string | null
+  subjectTemplate: string | null
   messageTemplate: string
   isActive: boolean
   updatedAt: string
@@ -114,6 +115,7 @@ const editForm = reactive({
   triggerHours: 24,
   channel: 'BOTH' as 'WHATSAPP' | 'EMAIL' | 'BOTH',
   codePromo: '',
+  subjectTemplate: '',
   messageTemplate: '',
   isActive: true,
 })
@@ -167,9 +169,26 @@ function openEditModal(rule: AutoRule) {
   editForm.triggerHours = rule.triggerHours
   editForm.channel = rule.channel
   editForm.codePromo = rule.codePromo || ''
+  editForm.subjectTemplate = rule.subjectTemplate || ''
   editForm.messageTemplate = rule.messageTemplate
   editForm.isActive = rule.isActive
   ruleModalOpen.value = true
+}
+
+const RELANCE_VARIABLES_HELP = '{{prenom}}, {{nom}}, {{formation}}, {{ecole}}, {{pourcentage}}, {{economie}}, {{montant}}, {{date_limite}}, {{lien_paiement}}, {{code_promo}}'
+
+const resettingRules = ref(false)
+async function applyRecommendedRules() {
+  if (!confirm('Remplacer tous les scénarios par les messages recommandés ? Vos messages actuels seront écrasés.')) return
+  resettingRules.value = true
+  try {
+    await $fetch('/api/admin/automatisations/rules-reset', { method: 'POST' })
+    await refreshRules()
+  } catch (e: unknown) {
+    alert(getAdminErrorMessage(e, 'Impossible d’appliquer les messages recommandés.'))
+  } finally {
+    resettingRules.value = false
+  }
 }
 
 async function saveRule() {
@@ -183,6 +202,7 @@ async function saveRule() {
         triggerHours: Number(editForm.triggerHours),
         channel: editForm.channel,
         codePromo: editForm.codePromo || null,
+        subjectTemplate: editForm.subjectTemplate || null,
         messageTemplate: editForm.messageTemplate,
         isActive: editForm.isActive,
       },
@@ -277,8 +297,20 @@ async function saveRule() {
       <div class="mt-8 space-y-4">
         <div class="flex items-center justify-between">
           <h2 class="text-sm font-bold uppercase tracking-wider text-slate-800">⚙️ Scénarios d'Automatisation Configurables</h2>
-          <span class="text-xs text-slate-500">Modifiables, activables et personnalisables en direct</span>
+          <button
+            type="button"
+            class="admin-btn-secondary text-xs"
+            :disabled="resettingRules"
+            @click="applyRecommendedRules"
+          >
+            {{ resettingRules ? 'Application…' : 'Appliquer les messages recommandés' }}
+          </button>
         </div>
+        <p class="text-xs text-slate-500">
+          Les relances automatiques partent par email. Une ligne dont la donnée manque (date limite passée, économie inconnue…)
+          est retirée du message, et un code promo expiré ou épuisé n'est jamais proposé.
+          Un étudiant qui indique « Je ne peux pas payer maintenant » reçoit un message adapté à son motif.
+        </p>
 
         <div class="grid gap-4 md:grid-cols-2">
           <div
@@ -317,10 +349,8 @@ async function saveRule() {
             <!-- Paramètres du Scénario -->
             <div class="grid grid-cols-2 gap-2 text-xs pt-1 border-t border-slate-100">
               <div>
-                <span class="text-slate-400">Canaux :</span>
-                <span class="font-semibold text-slate-700 ml-1">
-                  {{ rule.channel === 'BOTH' ? '🟢 WhatsApp + ✉️ Email' : rule.channel === 'WHATSAPP' ? '🟢 WhatsApp' : '✉️ Email' }}
-                </span>
+                <span class="text-slate-400">Canal :</span>
+                <span class="font-semibold text-slate-700 ml-1">✉️ Email automatique</span>
               </div>
               <div>
                 <span class="text-slate-400">Code Promo :</span>
@@ -329,6 +359,7 @@ async function saveRule() {
             </div>
 
             <!-- Aperçu du Message -->
+            <p v-if="rule.subjectTemplate" class="text-xs text-slate-600"><span class="text-slate-400">Objet :</span> {{ rule.subjectTemplate }}</p>
             <div class="rounded-xl bg-slate-50 p-3 text-xs text-slate-700 whitespace-pre-wrap font-mono border border-slate-100 max-h-28 overflow-y-auto">
               {{ rule.messageTemplate }}
             </div>
@@ -506,14 +537,10 @@ async function saveRule() {
               <input v-model.number="editForm.triggerHours" type="number" class="admin-input" min="1" />
             </div>
 
-            <div>
-              <label class="block text-slate-500 font-medium mb-1">Canal d'envoi</label>
-              <select v-model="editForm.channel" class="admin-input bg-white">
-                <option value="BOTH">🟢 WhatsApp + ✉️ Email (Recommandé)</option>
-                <option value="WHATSAPP">🟢 WhatsApp Uniquement</option>
-                <option value="EMAIL">✉️ Email Uniquement</option>
-              </select>
-            </div>
+            <p class="rounded-lg bg-slate-50 px-3 py-2 text-slate-500">
+              Envoi automatique par email. Les relances WhatsApp se font en un clic depuis Candidatures
+              ou depuis « Candidatures commencées » ci-dessous.
+            </p>
 
             <div>
               <label class="block text-slate-500 font-medium mb-1">Code Promo associé (Optionnel)</label>
@@ -521,7 +548,13 @@ async function saveRule() {
             </div>
 
             <div>
-              <label class="block text-slate-500 font-medium mb-1">Modèle du message (Variables disponibles : {{prenom}}, {{nom}}, {{formation}}, {{lien_paiement}}, {{code_promo}})</label>
+              <label class="block text-slate-500 font-medium mb-1">Objet de l'email</label>
+              <input v-model="editForm.subjectTemplate" type="text" placeholder="Ex: {{prenom}}, votre attestation de bourse est prête" class="admin-input" />
+            </div>
+
+            <div>
+              <label class="block text-slate-500 font-medium mb-1">Modèle du message</label>
+              <p class="mb-1 text-[11px] text-slate-400">Variables : {{ RELANCE_VARIABLES_HELP }}. Une ligne dont une variable est vide est retirée.</p>
               <textarea v-model="editForm.messageTemplate" rows="5" class="admin-input font-mono text-xs"></textarea>
             </div>
           </div>

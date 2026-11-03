@@ -25,3 +25,14 @@ describe('Liens WhatsApp', () => {
     expect(decodeURIComponent(url.split('text=')[1])).toBe('Bonjour Awa')
   })
 })
+
+import { unsubscribeToken, verifyUnsubscribeToken } from '../../server/utils/relance-message'
+
+describe('Désabonnement des relances', () => {
+  it('jeton lié à l’adresse, insensible à la casse, non falsifiable', () => {
+    const t = unsubscribeToken('Awa@Example.test')
+    expect(verifyUnsubscribeToken('awa@example.test', t)).toBe(true)
+    expect(verifyUnsubscribeToken('autre@example.test', t)).toBe(false)
+    expect(verifyUnsubscribeToken('awa@example.test', t.slice(0, -1) + (t.endsWith('A') ? 'B' : 'A'))).toBe(false)
+  })
+})

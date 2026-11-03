@@ -255,6 +255,8 @@ model User {
   relanceLogs            AutoRelanceLog[]
   /// Candidature commencée mais pas encore envoyée (bourse choisie + champs saisis)
   applicationDraft       Json?
+  /// Désabonné des relances automatiques (lien en bas des emails de relance)
+  relancesOptOutAt       DateTime?
 
   @@index([role])
   @@index([createdAt])
@@ -561,6 +563,8 @@ model AutoRelanceRule {
   triggerHours    Int
   channel         String   @default("BOTH")
   codePromo       String?
+  /// Objet de l'email (mêmes variables que le message) ; vide = objet par défaut
+  subjectTemplate String?
   messageTemplate String
   isActive        Boolean  @default(true)
   createdAt       DateTime @default(now())
