@@ -73,6 +73,7 @@ const authLoading = ref(false)
 const authJustCompleted = ref(false)
 
 const promoInput = ref('')
+const showPromoField = ref(false)
 const promoLoading = ref(false)
 const promoError = ref('')
 const appliedPromo = ref<{
@@ -606,7 +607,7 @@ useSeoMeta({
 
     <div class="mt-6 grid gap-6 lg:grid-cols-12">
       <!-- Colonne formulaire -->
-      <section class="lg:col-span-7">
+      <section class="min-w-0 lg:col-span-7">
         <!-- Recap repliée mobile -->
         <details class="mb-4 rounded-2xl border border-slate-100 bg-white p-4 shadow-premium lg:hidden">
           <summary class="flex cursor-pointer items-center justify-between text-sm font-semibold text-primary">
@@ -635,7 +636,7 @@ useSeoMeta({
               <h2 class="font-headline text-lg font-bold text-primary">Votre espace candidat</h2>
               <p class="mt-1 text-sm text-slate-500">
                 Créez votre espace pour enregistrer votre dossier et recevoir votre attestation par email.
-                Environ 30 secondes — vos données sont sécurisées.
+                Vos données sont sécurisées.
               </p>
             </div>
 
@@ -938,19 +939,30 @@ useSeoMeta({
 
             <!-- Bloc Code Promo -->
             <div class="rounded-2xl border border-slate-100 bg-slate-50/60 p-4">
-              <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Code Promo / Réduction</p>
-              
-              <div v-if="!appliedPromo" class="mt-3 flex gap-2">
+              <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Récapitulatif des frais</p>
+
+              <!-- Discret : un champ code promo bien visible pousse ceux qui n'en ont pas à aller en chercher un -->
+              <button
+                v-if="!appliedPromo && !showPromoField"
+                type="button"
+                class="mt-2 text-xs font-semibold text-primary underline-offset-2 hover:underline"
+                @click="showPromoField = true"
+              >
+                J’ai un code promo
+              </button>
+
+              <div v-else-if="!appliedPromo" class="mt-3 flex gap-2">
                 <input
                   v-model="promoInput"
                   type="text"
-                  placeholder="Ex: BF50, BF100..."
-                  class="flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm uppercase font-semibold tracking-wider text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  placeholder="Votre code"
+                  autocapitalize="characters"
+                  class="w-full min-w-0 flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm uppercase font-semibold tracking-wider text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/20"
                   @keyup.enter.prevent="applyPromoCode"
                 />
                 <button
                   type="button"
-                  class="rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white transition hover:opacity-90 disabled:opacity-50"
+                  class="shrink-0 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white transition hover:opacity-90 disabled:opacity-50"
                   :disabled="promoLoading || !promoInput.trim()"
                   @click="applyPromoCode"
                 >

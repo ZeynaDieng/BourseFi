@@ -130,8 +130,10 @@ function reset() {
       <span class="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
         <span class="material-symbols-outlined text-[26px]">photo_camera</span>
       </span>
-      <span class="text-sm font-semibold text-primary">Glisser ou déposer votre fichier ici</span>
-      <span class="text-xs text-slate-500">ou cliquez pour parcourir</span>
+      <!-- Sur téléphone, « glisser-déposer » n'a pas de sens -->
+      <span class="text-sm font-semibold text-primary sm:hidden">Prendre une photo ou choisir un fichier</span>
+      <span class="hidden text-sm font-semibold text-primary sm:inline">Glisser ou déposer votre fichier ici</span>
+      <span class="hidden text-xs text-slate-500 sm:inline">ou cliquez pour parcourir</span>
       <span class="mt-1 inline-flex gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
         <span class="rounded bg-white px-1.5 py-0.5 ring-1 ring-slate-200">JPG</span>
         <span class="rounded bg-white px-1.5 py-0.5 ring-1 ring-slate-200">PNG</span>
