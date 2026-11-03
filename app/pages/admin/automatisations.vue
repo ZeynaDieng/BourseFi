@@ -175,7 +175,7 @@ function openEditModal(rule: AutoRule) {
   ruleModalOpen.value = true
 }
 
-const RELANCE_VARIABLES_HELP = '{{prenom}}, {{nom}}, {{formation}}, {{ecole}}, {{pourcentage}}, {{economie}}, {{montant}}, {{date_limite}}, {{lien_paiement}}, {{code_promo}}'
+const RELANCE_VARIABLES_HELP = '{{prenom}}, {{nom}}, {{formation}}, {{ecole}}, {{avantage}} (« 50 % de réduction » ou « 400 000 FCFA d’économie », le plus parlant), {{economie_appui}} (montant, seulement quand {{avantage}} est un pourcentage), {{pourcentage}}, {{economie}}, {{montant}}, {{date_limite}}, {{lien_paiement}}, {{code_promo}}'
 
 const resettingRules = ref(false)
 async function applyRecommendedRules() {

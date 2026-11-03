@@ -139,7 +139,7 @@ describe('Relances — dossier en attente de paiement', () => {
     await runAutoRelanceEngine()
     const [mail] = sent()
     expect(mail.subject).toBe('[BourseFi] Awa, votre attestation de bourse est prête')
-    expect(plain(mail.text)).toContain('48 % de prise en charge à IFAA')
+    expect(plain(mail.text)).toContain('48 % de réduction sur votre scolarité à IFAA')
     expect(plain(mail.text)).toContain('frais de dossier (15 000 FCFA)')
     expect(mail.html).toContain('href="https://boursefi.test/paiement?candidatureId=c1"')
     expect(mail.html).toContain('src="https://boursefi.test/emails/apercu-attestation.jpg"')
@@ -149,8 +149,25 @@ describe('Relances — dossier en attente de paiement', () => {
   it('24h : économie calculée comme sur la page de la bourse', async () => {
     candidatures = [dossier({ autoRelanceStep: 1, createdAt: new Date(Date.now() - 30 * HOUR) })]
     await runAutoRelanceEngine()
-    expect(plain(sent()[0].text)).toContain('une économie de 720 000 FCFA')
-    expect(plain(sent()[0].subject)).toContain('48 % de votre scolarité')
+    expect(plain(sent()[0].text)).toContain('Soit 720 000 FCFA en moins à payer')
+    expect(plain(sent()[0].subject)).toContain('Awa, 48 % de réduction sur votre scolarité')
+  })
+
+  it('moins de 30 % : le montant économisé remplace le pourcentage', async () => {
+    const base = dossier()
+    candidatures = [dossier({
+      autoRelanceStep: 1,
+      createdAt: new Date(Date.now() - 30 * HOUR),
+      programme: { ...base.programme, tarifs: [{ status: 'ACTIVE', isDefault: true, montant: 2400000, montantBourse: 2000000, anneeAcademique: '2026-2027' }] },
+      bourse: { ...base.bourse, coveragePercent: 17 },
+    })]
+    await runAutoRelanceEngine()
+    const subject = plain(sent()[0].subject)
+    const text = plain(sent()[0].text)
+    expect(subject).toBe("[BourseFi] Awa, 400 000 FCFA d'économie sur votre scolarité")
+    expect(text).toContain("vous bénéficiez de 400 000 FCFA d'économie sur votre scolarité")
+    expect(text).not.toContain('%')
+    expect(text).not.toContain('en moins à payer')
   })
 
   it('une ligne dont la donnée manque est retirée (pas de trou ni de chiffre inventé)', async () => {
@@ -181,7 +198,7 @@ describe('Relances — dossier en attente de paiement', () => {
     await runAutoRelanceEngine()
     const [mail] = sent()
     expect(mail.subject).toContain('un message tout prêt pour vos parents')
-    expect(plain(mail.text)).toContain('Elle couvre 48 % de ma scolarité à IFAA')
+    expect(plain(mail.text)).toContain('Elle me donne 48 % de réduction sur ma scolarité à IFAA')
     expect(mail.text).not.toContain('RENTREE2026')
     expect(notes[0].content).toContain('message adapté : PARENT_APPROVAL')
   })

@@ -16,7 +16,7 @@ export const DEFAULT_AUTO_RELANCE_RULES = [
     messageTemplate: `Bonjour {{prenom}},
 
 Votre attestation de bourse pour {{formation}} est prête.
-Elle vous fait bénéficier de {{pourcentage}} % de prise en charge à {{ecole}}.
+Elle vous fait bénéficier de {{avantage}} sur votre scolarité à {{ecole}}.
 
 Il ne reste qu'à régler les frais de dossier ({{montant}}) pour la télécharger :
 {{lien_paiement}}
@@ -30,11 +30,11 @@ L'équipe BourseFi.`,
     triggerHours: 24,
     channel: 'EMAIL',
     codePromo: null,
-    subjectTemplate: '{{pourcentage}} % de votre scolarité pris en charge',
+    subjectTemplate: '{{prenom}}, {{avantage}} sur votre scolarité',
     messageTemplate: `Bonjour {{prenom}},
 
-Votre bourse couvre {{pourcentage}} % de votre scolarité en {{formation}} à {{ecole}}.
-Cela représente une économie de {{economie}} sur votre formation.
+Grâce à votre bourse, vous bénéficiez de {{avantage}} sur votre scolarité en {{formation}} à {{ecole}}.
+Soit {{economie_appui}} en moins à payer.
 
 Les frais de dossier sont de {{montant}}, payables par Wave, Orange Money ou carte bancaire en 2 minutes :
 {{lien_paiement}}

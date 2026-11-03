@@ -23,6 +23,10 @@ const isDirectRate = computed(() => {
 })
 
 const { activeTarif, referenceTarif, isPromo, formatFcfa } = useTarification(props.bourse.fraisDossier || 0)
+
+// Le chiffre le plus fort d'abord : « 50 % de réduction » à partir de 30 %, sinon le montant économisé
+const percent = computed(() => displayPercent(props.bourse))
+const leadWithPercent = computed(() => showCoveragePercent.value && percent.value >= PERCENT_HIGHLIGHT_MIN)
 </script>
 
 <template>
@@ -45,17 +49,20 @@ const { activeTarif, referenceTarif, isPromo, formatFcfa } = useTarification(pro
 
       <!-- Bulle Jaune BourseFi (Pill Badge) -->
       <div class="mt-4 flex flex-wrap items-center gap-2">
-        <span v-if="hasRealSavings" :class="[badgeCoverage, 'w-fit font-bold']">
-          Économisez {{ bourse.economie?.toLocaleString('fr-FR') }} {{ bourse.devise }}/an
-          <template v-if="showCoveragePercent && bourse.economiePercent">
-            ({{ bourse.economiePercent }} %)
-          </template>
-        </span>
+        <template v-if="hasRealSavings">
+          <span v-if="leadWithPercent" :class="[badgeCoverage, 'w-fit font-bold']">
+            {{ percent }} % de réduction
+          </span>
+          <span :class="leadWithPercent ? 'text-xs font-semibold text-emerald-700' : [badgeCoverage, 'w-fit font-bold']">
+            <template v-if="leadWithPercent">soit {{ bourse.economie?.toLocaleString('fr-FR') }} {{ bourse.devise }} économisés</template>
+            <template v-else>Économisez {{ bourse.economie?.toLocaleString('fr-FR') }} {{ bourse.devise }}</template>
+          </span>
+        </template>
         <span v-else-if="isDirectRate || bourse.tuitionFee || bourse.montantBourse" class="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800">
           Tarif officiel garanti : {{ (bourse.montantBourse || bourse.tuitionFee || 0).toLocaleString('fr-FR') }} {{ bourse.devise }}
         </span>
-        <span v-else-if="showCoveragePercent && bourse.coveragePercent > 0" :class="[badgeCoverage, 'w-fit']">
-          {{ bourse.coveragePercent }} % de réduction
+        <span v-else-if="leadWithPercent" :class="[badgeCoverage, 'w-fit']">
+          {{ percent }} % de réduction
         </span>
       </div>
 

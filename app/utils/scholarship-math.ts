@@ -74,3 +74,18 @@ export function formatFcfa(amount: number | null | undefined, devise = 'FCFA'): 
   }
   return `${amount.toLocaleString('fr-FR')} ${devise}`
 }
+
+/**
+ * En dessous de ce pourcentage, « X % » paraît faible : on met en avant le montant économisé.
+ * À partir de ce seuil, le pourcentage est le chiffre le plus parlant (« 50 % de réduction »).
+ */
+export const PERCENT_HIGHLIGHT_MIN = 30
+
+/** Pourcentage affiché : arrondi (pas de « 16,67 % »), basé sur l'économie réelle quand elle est connue. */
+export function displayPercent(bourse: { coveragePercent?: number | null; economiePercent?: number | null }): number {
+  return Math.round(bourse.economiePercent ?? bourse.coveragePercent ?? 0)
+}
+
+export function highlightPercent(bourse: { coveragePercent?: number | null; economiePercent?: number | null }): boolean {
+  return displayPercent(bourse) >= PERCENT_HIGHLIGHT_MIN
+}

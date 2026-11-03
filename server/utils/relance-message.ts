@@ -1,12 +1,12 @@
 import { createHash, createHmac, timingSafeEqual } from 'node:crypto'
-import { computeScholarshipEconomy } from '../../app/utils/scholarship-math'
+import { computeScholarshipEconomy, PERCENT_HIGHLIGHT_MIN } from '../../app/utils/scholarship-math'
 
 /**
  * Variables disponibles dans les messages de relance. Toutes sont issues de données réelles :
  * une variable inconnue reste vide, et la ligne qui la contient est retirée du message.
  */
 export const RELANCE_VARIABLES = [
-  'prenom', 'nom', 'formation', 'ecole', 'pourcentage', 'economie', 'montant', 'date_limite', 'lien_paiement', 'code_promo',
+  'prenom', 'nom', 'formation', 'ecole', 'pourcentage', 'economie', 'avantage', 'economie_appui', 'montant', 'date_limite', 'lien_paiement', 'code_promo',
 ] as const
 
 export type RelanceVars = Partial<Record<(typeof RELANCE_VARIABLES)[number], string>>
@@ -85,6 +85,18 @@ export function candidatureRelanceVars(cand: CandidatureForVars, opts: { lienPai
       devise,
     )
     if (economy.economie && economy.economie > 0) vars.economie = fcfa(economy.economie, devise)
+
+    // Le chiffre le plus fort d'abord, comme sur le site : « 50 % de réduction » à partir de 30 %,
+    // sinon le montant (« 400 000 FCFA d'économie » parle plus que « 17 % »)
+    const pct = Math.round(economy.economiePercent ?? cand.bourse.coveragePercent)
+    if (pct >= PERCENT_HIGHLIGHT_MIN) {
+      vars.avantage = `${pct} % de réduction`
+      if (vars.economie) vars.economie_appui = vars.economie
+    } else if (vars.economie) {
+      vars.avantage = `${vars.economie} d'économie`
+    } else if (pct > 0) {
+      vars.avantage = `${pct} % de réduction`
+    }
   }
   return vars
 }
@@ -98,8 +110,8 @@ export const BLOCAGE_MESSAGES: Record<'PARENT_APPROVAL' | 'TECHNICAL_ISSUE' | 'F
 Vous nous avez indiqué vouloir d'abord en parler à vos parents. Voici un message que vous pouvez leur transférer :
 
 « Bonjour, j'ai obtenu une bourse d'études pour la formation {{formation}} grâce à BourseFi.
-Elle couvre {{pourcentage}} % de ma scolarité à {{ecole}}.
-Cela représente une économie de {{economie}}.
+Elle me donne {{avantage}} sur ma scolarité à {{ecole}}.
+Soit {{economie_appui}} en moins à payer.
 Pour recevoir mon attestation de bourse, il faut régler les frais de dossier de {{montant}} (Wave, Orange Money ou carte bancaire). »
 
 Quand vous êtes prêt(e), votre attestation vous attend ici :

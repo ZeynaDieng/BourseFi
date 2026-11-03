@@ -3,6 +3,9 @@ import type { BourseDto } from '~/types/bourse'
 
 const route = useRoute()
 const showCoveragePercent = useShowCoveragePercent()
+// Le chiffre le plus fort d'abord : « 50 % de réduction » à partir de 30 %, sinon le montant économisé
+const percent = computed(() => (bourse.value ? displayPercent(bourse.value) : 0))
+const leadWithPercent = computed(() => showCoveragePercent.value && percent.value >= PERCENT_HIGHLIGHT_MIN)
 
 const { data: bourse, error } = await useFetch<any>(
   () => `/api/bourses/${route.params.slug}`,
@@ -89,9 +92,9 @@ useSiteSeo({
 
       <div class="p-6 md:p-8">
         <div class="flex flex-wrap gap-2">
-          <span v-if="showCoveragePercent && bourse.coveragePercent > 0" class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-3 py-1 text-xs font-extrabold text-emerald-700 ring-1 ring-emerald-200">
+          <span v-if="leadWithPercent" class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-3 py-1 text-xs font-extrabold text-emerald-700 ring-1 ring-emerald-200">
             <span class="material-symbols-outlined text-sm">verified</span>
-            {{ bourse.coveragePercent }} % de prise en charge
+            {{ percent }} % de réduction
           </span>
           <span class="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
             {{ bourse.programmeNiveau }}
@@ -107,9 +110,16 @@ useSiteSeo({
 
         <!-- Le gain avant le coût : premier chiffre lu sur la page -->
         <div v-if="bourse.economie && bourse.economie > 0" class="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-center">
-          <p class="text-xs font-bold uppercase tracking-wider text-emerald-700">Avec cette bourse, vous économisez</p>
-          <p class="mt-1 font-headline text-3xl font-extrabold text-emerald-700">{{ bourse.economie.toLocaleString('fr-FR') }} {{ bourse.devise }}</p>
-          <p class="mt-0.5 text-xs text-emerald-800">sur vos frais de scolarité</p>
+          <template v-if="leadWithPercent">
+            <p class="text-xs font-bold uppercase tracking-wider text-emerald-700">Avec cette bourse</p>
+            <p class="mt-1 font-headline text-3xl font-extrabold text-emerald-700">{{ percent }} % de réduction</p>
+            <p class="mt-0.5 text-xs text-emerald-800">soit {{ bourse.economie.toLocaleString('fr-FR') }} {{ bourse.devise }} économisés sur vos frais de scolarité</p>
+          </template>
+          <template v-else>
+            <p class="text-xs font-bold uppercase tracking-wider text-emerald-700">Avec cette bourse, vous économisez</p>
+            <p class="mt-1 font-headline text-3xl font-extrabold text-emerald-700">{{ bourse.economie.toLocaleString('fr-FR') }} {{ bourse.devise }}</p>
+            <p class="mt-0.5 text-xs text-emerald-800">sur vos frais de scolarité</p>
+          </template>
         </div>
 
         <!-- Stats en grille -->
@@ -129,12 +139,6 @@ useSiteSeo({
               </p>
             </template>
             <p class="mt-0.5 text-xs text-slate-500">{{ bourse.devise }} de dossier</p>
-          </div>
-          <div v-if="showCoveragePercent && bourse.coveragePercent > 0" class="p-4 text-center">
-            <p class="font-headline text-xl font-bold text-emerald-600">
-              {{ bourse.coveragePercent }} %
-            </p>
-            <p class="mt-0.5 text-xs text-slate-500">Prise en charge</p>
           </div>
           <div class="p-4 text-center">
             <p class="font-headline text-xl font-bold text-primary">{{ bourse.programmeDuree }}</p>
@@ -202,7 +206,7 @@ useSiteSeo({
 
           <div v-if="bourse.economie && bourse.economie > 0" class="flex items-center justify-between border-b border-slate-100 py-3 gap-4">
             <span class="text-amber-900 font-extrabold">VOUS ÉCONOMISEZ</span>
-            <span class="font-black text-amber-800 text-base whitespace-nowrap">{{ bourse.economie.toLocaleString('fr-FR') }} {{ bourse.devise }} <template v-if="bourse.economiePercent">({{ bourse.economiePercent }} %)</template></span>
+            <span class="font-black text-amber-800 text-base whitespace-nowrap">{{ bourse.economie.toLocaleString('fr-FR') }} {{ bourse.devise }} <template v-if="leadWithPercent">({{ percent }} %)</template></span>
           </div>
 
           <div v-if="bourse.etablissementSlug === 'ifaa-dakar'" class="flex items-center justify-between border-b border-slate-100 py-3 gap-4">
@@ -433,11 +437,11 @@ useSiteSeo({
       <div class="mx-auto flex max-w-4xl items-center justify-between gap-3">
         <!-- Le gain d'abord ; les frais en second, avec le rappel qu'ils ne se paient qu'à la fin -->
         <div class="min-w-0">
-          <p v-if="bourse.economie && bourse.economie > 0" class="truncate text-sm font-extrabold text-emerald-700">
-            Économisez {{ bourse.economie.toLocaleString('fr-FR') }} {{ bourse.devise }}
+          <p v-if="leadWithPercent" class="truncate text-sm font-extrabold text-emerald-700">
+            {{ percent }} % de réduction
           </p>
-          <p v-else class="truncate text-sm font-extrabold text-emerald-700">
-            {{ bourse.coveragePercent }} % de prise en charge
+          <p v-else-if="bourse.economie && bourse.economie > 0" class="truncate text-sm font-extrabold text-emerald-700">
+            Économisez {{ bourse.economie.toLocaleString('fr-FR') }} {{ bourse.devise }}
           </p>
           <p class="truncate text-[11px] text-slate-500">
             Frais de dossier {{ formatFcfa(activeTarif) }} {{ bourse.devise }} · payés à la fin
