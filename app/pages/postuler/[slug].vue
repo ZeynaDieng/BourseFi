@@ -679,7 +679,7 @@ useSeoMeta({
               </label>
               <label class="block">
                 <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Mot de passe</span>
-                <input v-model="registerForm.password" type="password" minlength="10" maxlength="128" required autocomplete="new-password" class="mt-1 w-full rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-sm" placeholder="10 caractères min., lettres + chiffre ou symbole" />
+                <input v-model="registerForm.password" type="password" minlength="4" maxlength="128" required autocomplete="new-password" class="mt-1 w-full rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-sm" placeholder="4 caractères minimum" />
               </label>
               <div class="space-y-3">
                 <label class="flex items-start gap-3">
@@ -773,6 +773,11 @@ useSeoMeta({
                 <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Mot de passe</span>
                 <input v-model="loginForm.password" type="password" required class="mt-1 w-full rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-sm" />
               </label>
+              <div class="-mt-2 text-right">
+                <NuxtLink to="/auth/forgot-password" class="text-xs font-medium text-slate-500 hover:text-primary">
+                  Mot de passe oublié ?
+                </NuxtLink>
+              </div>
               <button
                 type="submit"
                 class="w-full rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:opacity-95 disabled:opacity-50"

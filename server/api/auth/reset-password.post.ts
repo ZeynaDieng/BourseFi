@@ -44,7 +44,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: INVALID_LINK })
   }
 
-  const policy = checkPassword(password, { email: user.email })
+  const policy = checkPassword(password, { email: user.email, role: user.role })
   if (!policy.ok) {
     // Le jeton reste valide : l'utilisateur peut corriger sa saisie.
     throw createError({ statusCode: 400, statusMessage: policy.message })

@@ -2,13 +2,19 @@
  * Politique de mot de passe unique, partagée entre le serveur (source de vérité)
  * et le frontend (aide à la saisie). Utilisée par : inscription, réinitialisation,
  * activation de compte et modification par un administrateur.
+ *
+ * Étudiants : règle volontairement légère (4 caractères minimum) pour ne pas freiner l'inscription ;
+ * la connexion reste protégée par la limitation de tentatives.
+ * Équipe (admin, partenaire) : règle renforcée, ces comptes donnent accès aux dossiers.
  */
 
-export const PASSWORD_MIN_LENGTH = 10
+export const PASSWORD_MIN_LENGTH = 4
+export const STAFF_PASSWORD_MIN_LENGTH = 10
 export const PASSWORD_MAX_LENGTH = 128
 
-export const PASSWORD_POLICY_HINT =
-  `Au moins ${PASSWORD_MIN_LENGTH} caractères, avec au moins une lettre et un chiffre ou un symbole. Évitez les mots de passe courants.`
+export const PASSWORD_POLICY_HINT = `Au moins ${PASSWORD_MIN_LENGTH} caractères.`
+
+const STAFF_ROLES = new Set(['ADMIN', 'PARTNER'])
 
 /** Mots de passe/radicaux interdits (comparaison après normalisation). */
 const FORBIDDEN_FRAGMENTS = [
@@ -22,19 +28,23 @@ const COMMON_PASSWORDS = new Set([
 ])
 
 function normalize(s: string) {
-  return s.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+  return s.normalize('NFKD').replace(/[̀-ͯ]/g, '').toLowerCase()
 }
 
 export type PasswordCheck = { ok: true } | { ok: false; message: string }
 
-export function checkPassword(password: unknown, context: { email?: string | null } = {}): PasswordCheck {
+export function checkPassword(password: unknown, context: { email?: string | null; role?: string | null } = {}): PasswordCheck {
   if (typeof password !== 'string') return { ok: false, message: 'Mot de passe invalide.' }
-  if (password.length < PASSWORD_MIN_LENGTH) {
-    return { ok: false, message: `Le mot de passe doit contenir au moins ${PASSWORD_MIN_LENGTH} caractères.` }
+  const staff = !!context.role && STAFF_ROLES.has(context.role)
+  const min = staff ? STAFF_PASSWORD_MIN_LENGTH : PASSWORD_MIN_LENGTH
+  if (password.length < min) {
+    return { ok: false, message: `Le mot de passe doit contenir au moins ${min} caractères.` }
   }
   if (password.length > PASSWORD_MAX_LENGTH) {
     return { ok: false, message: `Le mot de passe ne peut pas dépasser ${PASSWORD_MAX_LENGTH} caractères.` }
   }
+  if (!staff) return { ok: true }
+
   if (!/\p{L}/u.test(password) || !/[^\p{L}]/u.test(password)) {
     return { ok: false, message: 'Le mot de passe doit contenir au moins une lettre et un chiffre ou un symbole.' }
   }

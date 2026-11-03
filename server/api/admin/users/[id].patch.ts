@@ -46,7 +46,7 @@ export default defineEventHandler(async (event) => {
   if (parsed.data.emailVerified !== undefined) data.emailVerified = parsed.data.emailVerified
 
   if (parsed.data.newPassword) {
-    const policy = checkPassword(parsed.data.newPassword, { email: target.email })
+    const policy = checkPassword(parsed.data.newPassword, { email: target.email, role: parsed.data.role ?? target.role })
     if (!policy.ok) {
       throw createError({ statusCode: 400, statusMessage: policy.message })
     }

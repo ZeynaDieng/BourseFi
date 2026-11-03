@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { checkPassword, PASSWORD_POLICY_HINT } from '#shared/password-policy'
+import { checkPassword, PASSWORD_MIN_LENGTH, PASSWORD_POLICY_HINT } from '#shared/password-policy'
 
 const passwordHint = PASSWORD_POLICY_HINT
 
@@ -110,7 +110,7 @@ async function submitResetPassword() {
               v-model="password"
               :type="showPassword ? 'text' : 'password'"
               required
-              minlength="10"
+              :minlength="PASSWORD_MIN_LENGTH"
               maxlength="128"
               autocomplete="new-password"
               class="w-full rounded-xl border-slate-200 px-4 py-3 text-sm focus:border-primary focus:ring-primary pr-10"
@@ -135,7 +135,7 @@ async function submitResetPassword() {
             v-model="confirmPassword"
             :type="showPassword ? 'text' : 'password'"
             required
-            minlength="10"
+            :minlength="PASSWORD_MIN_LENGTH"
             class="w-full rounded-xl border-slate-200 px-4 py-3 text-sm focus:border-primary focus:ring-primary"
             placeholder="••••••••"
           />

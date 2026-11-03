@@ -1,5 +1,5 @@
 import { randomBytes } from 'node:crypto'
-import { getRequestURL } from 'h3'
+import { getRequestHost, type H3Event } from 'h3'
 import { z } from 'zod'
 import { requireRole } from '../../utils/auth'
 import { prisma } from '../../utils/prisma'
@@ -21,13 +21,12 @@ function buildRefCommand() {
   return `BF_${Date.now()}_${randomBytes(4).toString('hex')}`
 }
 
-/** En local, les URLs de retour doivent pointer vers localhost pour que l'iframe puisse notifier la page parente. */
-function resolveReturnOrigin(event: Parameters<typeof getRequestURL>[0], siteUrl: string): string {
-  const requestOrigin = getRequestURL(event).origin
-  if (requestOrigin.includes('localhost') || requestOrigin.includes('127.0.0.1')) {
-    return requestOrigin
-  }
-  return siteUrl.replace(/\/+$/, '')
+/** Domaine de la requête s'il s'agit du site (avec ou sans www), sinon l'URL publique configurée. */
+function paymentReturnOrigin(event: H3Event, publicSiteUrl: string) {
+  const site = new URL(publicSiteUrl)
+  const apex = site.host.replace(/^www\./, '')
+  const host = getRequestHost(event).toLowerCase()
+  return host === apex || host === `www.${apex}` ? `${site.protocol}//${host}` : site.origin
 }
 
 export default defineEventHandler(async (event) => {
@@ -150,7 +149,9 @@ export default defineEventHandler(async (event) => {
     ? siteUrl
     : 'https://boursefi.sn'
 
-  const returnBase = `${publicSiteUrl}/paiement/retour?candidatureId=${candidature.id}`
+  // Retour sur le domaine où l'étudiant est connecté (boursefi.sn ou www.boursefi.sn) :
+  // le cookie de session est propre à chaque domaine, un retour sur l'autre le déconnecterait.
+  const returnBase = `${paymentReturnOrigin(event, publicSiteUrl)}/paiement/retour?candidatureId=${candidature.id}`
   const result = await requestPayment({
     itemName: `Frais de dossier - ${candidature.programme.titre}`,
     itemPrice: total,
