@@ -36,7 +36,8 @@ export default defineEventHandler(async (event) => {
     where: { email: { equals: cleanEmail, mode: 'insensitive' } },
   })
 
-  if (user) {
+  // Compte désactivé : aucun lien de réinitialisation (réponse publique inchangée)
+  if (user && !user.deactivatedAt) {
     await prisma.user.update({
       where: { id: user.id },
       data: {

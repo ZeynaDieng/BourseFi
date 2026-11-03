@@ -19,6 +19,7 @@ import adminUserPatch from '../../server/api/admin/users/[id].patch'
 import bourses from '../../server/api/bourses.get'
 import bourseBySlug from '../../server/api/bourses/[slug].get'
 import brouillonGet from '../../server/api/candidatures/brouillon.get'
+import userStatut from '../../server/api/admin/users/[id]/statut.post'
 import brouillonPut from '../../server/api/candidatures/brouillon.put'
 import etablissements from '../../server/api/etablissements.get'
 
@@ -38,6 +39,7 @@ router.patch('/api/admin/users/:id', adminUserPatch)
 router.get('/api/bourses', bourses)
 router.get('/api/bourses/:slug', bourseBySlug)
 router.get('/api/candidatures/brouillon', brouillonGet)
+router.post('/api/admin/users/:id/statut', userStatut)
 router.put('/api/candidatures/brouillon', brouillonPut)
 router.get('/api/etablissements', etablissements)
 

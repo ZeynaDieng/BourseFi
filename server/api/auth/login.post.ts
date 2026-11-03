@@ -1,7 +1,7 @@
 import { compare } from 'bcryptjs'
 import { z } from 'zod'
 import { prisma } from '../../utils/prisma'
-import { createSession } from '../../utils/auth'
+import { createSession, DEACTIVATED_MESSAGE } from '../../utils/auth'
 import { writeAuditLog } from '../../utils/audit'
 import { rateLimit, rateLimitKey } from '../../utils/rate-limit'
 import { PARTNER_PORTAL_ENABLED } from '../../utils/product-config'
@@ -37,6 +37,11 @@ export default defineEventHandler(async (event) => {
   const isPasswordValid = await compare(password, user.passwordHash)
   if (!isPasswordValid) {
     throw createError({ statusCode: 401, statusMessage: 'Email ou mot de passe incorrect.' })
+  }
+
+  // Indiqué seulement avec le bon mot de passe : ne révèle rien à un tiers
+  if (user.deactivatedAt) {
+    throw createError({ statusCode: 403, statusMessage: DEACTIVATED_MESSAGE })
   }
 
   if (!user.emailVerified) {

@@ -12,7 +12,15 @@ function getSessionExpiry() {
   return expiresAt
 }
 
+export const DEACTIVATED_MESSAGE = 'Ce compte a été désactivé. Contactez l’équipe BourseFi pour plus d’informations.'
+
 export async function createSession(event: H3Event, userId: string) {
+  // Aucune session pour un compte désactivé, quel que soit le chemin (connexion, vérification d'email…)
+  const owner = await prisma.user.findUnique({ where: { id: userId }, select: { deactivatedAt: true } })
+  if (owner?.deactivatedAt) {
+    throw createError({ statusCode: 403, statusMessage: DEACTIVATED_MESSAGE })
+  }
+
   const token = randomBytes(48).toString('hex')
   const expiresAt = getSessionExpiry()
 
@@ -51,7 +59,8 @@ export async function getSessionUser(event: H3Event) {
   })
 
   if (!session) return null
-  if (session.expiresAt < new Date()) {
+  if (session.expiresAt < new Date() || session.user.deactivatedAt) {
+    // Session expirée, ou compte désactivé entre-temps : l'utilisateur est déconnecté partout
     await prisma.session.delete({ where: { id: session.id } })
     deleteCookie(event, COOKIE_NAME, { path: '/' })
     return null

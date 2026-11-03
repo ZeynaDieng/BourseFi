@@ -51,7 +51,7 @@ export async function runAutoRelanceEngine(options: RunEngineOptions = {}) {
     where: {
       status: 'EN_ATTENTE_PAIEMENT',
       isLost: false,
-      user: { relancesOptOutAt: null },
+      user: { relancesOptOutAt: null, deactivatedAt: null },
       OR: [
         { paiement: null },
         { paiement: { status: { not: 'Valide' } } },
@@ -184,6 +184,7 @@ export async function runAutoRelanceEngine(options: RunEngineOptions = {}) {
       role: 'STUDENT',
       candidatures: { none: {} },
       relancesOptOutAt: null,
+      deactivatedAt: null,
     },
   })
 

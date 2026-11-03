@@ -22,10 +22,12 @@ type UserRow = {
   hasIdentity: boolean
   profileComplete: boolean
   emailVerified: boolean
+  deactivatedAt: string | null
   createdAt: string
 }
 
 type UserDetail = UserRow & {
+  deactivationReason: string | null
   identityCardRectoUrl: string | null
   identityCardVersoUrl: string | null
   updatedAt: string
@@ -172,6 +174,7 @@ const filtered = computed(() => {
   }
   if (profileFilter.value === 'complete') list = list.filter((u) => u.profileComplete)
   if (profileFilter.value === 'incomplete') list = list.filter((u) => !u.profileComplete)
+  if (profileFilter.value === 'deactivated') list = list.filter((u) => u.deactivatedAt)
   return list
 })
 
@@ -270,6 +273,35 @@ async function saveUser() {
   }
 }
 
+const togglingStatus = ref(false)
+async function toggleUserActive() {
+  if (!detail.value || !selectedId.value) return
+  const activate = Boolean(detail.value.deactivatedAt)
+  let reason: string | null = null
+  if (!activate) {
+    reason = prompt(
+      `Désactiver le compte de ${detail.value.name} ?\n\nIl ne pourra plus se connecter, sera déconnecté de tous ses appareils et ne recevra plus de relances. Ses candidatures et paiements sont conservés.\n\nMotif (facultatif, visible uniquement par l’équipe) :`,
+      '',
+    )
+    if (reason === null) return
+  } else if (!confirm(`Réactiver le compte de ${detail.value.name} ? Il pourra de nouveau se connecter.`)) {
+    return
+  }
+
+  togglingStatus.value = true
+  try {
+    await $fetch(`/api/admin/users/${selectedId.value}/statut`, {
+      method: 'POST',
+      body: { active: activate, ...(reason ? { reason } : {}) },
+    })
+    await Promise.all([refresh(), loadDetail(selectedId.value)])
+  } catch (e: unknown) {
+    alert(getAdminErrorMessage(e))
+  } finally {
+    togglingStatus.value = false
+  }
+}
+
 async function deleteUser() {
   if (!detail.value || !selectedId.value) return
   const msg = detail.value.counts.candidatures
@@ -356,6 +388,7 @@ async function deleteUser() {
           <option value="">Tous les profils</option>
           <option value="complete">Profils complets</option>
           <option value="incomplete">Profils incomplets</option>
+          <option value="deactivated">Comptes désactivés</option>
         </select>
       </div>
       <p class="mt-2 text-xs text-slate-500">{{ filtered.length }} utilisateur(s) trouvé(s)</p>
@@ -408,6 +441,14 @@ async function deleteUser() {
                     {{ roleLabel(u.role) }}
                   </span>
                   <span
+                    v-if="u.deactivatedAt"
+                    class="inline-flex items-center gap-1 rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-[10px] font-bold text-red-700"
+                  >
+                    <span class="inline-block h-1.5 w-1.5 rounded-full bg-red-500"></span>
+                    Désactivé
+                  </span>
+                  <span
+                    v-else
                     class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold"
                     :class="u.emailVerified ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'"
                   >
@@ -477,6 +518,15 @@ async function deleteUser() {
       <div v-if="detailLoading" class="py-12 text-center text-sm text-slate-500">Chargement…</div>
 
       <div v-else-if="detail" class="space-y-6">
+        <div v-if="detail.deactivatedAt" class="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+          <span class="material-symbols-outlined text-[20px]">block</span>
+          <div>
+            <p class="font-bold">Compte désactivé le {{ formatDate(detail.deactivatedAt) }}</p>
+            <p v-if="detail.deactivationReason" class="mt-0.5">Motif : {{ detail.deactivationReason }}</p>
+            <p class="mt-0.5 text-xs text-red-700">Connexion impossible, plus de relances. Candidatures et paiements conservés.</p>
+          </div>
+        </div>
+
         <!-- Rôle & profil -->
         <section class="rounded-xl border border-slate-100 bg-slate-50/60 p-4">
           <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Modifier le compte</p>
@@ -510,7 +560,7 @@ async function deleteUser() {
             <div class="sm:col-span-2 rounded-lg border border-slate-200 bg-white p-3 space-y-3">
               <label class="flex items-center gap-2 cursor-pointer">
                 <input v-model="draftEmailVerified" type="checkbox" class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" />
-                <span class="text-xs font-bold text-slate-700">Compte activé (Email vérifié)</span>
+                <span class="text-xs font-bold text-slate-700">Email vérifié</span>
               </label>
               <label class="block pt-1 border-t border-slate-100">
                 <span class="text-[11px] font-semibold text-slate-500">Définir un nouveau mot de passe (Optionnel)</span>
@@ -620,6 +670,15 @@ async function deleteUser() {
         <div class="flex flex-wrap gap-2">
           <button type="button" class="admin-btn-secondary text-sm" @click="copyText(detail!.email)">
             Copier l'email
+          </button>
+          <button
+            type="button"
+            class="rounded-lg border px-4 py-2 text-sm font-semibold disabled:opacity-50"
+            :class="detail.deactivatedAt ? 'border-emerald-200 text-emerald-700 hover:bg-emerald-50' : 'border-amber-200 text-amber-700 hover:bg-amber-50'"
+            :disabled="togglingStatus"
+            @click="toggleUserActive"
+          >
+            {{ togglingStatus ? 'Enregistrement…' : detail.deactivatedAt ? 'Réactiver le compte' : 'Désactiver le compte' }}
           </button>
           <button
             type="button"

@@ -43,6 +43,8 @@ export default defineEventHandler(async (event) => {
     phone: user.phone,
     address: user.address,
     emailVerified: user.emailVerified,
+    deactivatedAt: user.deactivatedAt?.toISOString() ?? null,
+    deactivationReason: user.deactivationReason,
     identityCardRectoUrl: user.identityCardRectoUrl,
     identityCardVersoUrl: user.identityCardVersoUrl,
     profileComplete: Boolean(

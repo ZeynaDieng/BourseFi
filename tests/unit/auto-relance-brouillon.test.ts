@@ -139,7 +139,7 @@ describe('Relances — dossier en attente de paiement', () => {
   it('ne relance que les dossiers en attente de paiement, hors désabonnés', async () => {
     await runAutoRelanceEngine()
     expect(lastCandidatureWhere.status).toBe('EN_ATTENTE_PAIEMENT')
-    expect(lastCandidatureWhere.user).toEqual({ relancesOptOutAt: null })
+    expect(lastCandidatureWhere.user).toEqual({ relancesOptOutAt: null, deactivatedAt: null })
   })
 
   it('1h : attestation prête, chiffres réels, aperçu et lien de désabonnement', async () => {

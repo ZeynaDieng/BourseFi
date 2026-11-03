@@ -11,6 +11,8 @@ function id() {
 }
 
 function matchValue(actual: any, cond: any): boolean {
+  // Prisma : un champ optionnel absent vaut null
+  if (cond === null) return actual === null || actual === undefined
   if (cond && typeof cond === 'object' && !(cond instanceof Date)) {
     if ('equals' in cond) {
       if (cond.mode === 'insensitive') {

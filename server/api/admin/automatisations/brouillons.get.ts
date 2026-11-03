@@ -9,7 +9,7 @@ export default defineEventHandler(async (event) => {
   await requireRole(event, ['ADMIN'])
 
   const users = await prisma.user.findMany({
-    where: { role: 'STUDENT', applicationDraft: { not: Prisma.DbNull } },
+    where: { role: 'STUDENT', deactivatedAt: null, applicationDraft: { not: Prisma.DbNull } },
     orderBy: { updatedAt: 'desc' },
     take: 100,
     select: {

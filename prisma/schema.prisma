@@ -261,6 +261,9 @@ model User {
   applicationDraft       Json?
   /// Désabonné des relances automatiques (lien en bas des emails de relance)
   relancesOptOutAt       DateTime?
+  /// Compte désactivé depuis le backoffice : plus de connexion, sessions révoquées, plus de relances
+  deactivatedAt          DateTime?
+  deactivationReason     String?
 
   @@index([role])
   @@index([createdAt])
