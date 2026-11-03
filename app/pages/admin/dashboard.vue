@@ -231,6 +231,8 @@ function statusTone(status: string) {
           </div>
         </section>
 
+        <AdminParcoursFunnel />
+
         <!-- Bento KPI -->
         <section class="grid grid-cols-1 gap-4 md:grid-cols-12 md:gap-5">
           <article
