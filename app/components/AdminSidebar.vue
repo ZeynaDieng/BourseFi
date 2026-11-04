@@ -1,5 +1,28 @@
 <template>
-  <aside class="sticky top-0 h-screen w-64 shrink-0 overflow-y-auto border-r border-slate-200 bg-white p-4">
+  <!-- Téléphone : le menu s'ouvre par-dessus la page au lieu de prendre la moitié de l'écran -->
+  <button
+    type="button"
+    class="fixed bottom-4 left-4 z-40 inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-3 text-sm font-bold text-white shadow-xl lg:hidden"
+    aria-label="Ouvrir le menu"
+    @click="open = true"
+  >
+    <span class="material-symbols-outlined text-[20px]">menu</span>
+    Menu
+  </button>
+  <div v-if="open" class="fixed inset-0 z-40 bg-slate-900/40 lg:hidden" aria-hidden="true" @click="open = false" />
+
+  <aside
+    class="fixed inset-y-0 left-0 z-50 h-screen w-64 shrink-0 overflow-y-auto border-r border-slate-200 bg-white p-4 transition-transform lg:sticky lg:top-0 lg:z-auto lg:translate-x-0 lg:shadow-none"
+    :class="open ? 'translate-x-0 shadow-2xl' : '-translate-x-full'"
+  >
+    <button
+      type="button"
+      class="absolute right-3 top-3 rounded-full p-1.5 text-slate-400 hover:bg-slate-100 lg:hidden"
+      aria-label="Fermer le menu"
+      @click="open = false"
+    >
+      <span class="material-symbols-outlined text-[22px]">close</span>
+    </button>
     <div class="mb-8">
       <AppBrandLogo to="/admin/dashboard" img-class="h-12 w-auto max-h-14 object-contain object-left" />
       <p class="mt-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">Administration</p>
@@ -168,6 +191,11 @@
 </template>
 
 <script setup lang="ts">
+const open = ref(false)
+const route = useRoute()
+// Un lien choisi dans le menu (téléphone) le referme
+watch(() => route.fullPath, () => { open.value = false })
+
 async function logout() {
   await $fetch('/api/auth/logout', { method: 'POST' })
   await navigateTo('/auth/login')

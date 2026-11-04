@@ -1,5 +1,6 @@
 import { prisma } from '../../utils/prisma'
 import { requireRole } from '../../utils/auth'
+import { formationsCommencees } from '../../utils/application-draft'
 
 export default defineEventHandler(async (event) => {
   await requireRole(event, ['ADMIN'])
@@ -19,11 +20,14 @@ export default defineEventHandler(async (event) => {
       identityCardRectoUrl: true,
       identityCardVersoUrl: true,
       createdAt: true,
+      applicationDraft: true,
       partner: { select: { name: true } },
       _count: { select: { candidatures: true, paiements: true } },
     },
     orderBy: { createdAt: 'desc' },
   })
+
+  const commencees = await formationsCommencees(users)
 
   return users.map((u) => ({
     id: u.id,
@@ -44,5 +48,6 @@ export default defineEventHandler(async (event) => {
       u.firstName && u.lastName && u.phone && u.address && u.identityCardRectoUrl && u.identityCardVersoUrl
     ),
     createdAt: u.createdAt.toISOString(),
+    formationCommencee: commencees.get(u.id) ?? null,
   }))
 })

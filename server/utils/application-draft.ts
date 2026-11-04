@@ -51,3 +51,24 @@ export async function findActiveBourseForDraft(bourseSlug: string) {
     select: { id: true, slug: true, programmeId: true, programme: { select: { titre: true } } },
   })
 }
+
+export type FormationCommencee = { titre: string; ecole: string; updatedAt: string }
+
+/** Formation choisie par chaque étudiant qui n'a pas encore envoyé son dossier (pour l'admin). */
+export async function formationsCommencees(users: Array<{ id: string; applicationDraft: unknown }>) {
+  const drafts = new Map(users.map((u) => [u.id, parseApplicationDraft(u.applicationDraft)]))
+  const slugs = [...new Set([...drafts.values()].flatMap((d) => (d ? [d.bourseSlug] : [])))]
+  const bourses = slugs.length
+    ? await prisma.bourse.findMany({
+        where: { slug: { in: slugs } },
+        select: { slug: true, programme: { select: { titre: true, etablissement: { select: { nom: true } } } } },
+      })
+    : []
+  const bySlug = new Map(bourses.map((b) => [b.slug, b]))
+  const result = new Map<string, FormationCommencee>()
+  for (const [userId, d] of drafts) {
+    const b = d ? bySlug.get(d.bourseSlug) : null
+    if (d && b) result.set(userId, { titre: b.programme.titre, ecole: b.programme.etablissement.nom, updatedAt: d.updatedAt })
+  }
+  return result
+}

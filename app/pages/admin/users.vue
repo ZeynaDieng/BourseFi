@@ -19,6 +19,7 @@ type UserRow = {
   partnerName: string | null
   candidaturesCount: number
   paiementsCount: number
+  formationCommencee: { titre: string; ecole: string; updatedAt: string } | null
   hasIdentity: boolean
   profileComplete: boolean
   emailVerified: boolean
@@ -210,6 +211,27 @@ async function loadDetail(id: string) {
 
 async function openDetailById(id: string) {
   await loadDetail(id)
+}
+
+// Même message que le tableau « Candidatures commencées » de la page Automatisations
+const draftWhatsappSending = ref(false)
+async function sendDraftWhatsapp(userId: string) {
+  // Fenêtre ouverte avant l'appel réseau pour ne pas être bloquée par le navigateur
+  const win = window.open('', '_blank')
+  draftWhatsappSending.value = true
+  try {
+    const res = await $fetch<{ whatsappUrl: string }>('/api/admin/automatisations/brouillons-whatsapp', {
+      method: 'POST',
+      body: { userId },
+    })
+    if (win) win.location.href = res.whatsappUrl
+    else window.location.href = res.whatsappUrl
+  } catch (e: unknown) {
+    win?.close()
+    alert(getAdminErrorMessage(e, 'Impossible de préparer le message WhatsApp.'))
+  } finally {
+    draftWhatsappSending.value = false
+  }
 }
 
 function openDetail(user: UserRow) {
@@ -472,6 +494,10 @@ async function deleteUser() {
               <td class="admin-td">
                 <span class="font-semibold">{{ u.candidaturesCount }}</span>
                 <span v-if="u.paiementsCount" class="text-xs text-slate-400"> · {{ u.paiementsCount }} paiement(s)</span>
+                <span v-if="u.formationCommencee" class="mt-1 block max-w-[220px] text-[11px] leading-snug text-amber-700">
+                  <span class="font-semibold">Commencée :</span> {{ u.formationCommencee.titre }}
+                  <span class="text-slate-400">— {{ u.formationCommencee.ecole }}</span>
+                </span>
               </td>
               <td class="admin-td text-xs text-slate-500">{{ formatDate(u.createdAt) }}</td>
               <td class="admin-td text-right">
@@ -498,6 +524,10 @@ async function deleteUser() {
             </span>
             <span class="text-slate-500">{{ u.candidaturesCount }} candidature(s)</span>
           </div>
+          <p v-if="u.formationCommencee" class="text-xs text-amber-700">
+            <span class="font-semibold">Commencée :</span> {{ u.formationCommencee.titre }}
+            <span class="text-slate-400">— {{ u.formationCommencee.ecole }}</span>
+          </p>
           <button type="button" class="admin-btn-primary w-full text-sm" @click="openDetail(u)">
             Voir le dossier
           </button>
@@ -624,7 +654,22 @@ async function deleteUser() {
               Voir toutes →
             </NuxtLink>
           </div>
-          <div v-if="!detail.candidatures.length" class="mt-2 text-sm text-slate-500">Aucune candidature.</div>
+          <!-- Bourse choisie à l'inscription, dossier pas encore envoyé -->
+          <div v-if="detail.formationCommencee" class="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3">
+            <p class="text-[11px] font-bold uppercase tracking-wider text-amber-700">Candidature commencée, non envoyée</p>
+            <p class="mt-1 text-sm font-semibold text-slate-800">{{ detail.formationCommencee.titre }}</p>
+            <p class="text-xs text-slate-500">{{ detail.formationCommencee.ecole }} · dernière saisie le {{ formatDate(detail.formationCommencee.updatedAt) }}</p>
+            <button
+              type="button"
+              class="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-[#25D366] px-3 py-1.5 text-xs font-bold text-white shadow-sm transition hover:opacity-90 disabled:opacity-50"
+              :disabled="draftWhatsappSending"
+              @click="sendDraftWhatsapp(detail.id)"
+            >
+              <span class="material-symbols-outlined text-[16px]">chat</span>
+              {{ draftWhatsappSending ? 'Préparation…' : 'Relancer sur WhatsApp' }}
+            </button>
+          </div>
+          <div v-if="!detail.candidatures.length && !detail.formationCommencee" class="mt-2 text-sm text-slate-500">Aucune candidature.</div>
           <ul v-else class="mt-3 space-y-2">
             <li
               v-for="c in detail.candidatures"

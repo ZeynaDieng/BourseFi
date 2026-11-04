@@ -1,6 +1,7 @@
 import { prisma } from '../../../utils/prisma'
 import { requireRole } from '../../../utils/auth'
 import { statusLabel } from '../../../utils/candidature-status'
+import { formationsCommencees } from '../../../utils/application-draft'
 
 export default defineEventHandler(async (event) => {
   await requireRole(event, ['ADMIN'])
@@ -33,6 +34,8 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, statusMessage: 'Utilisateur introuvable.' })
   }
 
+  const formationCommencee = (await formationsCommencees([user])).get(user.id) ?? null
+
   return {
     id: user.id,
     name: user.name,
@@ -59,6 +62,8 @@ export default defineEventHandler(async (event) => {
     createdAt: user.createdAt.toISOString(),
     updatedAt: user.updatedAt.toISOString(),
     counts: user._count,
+    // Bourse choisie à l'inscription, dossier pas encore envoyé
+    formationCommencee,
     candidatures: user.candidatures.map((c) => ({
       id: c.id,
       fullName: c.fullName,
