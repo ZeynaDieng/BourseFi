@@ -31,7 +31,7 @@ type ContactItem = {
   isActive: boolean
 }
 
-type BourseRow = {
+export type BourseRow = {
   id: string
   slug: string
   titre: string
@@ -296,3 +296,27 @@ export function serializeBourseCard(b: BourseRow): BourseCard {
   const full = serializePublicBourse(b) as Record<string, unknown>
   return Object.fromEntries(CARD_FIELDS.filter((k) => k in full).map((k) => [k, full[k]])) as BourseCard
 }
+
+/**
+ * Requête des cartes : mêmes relations que `bourseInclude`, sans les colonnes de texte long ni les
+ * contacts, inutiles aux cartes (~3,5 Mo lus en base à chaque calcul de la liste sinon).
+ */
+export const bourseCardQuery = {
+  omit: { conditions: true, documentsRequis: true, metaTitle: true, metaDescription: true, ogImageUrl: true },
+  include: {
+    programme: {
+      omit: {
+        placement: true, description: true, eligibilite: true, brochureUrl: true, perspectives: true, objectifs: true,
+        competences: true, programmePedagogique: true, debouches: true, secteurs: true, conditionsAdmission: true,
+        documentsRequis: true, modalites: true, stage: true, examens: true, poursuiteEtudes: true,
+        metaTitle: true, metaDescription: true, ogImageUrl: true,
+      },
+      include: {
+        etablissement: { omit: { resume: true, accreditation: true } },
+        tarifs: { where: { status: 'ACTIVE' }, orderBy: { createdAt: 'desc' } },
+      },
+    },
+    partner: { omit: { description: true, conditions: true } },
+  },
+} as const
+
