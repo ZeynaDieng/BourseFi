@@ -273,3 +273,26 @@ export const bourseInclude = {
   },
   partner: true,
 } as const
+
+/**
+ * Version « carte » pour les listes publiques (accueil, catalogue, recherche, pages école) :
+ * seulement ce qu'affichent les cartes et ce que la recherche interroge. Les textes longs,
+ * contacts et tarifs détaillés restent sur `/api/bourses/[slug]` (la liste complète pesait ~2,8 Mo).
+ */
+const CARD_FIELDS = [
+  'id', 'slug', 'titre', 'isActive',
+  'programmeId', 'programmeSlug', 'programmeTitre', 'programmeNiveau', 'programmeDuree',
+  'etablissement', 'etablissementSlug', 'etablissementLogoUrl', 'isDirectPartner',
+  'partnerName', 'partnerSlug', 'ville',
+  'hasTuitionFee', 'tuitionFee', 'anneeAcademique', 'coveragePercent', 'montantMax', 'montantBourse', 'resteACharge',
+  'economie', 'economiePercent', 'pricingStatus', 'isTarifDirect',
+  'fraisDossier', 'devise', 'dateLimite',
+] as const
+
+type PublicBourse = ReturnType<typeof serializePublicBourse>
+export type BourseCard = Pick<PublicBourse, (typeof CARD_FIELDS)[number] & keyof PublicBourse>
+
+export function serializeBourseCard(b: BourseRow): BourseCard {
+  const full = serializePublicBourse(b) as Record<string, unknown>
+  return Object.fromEntries(CARD_FIELDS.filter((k) => k in full).map((k) => [k, full[k]])) as BourseCard
+}

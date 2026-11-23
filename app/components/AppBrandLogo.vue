@@ -21,7 +21,7 @@ const alt = 'BourseFi  Plateforme de gestion de bourses'
     class="inline-flex shrink-0 items-center rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary-fixed focus-visible:ring-offset-2"
   >
     <img
-      src="/boursefi-logo.png"
+      src="/boursefi-logo-web.png"
       :alt="alt"
       width="280"
       height="82"
@@ -32,7 +32,7 @@ const alt = 'BourseFi  Plateforme de gestion de bourses'
   </NuxtLink>
   <div v-else class="inline-flex shrink-0 items-center">
     <img
-      src="/boursefi-logo.png"
+      src="/boursefi-logo-web.png"
       :alt="alt"
       width="280"
       height="82"

@@ -86,14 +86,19 @@ describe('V5 — API publiques : liste blanche des champs', () => {
     expect(r.rawBody).not.toContain('perso@interne') // contact inactif
   })
 
-  it('V5.2 /api/bourses conserve les données nécessaires à l’interface publique', async () => {
+  it('V5.2 /api/bourses : version « carte » légère, détails réservés à /api/bourses/[slug]', async () => {
     const r = await call('GET', '/api/bourses')
     const b = r.body[0]
-    for (const k of ['id', 'slug', 'titre', 'programmeId', 'programmeSlug', 'etablissement', 'etablissementSlug',
-      'partnerName', 'ville', 'coveragePercent', 'fraisDossier', 'devise', 'dateLimite', 'isActive', 'tarifs', 'quota']) {
+    for (const k of ['id', 'slug', 'titre', 'programmeId', 'programmeSlug', 'programmeTitre', 'programmeNiveau', 'etablissement',
+      'etablissementSlug', 'partnerName', 'ville', 'coveragePercent', 'fraisDossier', 'devise', 'dateLimite', 'isActive']) {
       expect(b, k).toHaveProperty(k)
     }
-    expect(b.tarifs[0]).toMatchObject({ id: 't1', montant: 1000000, anneeAcademique: '2026-2027', isDefault: true })
+    // Textes longs, contacts et tarifs détaillés : uniquement sur la page de la bourse
+    for (const k of ['tarifs', 'etablissementContacts', 'programmeDescription', 'conditions', 'documentsRequis']) {
+      expect(b, k).not.toHaveProperty(k)
+    }
+    const detail = await call('GET', `/api/bourses/${b.slug}`)
+    expect(detail.body.tarifs[0]).toMatchObject({ id: 't1', montant: 1000000, anneeAcademique: '2026-2027', isDefault: true })
   })
 
   it('V5.3 /api/bourses/[slug] applique la même liste blanche', async () => {

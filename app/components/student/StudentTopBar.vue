@@ -49,7 +49,7 @@ function openSearch() {
   <header class="sticky top-0 z-50 h-16 border-b border-slate-100 bg-white/95 backdrop-blur">
     <div class="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 md:px-6">
       <NuxtLink to="/etudiant/profil" class="flex items-center gap-2">
-        <img src="/boursefi-logo.png" alt="BourseFi" class="h-8 w-8 rounded-lg object-contain" @error="onLogoError" />
+        <img src="/boursefi-logo-web.png" alt="BourseFi" class="h-8 w-8 rounded-lg object-contain" @error="onLogoError" />
         <span class="font-headline text-lg font-extrabold text-primary">BourseFi</span>
         <span class="ml-1 hidden rounded-full bg-primary/5 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary sm:inline">
           Espace étudiant

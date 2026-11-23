@@ -3,10 +3,21 @@ import Fuse from "fuse.js";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import type { PartnerSchoolCardEcole } from "~/types/partner-school-card";
 
-const { data: ecoles } = await useFetch("/api/etablissements");
+// Seules les 8 premières écoles sont affichées : on ne garde qu'elles dans la page envoyée au navigateur
+const { data: ecoles } = await useFetch("/api/etablissements", {
+  key: "accueil-ecoles",
+  transform: (list: unknown[]) => list.slice(0, 8),
+});
 const { data: site } = await usePublicSite();
 const { data: publicStats } = await useFetch("/api/stats/public");
-const { data: allBourses } = await useFetch("/api/bourses");
+// Recherche instantanée : chargée après l'affichage de la page (rien dans le HTML), champs de recherche seulement
+const { data: allBourses } = useFetch("/api/bourses", {
+  key: "accueil-recherche-bourses",
+  server: false,
+  lazy: true,
+  transform: (list: Array<{ id: string; titre: string; slug: string; etablissement: string; partnerName: string; programmeTitre: string }>) =>
+    list.map(({ id, titre, slug, etablissement, partnerName, programmeTitre }) => ({ id, titre, slug, etablissement, partnerName, programmeTitre })),
+});
 
 const ecolesPartenairesLanding = computed(
   () =>

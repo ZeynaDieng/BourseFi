@@ -311,7 +311,7 @@ useSeoMeta({ title: 'Paiement  BourseFi' })
     <header class="border-b border-slate-200 bg-white">
       <div class="mx-auto flex max-w-5xl items-center justify-between px-4 py-4 sm:px-6">
         <NuxtLink to="/" class="flex items-center gap-2">
-          <img src="/boursefi-logo.png" alt="BourseFi" class="h-8 w-auto" @error="onLogoError" />
+          <img src="/boursefi-logo-web.png" alt="BourseFi" class="h-8 w-auto" @error="onLogoError" />
           <span class="font-headline text-xl font-extrabold text-primary">BourseFi</span>
         </NuxtLink>
 

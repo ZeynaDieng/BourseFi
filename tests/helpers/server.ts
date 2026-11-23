@@ -3,6 +3,7 @@ import { createHmac, randomBytes } from 'node:crypto'
 import bcrypt from 'bcryptjs'
 import { createFakeDb, type FakeDb } from './fake-db'
 import type { SentEmail } from './setup-mocks'
+import { clearPublicBourses } from '../../server/utils/public-bourses-cache'
 
 import register from '../../server/api/auth/register.post'
 import login from '../../server/api/auth/login.post'
@@ -66,6 +67,7 @@ export function setEmailFailure(fail: boolean) {
 }
 
 export function resetEnv() {
+  clearPublicBourses()
   ;(globalThis as any).__fakeDb = createFakeDb()
   ;(globalThis as any).__sentEmails = []
   ;(globalThis as any).__emailShouldFail = false
