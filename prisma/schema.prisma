@@ -314,6 +314,8 @@ model Candidature {
   institution          String            @default("")
   field                String            @default("")
   level                String            @default("Non precise")
+  /// Modalité propre à ce dossier (cours du jour, du soir…), corrigeable par l'admin sans toucher à la formation
+  modalite             String?
   lastEducationLevel   String            @default("")
   lastDiploma          String            @default("")
   graduationDate       String            @default("")

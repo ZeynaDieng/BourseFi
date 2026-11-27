@@ -56,6 +56,7 @@ export default defineEventHandler(async (event) => {
     institution: c.institution,
     field: c.field,
     level: c.level,
+    modalite: c.modalite,
     lastEducationLevel: c.lastEducationLevel,
     lastDiploma: c.lastDiploma,
     graduationDate: c.graduationDate,

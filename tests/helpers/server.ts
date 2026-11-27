@@ -25,6 +25,7 @@ import lienConnexion from '../../server/api/auth/lien-connexion.post'
 import connexionCode from '../../server/api/auth/connexion-code.post'
 import connexionCodeVerifier from '../../server/api/auth/connexion-code-verifier.post'
 import attestationWhatsapp from '../../server/api/admin/candidatures/[id]/attestation-whatsapp.post'
+import adminCandidaturePatch from '../../server/api/admin/candidatures/[id].patch'
 
 const router = createRouter()
 router.post('/api/auth/register', register)
@@ -47,6 +48,7 @@ router.post('/api/auth/lien-connexion', lienConnexion)
 router.post('/api/auth/connexion-code', connexionCode)
 router.post('/api/auth/connexion-code-verifier', connexionCodeVerifier)
 router.post('/api/admin/candidatures/:id/attestation-whatsapp', attestationWhatsapp)
+router.patch('/api/admin/candidatures/:id', adminCandidaturePatch)
 
 const app = createApp()
 app.use(router)

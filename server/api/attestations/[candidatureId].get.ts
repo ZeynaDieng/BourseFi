@@ -106,7 +106,7 @@ export default defineEventHandler(async (event) => {
   const niveau = (candidature.level && candidature.level !== 'Non precise' && candidature.level !== 'Non précisé' && candidature.level.trim().length > 0)
     ? candidature.level.trim()
     : (candidature.programme.niveau || 'Licence')
-  const rawModalite = candidature.programme.modalites?.trim()
+  const rawModalite = candidature.modalite?.trim() || candidature.programme.modalites?.trim()
   const modalite = (!rawModalite || rawModalite.toLowerCase().includes('non précisé') || rawModalite.toLowerCase().includes('non precis'))
     ? 'Présentiel'
     : (rawModalite.length > 30 

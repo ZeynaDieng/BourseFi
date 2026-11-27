@@ -4,6 +4,8 @@ import { requireRole } from '../../../utils/auth'
 import { writeAuditLog } from '../../../utils/audit'
 import { sendEmail, renderEmail } from '../../../utils/email'
 
+// Avec Zod 4, un champ « transformé » devient obligatoire : sans `.optional()`, un champ absent du
+// formulaire (adresse vide…) faisait refuser tout l'enregistrement (« expected nonoptional »).
 const optionalTrimmedString = z
   .union([z.string(), z.null(), z.undefined()])
   .transform((v) => {
@@ -11,6 +13,7 @@ const optionalTrimmedString = z
     const trimmed = String(v).trim()
     return trimmed.length > 0 ? trimmed : undefined
   })
+  .optional()
 
 const optionalEmail = z
   .union([z.string(), z.null(), z.undefined()])
@@ -22,6 +25,7 @@ const optionalEmail = z
   .refine((v) => !v || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v), {
     message: 'Adresse email invalide.',
   })
+  .optional()
 
 const patchSchema = z.object({
   firstName: optionalTrimmedString,
@@ -111,20 +115,9 @@ export default defineEventHandler(async (event) => {
     candidatureData.targetProgram = parsed.data.targetProgram
   }
 
-  // 3. Mise à jour de la modalité (ex: Présentiel, Cours du jour, Cours du soir)
-  if (parsed.data.modalite !== undefined) {
-    const progId = (candidatureData.programmeId || candidature.programmeId) as string
-    if (progId) {
-      try {
-        await prisma.programme.update({
-          where: { id: progId },
-          data: { modalites: parsed.data.modalite },
-        })
-      } catch (modErr) {
-        console.warn('Erreur mise à jour modalite sur le programme:', modErr)
-      }
-    }
-  }
+  // 3. Modalité (ex: Présentiel, Cours du jour, Cours du soir) : propre à ce dossier.
+  // Avant, elle était écrite sur la formation et changeait l'attestation de tous ses étudiants.
+  if (parsed.data.modalite !== undefined) candidatureData.modalite = parsed.data.modalite
 
   // 4. Numéro d'attestation
   if (parsed.data.attestationNumber !== undefined) {

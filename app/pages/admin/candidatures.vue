@@ -60,6 +60,7 @@ type DossierDetail = DossierRow & {
   institution: string
   field: string
   level: string
+  modalite?: string | null
   lastEducationLevel: string
   lastDiploma: string
   graduationDate: string
@@ -623,7 +624,7 @@ async function openEditModal() {
   editForm.targetProgram = detail.value.targetProgram || detail.value.programme?.titre || ''
   editForm.institution = detail.value.institution || detail.value.programme?.etablissement?.nom || ''
   editForm.level = detail.value.level && detail.value.level !== 'Non precise' ? detail.value.level : (detail.value.programme?.niveau || 'Licence 1')
-  editForm.modalite = detail.value.programme?.modalites || 'Présentiel'
+  editForm.modalite = detail.value.modalite || detail.value.programme?.modalites || 'Présentiel'
   editForm.attestationNumber = detail.value.attestationNumber || ''
   editForm.lastEducationLevel = detail.value.lastEducationLevel || ''
   editForm.lastDiploma = detail.value.lastDiploma || ''
@@ -1488,7 +1489,7 @@ async function copyWhatsAppActivation(email: string) {
     <!-- MODAL CRÉATION DIRECTE D'ATTESTATION (ÉLÈVE EN AGENCE / HORS-SITE) -->
     <div
       v-if="createModalOpen"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs animate-fade-in"
+      class="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs animate-fade-in"
     >
       <div class="w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl animate-scale-up">
         <!-- Header Modal -->
@@ -1630,7 +1631,7 @@ async function copyWhatsAppActivation(email: string) {
     <!-- MODAL MODIFICATION CANDIDAT & DOSSIER -->
     <div
       v-if="editModalOpen"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs animate-fade-in"
+      class="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs animate-fade-in"
     >
       <div class="w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl animate-scale-up">
         <!-- Header Modal -->
@@ -1796,7 +1797,7 @@ async function copyWhatsAppActivation(email: string) {
     <!-- MODAL ACTIVATION COMPTE ÉTUDIANT DEPUIS DOSSIER -->
     <div
       v-if="activateModalOpen"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs animate-fade-in"
+      class="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs animate-fade-in"
     >
       <div class="w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl animate-scale-up">
         <!-- Header -->

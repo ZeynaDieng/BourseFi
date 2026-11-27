@@ -145,6 +145,12 @@ export function createFakeDb() {
     },
     programme: {
       findUnique: async (args: any) => programmes.find((p) => matches(p, args.where)) ?? null,
+      update: async (args: any) => {
+        log('programme', 'update', args)
+        const row = programmes.find((p) => matches(p, args.where))
+        if (row) Object.assign(row, args.data)
+        return row ?? null
+      },
     },
     bourse: {
       findFirst: async (args: any = {}) => {
